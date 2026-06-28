@@ -79,11 +79,14 @@
 
   <!-- branch down to three analysis tracks -->
   <g stroke="#0d3b66" stroke-width="2" fill="none">
-    <path d="M735 278 L735 308 L210 308" marker-end="url(#a2)"/>
-    <path d="M735 308 L470 308" />
-    <path d="M735 308 L735 338" marker-end="url(#a2)"/>
+    <!-- connector from osm_graph down to the distribution bus (no head) -->
+    <path d="M735 278 L735 308"/>
+    <!-- horizontal distribution bus (no head) -->
+    <path d="M210 308 L735 308"/>
+    <!-- three vertical drops, each with a single arrowhead -->
     <line x1="210" y1="308" x2="210" y2="338" marker-end="url(#a2)"/>
     <line x1="470" y1="308" x2="470" y2="338" marker-end="url(#a2)"/>
+    <line x1="735" y1="308" x2="735" y2="338" marker-end="url(#a2)"/>
   </g>
 
   <!-- three Rust analysis boxes -->
