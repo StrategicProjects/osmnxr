@@ -18,10 +18,20 @@ navbar:
       menu:
         - text: Getting started
           href: articles/getting-started.html
+        - text: "---"
         - text: Routing and isochrones
           href: articles/routing-and-isochrones.html
+        - text: Accessibility analysis
+          href: articles/accessibility.html
+        - text: "---"
+        - text: Urban metrics
+          href: articles/urban-metrics.html
         - text: Street orientation
           href: articles/street-orientation.html
+        - text: Features and points of interest
+          href: articles/features-and-pois.html
+        - text: Interoperability and export
+          href: articles/interoperability.html
 
 home:
   title: "osmnxr: OpenStreetMap street networks for R"
@@ -38,6 +48,12 @@ reference:
       - ox_graph_from_address
       - ox_graph_from_point
       - ox_graph_from_bbox
+
+  - title: "Features"
+    desc: "Download points of interest, buildings and amenities."
+    contents:
+      - ox_features_from_place
+      - ox_features_from_bbox
 
   - title: "Geocoding"
     contents:
@@ -71,6 +87,7 @@ reference:
       - ox_circuity
       - ox_bearings
       - ox_orientation_entropy
+      - ox_plot_orientation
 
   - title: "Interoperability"
     desc: "Hand graphs to the wider R network ecosystem."

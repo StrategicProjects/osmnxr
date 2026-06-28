@@ -31,3 +31,9 @@ First development version. Initial scaffold of *OSMnx for R*.
   fragment), and `ox_save_graphml()` / `ox_load_graphml()` for a lossless
   round-trip (edge geometry stored as WKT), compatible with OSMnx / NetworkX /
   Gephi.
+* Feature downloads: `ox_features_from_place()` and `ox_features_from_bbox()`
+  fetch POIs, buildings and amenities from OpenStreetMap as tidy `sf` points.
+* `ox_plot_orientation()` draws a polar rose plot of street bearings (ggplot2).
+* Documentation: vignettes "Urban metrics", "Street orientation", "Features and
+  points of interest", "Interoperability and export" and "Accessibility
+  analysis"; full pkgdown reference and articles menu.

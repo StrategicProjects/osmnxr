@@ -1,0 +1,66 @@
+---
+title: "Urban metrics"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Urban metrics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6, fig.height = 5)
+```
+
+```{r setup}
+library(osmnxr)
+```
+
+`osmnxr` summarises a street network with a handful of metrics, all computed in
+the Rust core. This article uses the offline grid; the workflow is identical on
+a network from `ox_graph_from_place()`.
+
+```{r}
+g <- example_osm_graph(n = 8, spacing = 100)
+```
+
+## Basic statistics
+
+`ox_basic_stats()` reports node and edge counts, total and mean edge length,
+mean out-degree, self-loops and average circuity:
+
+```{r}
+ox_basic_stats(g)
+```
+
+## Circuity
+
+Circuity is the ratio of street length to straight-line distance between edge
+endpoints. A value of `1` means perfectly straight streets; higher values mean
+more winding ones. A grid is exactly straight:
+
+```{r}
+ox_circuity(g)
+```
+
+## Centrality
+
+Which intersections carry the most through-traffic, and which are most central?
+`ox_centrality()` returns betweenness (Brandes' algorithm) and closeness:
+
+```{r}
+ct <- ox_centrality(g, normalized = TRUE)
+ct[order(-ct$betweenness), ][1:5, ]
+```
+
+Join the scores back onto the nodes to map them:
+
+```{r}
+nodes <- g$nodes
+nodes$betweenness <- ct$betweenness[match(nodes$osmid, ct$osmid)]
+plot(g, col = "grey85")
+plot(nodes["betweenness"], pch = 19, add = TRUE)
+```
+
+The most between-central nodes sit in the core of the grid — exactly where
+shortest paths concentrate. On a real network this highlights structurally
+important junctions for mobility and resilience planning.

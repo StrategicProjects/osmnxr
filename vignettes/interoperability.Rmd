@@ -1,0 +1,84 @@
+---
+title: "Interoperability and export"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Interoperability and export}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+has_sfn <- requireNamespace("sfnetworks", quietly = TRUE)
+has_tg  <- requireNamespace("tidygraph", quietly = TRUE)
+```
+
+```{r setup}
+library(osmnxr)
+g <- example_osm_graph(n = 5)
+```
+
+An `osm_graph` is deliberately thin: tidy `sf` nodes and edges. That makes it
+easy to hand off to the rest of the R spatial-network ecosystem, or to export
+for other tools.
+
+## sf
+
+The nodes and edges are always available as `sf`:
+
+```{r}
+parts <- ox_as_sf(g)
+parts$edges
+```
+
+## sfnetworks and tidygraph
+
+Convert to an `sfnetwork` for the `tidygraph` verb workflow, or to a bare
+`tbl_graph`:
+
+```{r, eval = has_sfn}
+net <- ox_as_sfnetwork(g)
+net
+```
+
+```{r, eval = has_tg}
+tg <- ox_as_tidygraph(g)
+tg
+```
+
+## dodgr
+
+`ox_as_dodgr()` returns the column layout `dodgr` expects, so you can use its
+highly optimised routing directly:
+
+```{r, eval = FALSE}
+library(dodgr)
+graph <- ox_as_dodgr(g)
+dodgr_dists(graph, from = graph$from_id[1], to = graph$to_id[10])
+```
+
+## GeoJSON and MapLibre
+
+Export edges to GeoJSON, or build a MapLibre GL style fragment that points at
+the written data:
+
+```{r}
+gj <- tempfile(fileext = ".geojson")
+ox_to_geojson(g, gj)
+
+style <- ox_to_maplibre(g, tempfile(fileext = ".geojson"))
+str(style, max.level = 2)
+```
+
+## GraphML round-trip
+
+`ox_save_graphml()` / `ox_load_graphml()` persist the graph in a format
+compatible with OSMnx, NetworkX and Gephi. Edge geometry is stored as WKT, so
+the round-trip is lossless:
+
+```{r}
+f <- tempfile(fileext = ".graphml")
+ox_save_graphml(g, f)
+g2 <- ox_load_graphml(f)
+ox_basic_stats(g2)
+```

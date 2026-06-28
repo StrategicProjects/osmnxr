@@ -1,0 +1,66 @@
+---
+title: "Street orientation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Street orientation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 5, fig.height = 5)
+has_ggplot <- requireNamespace("ggplot2", quietly = TRUE)
+```
+
+```{r setup}
+library(osmnxr)
+```
+
+Street-orientation analysis asks how ordered a city's grid is. `osmnxr`
+computes the compass bearing of every edge and summarises the distribution with
+Shannon entropy, all in the Rust core.
+
+## Bearings
+
+```{r}
+g <- example_osm_graph(n = 6, spacing = 100)
+b <- ox_bearings(g)
+table(round(b))
+```
+
+A regular grid points in only a few directions, so its bearings cluster.
+
+## Orientation entropy
+
+Entropy (in nats) is low for an ordered gridiron and high for a disordered,
+organic network. The perfectly aligned grid sits near the low end:
+
+```{r}
+ox_orientation_entropy(g)
+```
+
+For comparison, a network whose streets ran in every direction equally would
+approach `log(num_bins)`:
+
+```{r}
+log(36)
+```
+
+## Rose plot
+
+`ox_plot_orientation()` draws the classic polar histogram of bearings (requires
+`ggplot2`):
+
+```{r, eval = has_ggplot}
+ox_plot_orientation(g, num_bins = 36)
+```
+
+With a real network this is where the character of a city shows: download one
+with `ox_graph_from_place()`, simplify it, and plot:
+
+```{r, eval = FALSE}
+city <- ox_graph_from_place("Manhattan, New York, USA", network_type = "drive")
+city <- ox_simplify(city)
+ox_orientation_entropy(city) # low: a famous grid
+ox_plot_orientation(city)
+```

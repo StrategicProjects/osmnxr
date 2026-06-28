@@ -73,6 +73,46 @@ ox_bearings <- function(g) {
   rs_bearings(ends[, 2], ends[, 1], ends[, 4], ends[, 3])
 }
 
+#' Polar plot of street orientations
+#'
+#' Draws a polar histogram (rose plot) of edge compass bearings, the standard
+#' visual summary of a street network's orientation order. Requires `ggplot2`.
+#'
+#' @param g An [osm_graph][new_osm_graph].
+#' @param num_bins Number of equal bearing sectors. Default `36`.
+#' @param fill Bar fill colour. Default the package blue.
+#'
+#' @return A `ggplot` object.
+#' @export
+#'
+#' @examplesIf rlang::is_installed("ggplot2")
+#' g <- example_osm_graph()
+#' ox_plot_orientation(g)
+ox_plot_orientation <- function(g, num_bins = 36, fill = "#0d3b66") {
+  stopifnot(is_osm_graph(g))
+  rlang::check_installed("ggplot2")
+  b <- ox_bearings(g)
+  bw <- 360 / num_bins
+  idx <- floor((b %% 360) / bw)
+  idx[idx >= num_bins] <- num_bins - 1
+  centers <- (idx + 0.5) * bw
+  levels <- (seq_len(num_bins) - 0.5) * bw
+  counts <- as.data.frame(table(factor(centers, levels = levels)))
+  names(counts) <- c("bearing", "count")
+  counts$bearing <- as.numeric(as.character(counts$bearing))
+
+  ggplot2::ggplot(counts, ggplot2::aes(x = .data$bearing, y = .data$count)) +
+    ggplot2::geom_col(width = bw, fill = fill, colour = "white", linewidth = 0.2) +
+    ggplot2::coord_polar(start = 0) +
+    ggplot2::scale_x_continuous(
+      limits = c(0, 360),
+      breaks = seq(0, 315, 45),
+      labels = c("N", "NE", "E", "SE", "S", "SW", "W", "NW")
+    ) +
+    ggplot2::labs(x = NULL, y = NULL, title = "Street orientation") +
+    ggplot2::theme_minimal()
+}
+
 #' Node centrality
 #'
 #' Computes betweenness and/or closeness centrality for every node, using the
