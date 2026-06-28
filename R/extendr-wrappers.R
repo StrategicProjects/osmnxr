@@ -26,4 +26,14 @@ rs_orientation_entropy <- function(bearings, num_bins) .Call(wrap__rs_orientatio
 #' @keywords internal
 rs_bearings <- function(lat1, lon1, lat2, lon2) .Call(wrap__rs_bearings, lat1, lon1, lat2, lon2)
 
+#' Simplified node chains between topological endpoints. Returns a list of
+#' 0-based node-index vectors, one per merged edge.
+#' @keywords internal
+rs_simplify_paths <- function(from, to, n_nodes) .Call(wrap__rs_simplify_paths, from, to, n_nodes)
+
+#' Connected-component label (0-based root index) for each node, given
+#' undirected `a`--`b` adjacency pairs.
+#' @keywords internal
+rs_connected_components <- function(a, b, n_nodes) .Call(wrap__rs_connected_components, a, b, n_nodes)
+
 # nolint end

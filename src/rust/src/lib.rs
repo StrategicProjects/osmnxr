@@ -3,6 +3,7 @@ use extendr_api::prelude::*;
 mod graph;
 mod metrics;
 mod routing;
+mod simplify;
 
 use graph::Graph;
 
@@ -75,6 +76,27 @@ fn rs_bearings(lat1: Vec<f64>, lon1: Vec<f64>, lat2: Vec<f64>, lon2: Vec<f64>) -
         .collect()
 }
 
+/// Simplified node chains between topological endpoints. Returns a list of
+/// 0-based node-index vectors, one per merged edge.
+/// @keywords internal
+#[extendr]
+fn rs_simplify_paths(from: Vec<i32>, to: Vec<i32>, n_nodes: i32) -> List {
+    let paths = simplify::simplify_paths(&as_idx(&from), &as_idx(&to), n_nodes as usize);
+    List::from_values(
+        paths
+            .into_iter()
+            .map(|p| p.into_iter().map(|x| x as i32).collect::<Vec<i32>>()),
+    )
+}
+
+/// Connected-component label (0-based root index) for each node, given
+/// undirected `a`--`b` adjacency pairs.
+/// @keywords internal
+#[extendr]
+fn rs_connected_components(a: Vec<i32>, b: Vec<i32>, n_nodes: i32) -> Vec<i32> {
+    simplify::connected_components(&as_idx(&a), &as_idx(&b), n_nodes as usize)
+}
+
 // Macro to generate exports.
 // This ensures exported functions are registered with R.
 // See corresponding C code in `entrypoint.c`.
@@ -85,4 +107,6 @@ extendr_module! {
     fn rs_dijkstra;
     fn rs_orientation_entropy;
     fn rs_bearings;
+    fn rs_simplify_paths;
+    fn rs_connected_components;
 }

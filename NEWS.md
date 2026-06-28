@@ -11,3 +11,7 @@ First development version. Initial scaffold of *OSMnx for R*.
   (`ox_basic_stats()`, `ox_bearings()`, `ox_orientation_entropy()`).
 * `example_osm_graph()` synthetic grid for offline examples and tests.
 * Configuration via `ox_settings()` and session caching with `ox_clear_cache()`.
+* Topology cleanup (Rust core): `ox_simplify()` merges chains of interstitial
+  degree-2 nodes into single edges; `ox_consolidate_intersections()` merges
+  nearby nodes into one (via connected components); `ox_nearest_edges()` finds
+  the closest edge to a point.
