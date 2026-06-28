@@ -4,6 +4,7 @@
 <url><loc>https://strategicprojects.github.io/osmnxr/LICENSE.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/articles/accessibility.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/articles/features-and-pois.html</loc></url>
+<url><loc>https://strategicprojects.github.io/osmnxr/articles/figure-ground.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/articles/getting-started.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/articles/index.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/articles/interoperability.html</loc></url>
@@ -47,6 +48,7 @@
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_nearest_edges.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_nearest_nodes.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_orientation_entropy.html</loc></url>
+<url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_plot_figure_ground.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_plot_orientation.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_save_graphml.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_settings.html</loc></url>

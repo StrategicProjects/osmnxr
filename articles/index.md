@@ -6,6 +6,8 @@
   analysis](https://strategicprojects.github.io/osmnxr/articles/accessibility.md):
 - [Features and points of
   interest](https://strategicprojects.github.io/osmnxr/articles/features-and-pois.md):
+- [Figure-ground
+  diagrams](https://strategicprojects.github.io/osmnxr/articles/figure-ground.md):
 - [Getting started with
   osmnxr](https://strategicprojects.github.io/osmnxr/articles/getting-started.md):
 - [Interoperability and

@@ -25,6 +25,7 @@
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/urban-metrics.html">Urban metrics</a></li>
     <li><a class="dropdown-item" href="../articles/street-orientation.html">Street orientation</a></li>
+    <li><a class="dropdown-item" href="../articles/figure-ground.html">Figure-ground diagrams</a></li>
     <li><a class="dropdown-item" href="../articles/features-and-pois.html">Features and points of interest</a></li>
     <li><a class="dropdown-item" href="../articles/interoperability.html">Interoperability and export</a></li>
   </ul></li>
@@ -47,6 +48,7 @@
 <p>First development version. Initial scaffold of <em>OSMnx for R</em>.</p>
 <ul><li><p><code><a href="../reference/ox_example.html">ox_example()</a></code> loads a small bundled real network (central Olinda, Brazil) so examples and vignettes show real analyses offline. The vignettes were reworked around real cases from Boeing (2025) and the OSMnx examples gallery: multi-city orientation entropy (Chicago/New Orleans/Rome), betweenness chokepoints, travel-time routing and isochrones, and amenity accessibility.</p></li>
 <li><p><code><a href="../reference/ox_orientation_entropy.html">ox_orientation_entropy()</a></code> and <code><a href="../reference/ox_plot_orientation.html">ox_plot_orientation()</a></code> now accept either an <code>osm_graph</code> or a numeric vector of bearings.</p></li>
+<li><p><code><a href="../reference/ox_plot_figure_ground.html">ox_plot_figure_ground()</a></code> draws figure-ground diagrams, and <code><a href="../reference/ox_example.html">ox_example()</a></code> now also bundles <code>"manhattan"</code> and <code>"rome"</code> networks for the new “Figure-ground diagrams” vignette (Boeing 2025, Fig. 3).</p></li>
 <li><p><code><a href="../reference/ox_simplify.html">ox_simplify()</a></code> now preserves traversability per direction, emitting bidirectional edges for two-way streets (fixes zero-valued routing/centrality on simplified graphs).</p></li>
 <li><p>Download street networks from OpenStreetMap (<code><a href="../reference/ox_graph_from_place.html">ox_graph_from_place()</a></code>, <code><a href="../reference/ox_graph_from_address.html">ox_graph_from_address()</a></code>, <code><a href="../reference/ox_graph_from_point.html">ox_graph_from_point()</a></code>, <code><a href="../reference/ox_graph_from_bbox.html">ox_graph_from_bbox()</a></code>) via the Overpass API, returning the tidy <code>sf</code>-backed <code>osm_graph</code> object.</p></li>
 <li><p>Geocoding with Nominatim (<code><a href="../reference/ox_geocode.html">ox_geocode()</a></code>, <code><a href="../reference/ox_geocode_to_sf.html">ox_geocode_to_sf()</a></code>).</p></li>

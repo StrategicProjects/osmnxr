@@ -158,6 +158,8 @@ Urban and network statistics (Rust core).
   : Street-orientation entropy
 - [`ox_plot_orientation()`](https://strategicprojects.github.io/osmnxr/reference/ox_plot_orientation.md)
   : Polar plot of street orientations
+- [`ox_plot_figure_ground()`](https://strategicprojects.github.io/osmnxr/reference/ox_plot_figure_ground.md)
+  : Figure-ground diagram of a street network
 
 ## Interoperability
 
@@ -234,6 +236,8 @@ Hand graphs to the wider R network ecosystem.
   analysis](https://strategicprojects.github.io/osmnxr/articles/accessibility.md):
 - [Features and points of
   interest](https://strategicprojects.github.io/osmnxr/articles/features-and-pois.md):
+- [Figure-ground
+  diagrams](https://strategicprojects.github.io/osmnxr/articles/figure-ground.md):
 - [Getting started with
   osmnxr](https://strategicprojects.github.io/osmnxr/articles/getting-started.md):
 - [Interoperability and

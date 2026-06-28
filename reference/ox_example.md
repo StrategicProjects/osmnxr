@@ -7,15 +7,17 @@ can show real analyses without network access.
 ## Usage
 
 ``` r
-ox_example(name = c("olinda"))
+ox_example(name = c("olinda", "manhattan", "rome"))
 ```
 
 ## Arguments
 
 - name:
 
-  Which network to load. Currently `"olinda"` (the historic centre of
-  Olinda, Pernambuco, Brazil; drivable network, simplified).
+  Which network to load (all drivable, simplified): `"olinda"` (historic
+  centre of Olinda, Pernambuco, Brazil), `"manhattan"` (a square mile of
+  Midtown Manhattan, New York — a strong grid), or `"rome"` (the organic
+  centro storico of Rome, Italy).
 
 ## Value
 

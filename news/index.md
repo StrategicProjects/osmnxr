@@ -17,6 +17,12 @@ First development version. Initial scaffold of *OSMnx for R*.
   [`ox_plot_orientation()`](https://strategicprojects.github.io/osmnxr/reference/ox_plot_orientation.md)
   now accept either an `osm_graph` or a numeric vector of bearings.
 
+- [`ox_plot_figure_ground()`](https://strategicprojects.github.io/osmnxr/reference/ox_plot_figure_ground.md)
+  draws figure-ground diagrams, and
+  [`ox_example()`](https://strategicprojects.github.io/osmnxr/reference/ox_example.md)
+  now also bundles `"manhattan"` and `"rome"` networks for the new
+  “Figure-ground diagrams” vignette (Boeing 2025, Fig. 3).
+
 - [`ox_simplify()`](https://strategicprojects.github.io/osmnxr/reference/ox_simplify.md)
   now preserves traversability per direction, emitting bidirectional
   edges for two-way streets (fixes zero-valued routing/centrality on
