@@ -36,7 +36,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/StrategicProjects/osmnxr/blob/v0.1.1/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/StrategicProjects/osmnxr/blob/main/DESCRIPTION)
 
 Leite A, Wasilew M, Vasconcelos H, Amorin C, Bezerra D (2026). *osmnxr:
 Download, Model and Analyze 'OpenStreetMap' Street Networks*. R package
