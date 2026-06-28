@@ -1,0 +1,88 @@
+---
+title: "Getting started with osmnxr"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with osmnxr}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+```{r setup}
+library(osmnxr)
+```
+
+## What is osmnxr?
+
+`osmnxr` is *OSMnx for R*: it downloads, models, analyzes and visualizes
+street networks from [OpenStreetMap](https://www.openstreetmap.org/). The
+public API is tidyverse-friendly and returns
+[`sf`](https://r-spatial.github.io/sf/) objects; the heavy graph computation
+(routing, metrics, simplification) runs in a bundled **Rust core**.
+
+The central object is the `osm_graph`: a pair of `sf` tables (nodes and edges)
+plus metadata.
+
+## Working offline
+
+Every part of the analysis API works without network access on a synthetic
+grid, which is handy for learning and for reproducible examples:
+
+```{r}
+g <- example_osm_graph(n = 5)
+g
+```
+
+```{r}
+plot(g, nodes = TRUE)
+```
+
+## Network statistics
+
+```{r}
+ox_basic_stats(g)
+```
+
+## Routing
+
+Find the nearest nodes to two coordinates, then compute the shortest path
+(Dijkstra, in Rust):
+
+```{r}
+from <- ox_nearest_nodes(g, x = 0,   y = 0)
+to   <- ox_nearest_nodes(g, x = 400, y = 400)
+ox_shortest_path(g, from, to)
+```
+
+Single-source distances to every node:
+
+```{r}
+head(ox_distances(g, from))
+```
+
+## Street orientation
+
+The Shannon entropy of edge bearings summarises how ordered a street grid is —
+low for a gridiron, high for an organic network:
+
+```{r}
+ox_orientation_entropy(g)
+```
+
+## Downloading real data
+
+With network access, build a graph straight from a place name (this contacts
+the OpenStreetMap Overpass API, so it is not run here):
+
+```{r, eval = FALSE}
+g <- ox_graph_from_place("Olinda, Brazil", network_type = "drive")
+plot(g)
+ox_basic_stats(g)
+```
+
+See `?ox_graph_from_bbox`, `?ox_graph_from_point` and `?ox_geocode` for the
+other download entry points, and `ox_settings()` to configure endpoints,
+timeouts and caching.

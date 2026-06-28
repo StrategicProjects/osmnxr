@@ -1,0 +1,48 @@
+Package: osmnxr
+Title: Download, Model and Analyze 'OpenStreetMap' Street Networks
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Andre", "Leite", email = "leite@castlab.org", role = c("aut", "cre")),
+    person("Marcos", "Wasilew", email = "marcos.wasilew@gmail.com", role = "aut"),
+    person("Hugo", "Vasconcelos", email = "hugo.vasconcelos@ufpe.br", role = "aut"),
+    person("Carlos", "Amorin", email = "carlos.agaf@ufpe.br", role = "aut"),
+    person("Diogo", "Bezerra", email = "diogo.bezerra@ufpe.br", role = "aut"),
+    person("StrategicProjects", role = c("cph", "fnd")))
+Description: A 'tidyverse'-friendly toolkit, inspired by the 'OSMnx' 'Python'
+    library, to download, model, simplify, analyze and visualize street networks
+    and other geospatial features from 'OpenStreetMap'. Build routable graphs
+    from a place name, address, point or bounding box; simplify topology;
+    compute shortest paths, isochrones and urban metrics (intersection density,
+    circuity, street-orientation entropy, centrality); and export to 'sf',
+    'sfnetworks' and 'MapLibre'. Heavy graph computation is performed by a
+    bundled 'Rust' core.
+License: MIT + file LICENSE
+URL: https://github.com/StrategicProjects/osmnxr,
+    https://strategicprojects.github.io/osmnxr/
+BugReports: https://github.com/StrategicProjects/osmnxr/issues
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 8.0.0
+SystemRequirements: Cargo (Rust's package manager), rustc
+Depends:
+    R (>= 4.2)
+Imports:
+    cli,
+    glue,
+    httr2 (>= 1.0.0),
+    purrr,
+    rlang (>= 1.1.0),
+    sf,
+    tibble
+Suggests:
+    dodgr,
+    ggplot2,
+    knitr,
+    rmarkdown,
+    sfnetworks,
+    testthat (>= 3.0.0),
+    tidygraph,
+    units
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+Config/rextendr/version: 0.5.0

@@ -1,0 +1,77 @@
+url: https://strategicprojects.github.io/osmnxr/
+
+template:
+  bootstrap: 5
+  bootswatch: cosmo
+  bslib:
+    primary: "#0d3b66"
+    border-radius: 0.5rem
+    btn-border-radius: 0.25rem
+
+navbar:
+  structure:
+    left:  [intro, reference, articles]
+    right: [search, github]
+  components:
+    articles:
+      text: Articles
+      menu:
+        - text: Getting started
+          href: articles/getting-started.html
+        - text: Routing and isochrones
+          href: articles/routing-and-isochrones.html
+        - text: Street orientation
+          href: articles/street-orientation.html
+
+home:
+  title: "osmnxr: OpenStreetMap street networks for R"
+  description: >
+    A tidyverse-friendly toolkit, inspired by the OSMnx Python library, to
+    download, model, simplify, analyze and visualize street networks from
+    OpenStreetMap, powered by a bundled Rust core.
+
+reference:
+  - title: "Download networks"
+    desc: "Build routable street graphs from OpenStreetMap."
+    contents:
+      - ox_graph_from_place
+      - ox_graph_from_address
+      - ox_graph_from_point
+      - ox_graph_from_bbox
+
+  - title: "Geocoding"
+    contents:
+      - ox_geocode
+      - ox_geocode_to_sf
+
+  - title: "Routing"
+    desc: "Shortest paths and distances (Rust core)."
+    contents:
+      - ox_nearest_nodes
+      - ox_shortest_path
+      - ox_distances
+
+  - title: "Metrics"
+    desc: "Urban and network statistics (Rust core)."
+    contents:
+      - ox_basic_stats
+      - ox_bearings
+      - ox_orientation_entropy
+
+  - title: "The osm_graph object"
+    contents:
+      - new_osm_graph
+      - is_osm_graph
+      - ox_as_sf
+      - plot.osm_graph
+      - example_osm_graph
+
+  - title: "Configuration"
+    contents:
+      - ox_settings
+      - ox_clear_cache
+
+footer:
+  structure:
+    left: developed_by
+    right: built_with
