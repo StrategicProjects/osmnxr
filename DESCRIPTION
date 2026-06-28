@@ -7,7 +7,19 @@ Authors@R: c(
     person("Hugo", "Vasconcelos", email = "hugo.vasconcelos@ufpe.br", role = "aut"),
     person("Carlos", "Amorin", email = "carlos.agaf@ufpe.br", role = "aut"),
     person("Diogo", "Bezerra", email = "diogo.bezerra@ufpe.br", role = "aut"),
-    person("StrategicProjects", role = c("cph", "fnd")))
+    person("StrategicProjects", role = c("cph", "fnd")),
+    person("The extendr authors", role = "cph",
+           comment = "Bundled Rust crates extendr-api, extendr-ffi, extendr-macros"),
+    person("David Tolnay", role = "cph",
+           comment = "Bundled Rust crates proc-macro2, quote, syn, paste, readonly, unicode-ident"),
+    person("Alex Crichton", role = "cph",
+           comment = "Bundled Rust crate proc-macro2"),
+    person("Marvin Loebel", role = "cph",
+           comment = "Bundled Rust crate lazy_static"),
+    person("Aleksey Kladov", role = "cph",
+           comment = "Bundled Rust crate once_cell"),
+    person("Unicode, Inc.", role = "cph",
+           comment = "Bundled Rust crate unicode-ident (Unicode-3.0 data tables)"))
 Description: A 'tidyverse'-friendly toolkit, inspired by the 'OSMnx' 'Python'
     library, to download, model, simplify, analyze and visualize street networks
     and other geospatial features from 'OpenStreetMap'. Build routable graphs
