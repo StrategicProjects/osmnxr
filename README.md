@@ -16,7 +16,7 @@ from [OpenStreetMap](https://www.openstreetmap.org/).
 
 It is a **reimplementation** — not a Python wrapper. Heavy graph computation
 (routing, simplification, metrics) runs in a bundled **Rust core** via
-[extendr](https://extendr.github.io/), so there is no Python runtime to manage.
+[extendr](https://extendr.rs/), so there is no Python runtime to manage.
 Everything you get back is tidy [`sf`](https://r-spatial.github.io/sf/).
 
 ## Installation

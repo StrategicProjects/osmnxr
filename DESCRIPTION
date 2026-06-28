@@ -16,6 +16,7 @@ Description: A 'tidyverse'-friendly toolkit, inspired by the 'OSMnx' 'Python'
     circuity, street-orientation entropy, centrality); and export to 'sf',
     'sfnetworks' and 'MapLibre'. Heavy graph computation is performed by a
     bundled 'Rust' core.
+Language: en-US
 License: MIT + file LICENSE
 URL: https://github.com/StrategicProjects/osmnxr,
     https://strategicprojects.github.io/osmnxr/
