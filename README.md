@@ -4,7 +4,7 @@
 ![CRAN status](https://www.r-pkg.org/badges/version/osmnxr)
 ![CRAN downloads](https://cranlogs.r-pkg.org/badges/grand-total/osmnxr)
 ![License: MIT](https://img.shields.io/badge/license-MIT-darkviolet.svg)
-![devel version](https://img.shields.io/badge/devel%20version-0.0.0.9000-blue.svg)
+![devel version](https://img.shields.io/badge/devel%20version-0.1.0-blue.svg)
 [![R-CMD-check](https://github.com/StrategicProjects/osmnxr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/StrategicProjects/osmnxr/actions/workflows/R-CMD-check.yaml)
 [![pkgdown](https://github.com/StrategicProjects/osmnxr/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/StrategicProjects/osmnxr/actions/workflows/pkgdown.yaml)
 <!-- badges: end -->

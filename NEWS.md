@@ -1,6 +1,6 @@
-# osmnxr 0.0.0.9000 (development)
+# osmnxr 0.1.0
 
-First development version. Initial scaffold of *OSMnx for R*.
+First public release of *OSMnx for R*.
 
 * `ox_example()` loads a small bundled real network (central Olinda, Brazil) so
   examples and vignettes show real analyses offline. The vignettes were
