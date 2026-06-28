@@ -6,7 +6,9 @@ Tested locally with `R CMD check --as-cran` on macOS (R 4.6.0).
 
 ## Notes for CRAN
 
-* This is a new submission (osmnxr 0.1.0).
+* This is a new submission (osmnxr 0.1.1). It fixes a Windows installation
+  failure found when checking 0.1.0 on win-builder (an unnecessary install-time
+  Rust step); installation now only runs `cargo build --lib`.
 * The package contains Rust code and requires Cargo/rustc at build time, as
   declared in `SystemRequirements`. Rust dependencies are vendored in
   `src/rust/vendor.tar.xz` so the package builds offline.
