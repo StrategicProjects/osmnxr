@@ -1,5 +1,14 @@
 # Changelog
 
+## osmnxr 0.1.1
+
+- Fix installation on Windows (R-devel). The rextendr 0.5.0 Makevars
+  templates ran an unnecessary install-time `cargo run --bin document`
+  step that failed on Windows (`os error 193` while running a build
+  script). The extendr wrappers are pre-generated and shipped, so
+  installation only needs `cargo build --lib`; the document step has
+  been removed from `Makevars.in` / `Makevars.win.in`.
+
 ## osmnxr 0.1.0
 
 First public release of *OSMnx for R*.
