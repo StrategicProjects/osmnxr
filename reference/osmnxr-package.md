@@ -38,3 +38,18 @@ Authors:
 Other contributors:
 
 - StrategicProjects \[copyright holder, funder\]
+
+- The extendr authors (Bundled Rust crates extendr-api, extendr-ffi,
+  extendr-macros) \[copyright holder\]
+
+- David Tolnay (Bundled Rust crates proc-macro2, quote, syn, paste,
+  readonly, unicode-ident) \[copyright holder\]
+
+- Alex Crichton (Bundled Rust crate proc-macro2) \[copyright holder\]
+
+- Marvin Loebel (Bundled Rust crate lazy_static) \[copyright holder\]
+
+- Aleksey Kladov (Bundled Rust crate once_cell) \[copyright holder\]
+
+- Unicode, Inc. (Bundled Rust crate unicode-ident (Unicode-3.0 data
+  tables)) \[copyright holder\]
