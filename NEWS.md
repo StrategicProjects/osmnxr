@@ -15,3 +15,10 @@ First development version. Initial scaffold of *OSMnx for R*.
   degree-2 nodes into single edges; `ox_consolidate_intersections()` merges
   nearby nodes into one (via connected components); `ox_nearest_edges()` finds
   the closest edge to a point.
+* Advanced routing (Rust core): `ox_k_shortest_paths()` (Yen's algorithm),
+  `ox_distance_matrix()` (many-to-many), and `ox_isochrone()` (reachable-area
+  polygons via multi-source Dijkstra + concave hull).
+* Travel-time routing: `ox_add_edge_speeds()` and `ox_add_edge_travel_times()`
+  add `speed_kph` / `travel_time` edge columns for time-weighted shortest
+  paths and isochrones.
+* New vignette: "Routing and isochrones".

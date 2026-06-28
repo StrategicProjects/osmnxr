@@ -63,3 +63,7 @@ rsconnect/
 src/rust/vendor
 src/Makevars.win
 inst/doc
+
+# knitr standalone-render artifacts
+figure/
+*_files/

@@ -1,0 +1,87 @@
+---
+title: "Routing and isochrones"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Routing and isochrones}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6, fig.height = 5)
+```
+
+```{r setup}
+library(osmnxr)
+```
+
+This article uses the offline synthetic grid so it runs anywhere. With a real
+network from `ox_graph_from_place()` the workflow is identical.
+
+```{r}
+g <- example_osm_graph(n = 8, spacing = 100)
+```
+
+## Shortest paths
+
+Snap coordinates to graph nodes, then route between them. Routing runs in the
+Rust core (Dijkstra).
+
+```{r}
+from <- ox_nearest_nodes(g, x = 0,   y = 0)
+to   <- ox_nearest_nodes(g, x = 700, y = 700)
+ox_shortest_path(g, from, to)
+```
+
+### Route alternatives
+
+`ox_k_shortest_paths()` returns the *k* loopless shortest paths (Yen's
+algorithm) as a tidy tibble with a list-column of node ids:
+
+```{r}
+ox_k_shortest_paths(g, from, to, k = 3)
+```
+
+## Travel time instead of distance
+
+Attach speeds by road class and derive per-edge travel times, then route by
+time by passing `weight = "travel_time"`.
+
+```{r}
+g <- ox_add_edge_travel_times(g)
+head(g$edges[c("highway", "length", "speed_kph", "travel_time")])
+
+ox_shortest_path(g, from, to, weight = "travel_time")
+```
+
+## Distance matrices
+
+Many-to-many shortest-path costs in one call:
+
+```{r}
+hubs <- ox_nearest_nodes(g, x = c(0, 700, 0), y = c(0, 0, 700))
+ox_distance_matrix(g, from = hubs, to = hubs)
+```
+
+## Isochrones (service areas)
+
+An isochrone is the area reachable from one or more origins within a cost
+budget. `ox_isochrone()` finds the reachable nodes (Rust Dijkstra) and hulls
+them; with `travel_time` as the weight, cutoffs are in seconds.
+
+```{r}
+center <- ox_nearest_nodes(g, x = 350, y = 350)
+iso <- ox_isochrone(g, center, cutoffs = c(150, 350), weight = "length")
+iso[c("cutoff", "n_nodes")]
+```
+
+```{r}
+plot(g, col = "grey80")
+plot(sf::st_geometry(iso), add = TRUE,
+     col = grDevices::adjustcolor(c("#0d3b66", "#2a9d8f"), 0.4), border = NA)
+```
+
+This is the core of accessibility analysis: with origins at schools or
+hospitals and `travel_time` cutoffs, the polygons describe who can reach a
+service within, say, 10 or 20 minutes — the basis for "Fluxo Verde" and
+territorial-planning studies.

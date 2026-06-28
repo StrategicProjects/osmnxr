@@ -36,4 +36,14 @@ rs_simplify_paths <- function(from, to, n_nodes) .Call(wrap__rs_simplify_paths, 
 #' @keywords internal
 rs_connected_components <- function(a, b, n_nodes) .Call(wrap__rs_connected_components, a, b, n_nodes)
 
+#' Yen's k loopless shortest paths. Returns a list with `paths` (a list of
+#' 0-based node-index vectors) and `costs` (numeric).
+#' @keywords internal
+rs_k_shortest_paths <- function(from, to, weight, n_nodes, source, target, k) .Call(wrap__rs_k_shortest_paths, from, to, weight, n_nodes, source, target, k)
+
+#' Row-major shortest-distance matrix from each source to each target
+#' (0-based indices). Length is `sources * targets`.
+#' @keywords internal
+rs_distance_matrix <- function(from, to, weight, n_nodes, sources, targets) .Call(wrap__rs_distance_matrix, from, to, weight, n_nodes, sources, targets)
+
 # nolint end

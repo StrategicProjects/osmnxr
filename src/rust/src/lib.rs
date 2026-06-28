@@ -97,6 +97,53 @@ fn rs_connected_components(a: Vec<i32>, b: Vec<i32>, n_nodes: i32) -> Vec<i32> {
     simplify::connected_components(&as_idx(&a), &as_idx(&b), n_nodes as usize)
 }
 
+/// Yen's k loopless shortest paths. Returns a list with `paths` (a list of
+/// 0-based node-index vectors) and `costs` (numeric).
+/// @keywords internal
+#[extendr]
+fn rs_k_shortest_paths(
+    from: Vec<i32>,
+    to: Vec<i32>,
+    weight: Vec<f64>,
+    n_nodes: i32,
+    source: i32,
+    target: i32,
+    k: i32,
+) -> List {
+    let g = Graph::from_edges(&as_idx(&from), &as_idx(&to), &weight, n_nodes as usize);
+    let res = routing::k_shortest_paths(
+        &g,
+        &as_idx(&from),
+        &as_idx(&to),
+        &weight,
+        source as usize,
+        target as usize,
+        k as usize,
+    );
+    let paths = List::from_values(
+        res.iter()
+            .map(|(p, _)| p.iter().map(|&x| x as i32).collect::<Vec<i32>>()),
+    );
+    let costs: Vec<f64> = res.iter().map(|(_, c)| *c).collect();
+    list!(paths = paths, costs = costs)
+}
+
+/// Row-major shortest-distance matrix from each source to each target
+/// (0-based indices). Length is `sources * targets`.
+/// @keywords internal
+#[extendr]
+fn rs_distance_matrix(
+    from: Vec<i32>,
+    to: Vec<i32>,
+    weight: Vec<f64>,
+    n_nodes: i32,
+    sources: Vec<i32>,
+    targets: Vec<i32>,
+) -> Vec<f64> {
+    let g = Graph::from_edges(&as_idx(&from), &as_idx(&to), &weight, n_nodes as usize);
+    routing::distance_matrix(&g, &as_idx(&sources), &as_idx(&targets))
+}
+
 // Macro to generate exports.
 // This ensures exported functions are registered with R.
 // See corresponding C code in `entrypoint.c`.
@@ -109,4 +156,6 @@ extendr_module! {
     fn rs_bearings;
     fn rs_simplify_paths;
     fn rs_connected_components;
+    fn rs_k_shortest_paths;
+    fn rs_distance_matrix;
 }
