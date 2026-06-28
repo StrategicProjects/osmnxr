@@ -35,33 +35,41 @@ ox_simplify <- function(g) {
   coords <- sf::st_coordinates(g$nodes)[, c("X", "Y"), drop = FALSE]
   crs <- sf::st_crs(g$nodes)
 
-  # lookup of original edge attributes by directed "u>v"
-  ekey <- paste(g$edges$u, g$edges$v, sep = ">")
-  attr_idx <- function(u, v) {
-    m <- match(paste(u, v, sep = ">"), ekey)
-    if (is.na(m)) match(paste(v, u, sep = ">"), ekey) else m
+  # set of directed segments present in the original graph, and an attribute
+  # lookup, both keyed by "u>v"
+  dirset <- paste(g$edges$u, g$edges$v, sep = ">")
+  has_dir <- function(a, b) all(paste(a, b, sep = ">") %in% dirset)
+  attr_idx <- function(a, b) {
+    m <- match(paste(a, b, sep = ">"), dirset)
+    if (is.na(m)) match(paste(b, a, sep = ">"), dirset) else m
   }
 
-  geoms <- vector("list", length(paths))
-  u <- v <- integer(length(paths))
-  highway <- name <- character(length(paths))
-  oneway <- logical(length(paths))
-  n_seg <- integer(length(paths))
+  geoms <- list()
+  u <- v <- integer(0)
+  highway <- name <- character(0)
+  n_seg <- integer(0)
+
+  add_edge <- function(rows, a, b) {
+    geoms[[length(geoms) + 1L]] <<- sf::st_linestring(coords[rows, , drop = FALSE])
+    u <<- c(u, ids[rows[1]]); v <<- c(v, ids[rows[length(rows)]])
+    n_seg <<- c(n_seg, length(rows) - 1L)
+    ai <- attr_idx(a, b)
+    highway <<- c(highway, if (!is.na(ai)) as.character(g$edges$highway[ai]) else NA_character_)
+    name <<- c(name, if (!is.na(ai) && "name" %in% names(g$edges)) as.character(g$edges$name[ai]) else NA_character_)
+  }
 
   for (k in seq_along(paths)) {
     p1 <- paths[[k]] + 1L # 1-based row indices into nodes
-    geoms[[k]] <- sf::st_linestring(coords[p1, , drop = FALSE])
-    u[k] <- ids[p1[1]]
-    v[k] <- ids[p1[length(p1)]]
-    n_seg[k] <- length(p1) - 1L
-    ai <- attr_idx(ids[p1[1]], ids[p1[2]])
-    highway[k] <- if (!is.na(ai)) as.character(g$edges$highway[ai]) else NA_character_
-    name[k] <- if (!is.na(ai) && "name" %in% names(g$edges)) as.character(g$edges$name[ai]) else NA_character_
-    oneway[k] <- if (!is.na(ai) && "oneway" %in% names(g$edges)) isTRUE(g$edges$oneway[ai]) else FALSE
+    chain <- ids[p1]
+    fwd <- has_dir(chain[-length(chain)], chain[-1])       # traversable u -> v
+    bwd <- has_dir(chain[-1], chain[-length(chain)])       # traversable v -> u
+    if (!fwd && !bwd) fwd <- TRUE                          # fallback: keep one
+    if (fwd) add_edge(p1, chain[1], chain[2])
+    if (bwd) add_edge(rev(p1), chain[length(chain)], chain[length(chain) - 1])
   }
 
   edges <- sf::st_sf(
-    u = u, v = v, highway = highway, name = name, oneway = oneway,
+    u = u, v = v, highway = highway, name = name,
     n_segments = n_seg, geometry = sf::st_sfc(geoms, crs = crs)
   )
   edges$length <- as.numeric(sf::st_length(edges))

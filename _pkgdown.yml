@@ -109,6 +109,7 @@ reference:
       - is_osm_graph
       - ox_as_sf
       - plot.osm_graph
+      - ox_example
       - example_osm_graph
 
   - title: "Configuration"

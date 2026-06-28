@@ -4,14 +4,22 @@
 \alias{ox_plot_orientation}
 \title{Polar plot of street orientations}
 \usage{
-ox_plot_orientation(g, num_bins = 36, fill = "#0d3b66")
+ox_plot_orientation(
+  x,
+  num_bins = 36,
+  fill = "#0d3b66",
+  title = "Street orientation"
+)
 }
 \arguments{
-\item{g}{An \link[=new_osm_graph]{osm_graph}.}
+\item{x}{An \link[=new_osm_graph]{osm_graph} or a numeric vector of bearings
+(degrees), e.g. from \code{\link[=ox_bearings]{ox_bearings()}}.}
 
 \item{num_bins}{Number of equal bearing sectors. Default \code{36}.}
 
 \item{fill}{Bar fill colour. Default the package blue.}
+
+\item{title}{Optional plot title.}
 }
 \value{
 A \code{ggplot} object.

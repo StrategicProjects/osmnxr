@@ -4,10 +4,11 @@
 \alias{ox_orientation_entropy}
 \title{Street-orientation entropy}
 \usage{
-ox_orientation_entropy(g, num_bins = 36)
+ox_orientation_entropy(x, num_bins = 36)
 }
 \arguments{
-\item{g}{An \link[=new_osm_graph]{osm_graph}.}
+\item{x}{An \link[=new_osm_graph]{osm_graph} or a numeric vector of bearings
+(degrees), e.g. from \code{\link[=ox_bearings]{ox_bearings()}}.}
 
 \item{num_bins}{Number of equal bearing sectors over \verb{[0, 360)}. Default \code{36}.}
 }

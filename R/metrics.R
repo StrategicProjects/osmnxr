@@ -24,13 +24,22 @@ ox_basic_stats <- function(g, weight = "length") {
   out
 }
 
+# Resolve `x` to a numeric bearings vector: an osm_graph -> ox_bearings(x);
+# a numeric vector -> itself.
+as_bearings <- function(x) {
+  if (is_osm_graph(x)) return(ox_bearings(x))
+  if (is.numeric(x)) return(x)
+  cli::cli_abort("Expected an {.cls osm_graph} or a numeric bearings vector.", call = NULL)
+}
+
 #' Street-orientation entropy
 #'
 #' Shannon entropy (in nats) of the distribution of edge compass bearings,
 #' binned into equal sectors. Higher values indicate a more disordered
 #' (organic) network; lower values a more ordered (gridiron) one.
 #'
-#' @param g An [osm_graph][new_osm_graph].
+#' @param x An [osm_graph][new_osm_graph] or a numeric vector of bearings
+#'   (degrees), e.g. from [ox_bearings()].
 #' @param num_bins Number of equal bearing sectors over `[0, 360)`. Default `36`.
 #'
 #' @return A numeric scalar (entropy in nats).
@@ -39,10 +48,8 @@ ox_basic_stats <- function(g, weight = "length") {
 #' @examples
 #' g <- example_osm_graph()
 #' ox_orientation_entropy(g)
-ox_orientation_entropy <- function(g, num_bins = 36) {
-  stopifnot(is_osm_graph(g))
-  b <- ox_bearings(g)
-  rs_orientation_entropy(b, as.integer(num_bins))
+ox_orientation_entropy <- function(x, num_bins = 36) {
+  rs_orientation_entropy(as_bearings(x), as.integer(num_bins))
 }
 
 #' Compute edge compass bearings
@@ -78,9 +85,11 @@ ox_bearings <- function(g) {
 #' Draws a polar histogram (rose plot) of edge compass bearings, the standard
 #' visual summary of a street network's orientation order. Requires `ggplot2`.
 #'
-#' @param g An [osm_graph][new_osm_graph].
+#' @param x An [osm_graph][new_osm_graph] or a numeric vector of bearings
+#'   (degrees), e.g. from [ox_bearings()].
 #' @param num_bins Number of equal bearing sectors. Default `36`.
 #' @param fill Bar fill colour. Default the package blue.
+#' @param title Optional plot title.
 #'
 #' @return A `ggplot` object.
 #' @export
@@ -88,10 +97,9 @@ ox_bearings <- function(g) {
 #' @examplesIf rlang::is_installed("ggplot2")
 #' g <- example_osm_graph()
 #' ox_plot_orientation(g)
-ox_plot_orientation <- function(g, num_bins = 36, fill = "#0d3b66") {
-  stopifnot(is_osm_graph(g))
+ox_plot_orientation <- function(x, num_bins = 36, fill = "#0d3b66", title = "Street orientation") {
   rlang::check_installed("ggplot2")
-  b <- ox_bearings(g)
+  b <- as_bearings(x)
   bw <- 360 / num_bins
   idx <- floor((b %% 360) / bw)
   idx[idx >= num_bins] <- num_bins - 1
@@ -109,7 +117,7 @@ ox_plot_orientation <- function(g, num_bins = 36, fill = "#0d3b66") {
       breaks = seq(0, 315, 45),
       labels = c("N", "NE", "E", "SE", "S", "SW", "W", "NW")
     ) +
-    ggplot2::labs(x = NULL, y = NULL, title = "Street orientation") +
+    ggplot2::labs(x = NULL, y = NULL, title = title) +
     ggplot2::theme_minimal()
 }
 

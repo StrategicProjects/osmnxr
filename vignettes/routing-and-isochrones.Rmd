@@ -8,80 +8,89 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6, fig.height = 5)
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5, fig.height = 5.5)
 ```
 
 ```{r setup}
 library(osmnxr)
+g <- ox_example("olinda")
 ```
 
-This article uses the offline synthetic grid so it runs anywhere. With a real
-network from `ox_graph_from_place()` the workflow is identical.
+Routing in `osmnxr` runs in the Rust core (Dijkstra, Yen, multi-source). We use
+the bundled real network of central Olinda, Brazil, so this runs offline.
+
+## Shortest path by distance
+
+Snap two coordinates to the nearest nodes, then route between them:
 
 ```{r}
-g <- example_osm_graph(n = 8, spacing = 100)
+orig <- ox_nearest_nodes(g, x = -34.8553, y = -8.0089)
+dest <- ox_nearest_nodes(g, x = -34.8505, y = -8.0125)
+route <- ox_shortest_path(g, orig, dest, weight = "length")
+length(route) # nodes along the route
 ```
 
-## Shortest paths
-
-Snap coordinates to graph nodes, then route between them. Routing runs in the
-Rust core (Dijkstra).
-
 ```{r}
-from <- ox_nearest_nodes(g, x = 0,   y = 0)
-to   <- ox_nearest_nodes(g, x = 700, y = 700)
-ox_shortest_path(g, from, to)
-```
-
-### Route alternatives
-
-`ox_k_shortest_paths()` returns the *k* loopless shortest paths (Yen's
-algorithm) as a tidy tibble with a list-column of node ids:
-
-```{r}
-ox_k_shortest_paths(g, from, to, k = 3)
+route_xy <- sf::st_coordinates(g$nodes)[match(route, g$nodes$osmid), ]
+plot(g, col = "grey80", lwd = 0.6)
+lines(route_xy, col = "#b7410e", lwd = 3)
+points(route_xy[c(1, nrow(route_xy)), ], pch = 19, col = "#0d3b66", cex = 1.2)
 ```
 
 ## Travel time instead of distance
 
-Attach speeds by road class and derive per-edge travel times, then route by
-time by passing `weight = "travel_time"`.
+Real routing usually minimises *time*, not distance. Impute free-flow speeds
+from each road's class, derive per-edge travel times, then route on them
+(Boeing 2025, `routing` module):
 
 ```{r}
 g <- ox_add_edge_travel_times(g)
 head(g$edges[c("highway", "length", "speed_kph", "travel_time")])
 
-ox_shortest_path(g, from, to, weight = "travel_time")
+route_t <- ox_shortest_path(g, orig, dest, weight = "travel_time")
+identical(route_t, route) # may differ: the fastest route is not always shortest
 ```
 
-## Distance matrices
+## Route alternatives
 
-Many-to-many shortest-path costs in one call:
+`ox_k_shortest_paths()` returns the *k* shortest loopless routes (Yen's
+algorithm) — useful for comparing options or modelling redundancy:
 
 ```{r}
-hubs <- ox_nearest_nodes(g, x = c(0, 700, 0), y = c(0, 0, 700))
-ox_distance_matrix(g, from = hubs, to = hubs)
+ox_k_shortest_paths(g, orig, dest, k = 3, weight = "travel_time")
 ```
 
 ## Isochrones (service areas)
 
-An isochrone is the area reachable from one or more origins within a cost
-budget. `ox_isochrone()` finds the reachable nodes (Rust Dijkstra) and hulls
-them; with `travel_time` as the weight, cutoffs are in seconds.
+An isochrone is the area reachable from an origin within a budget. With
+`travel_time` as the weight, cutoffs are in seconds — here, 1- and 2-minute
+drive-time service areas from a central point:
 
 ```{r}
-center <- ox_nearest_nodes(g, x = 350, y = 350)
-iso <- ox_isochrone(g, center, cutoffs = c(150, 350), weight = "length")
+centre <- ox_nearest_nodes(g, x = -34.8553, y = -8.0089)
+iso <- ox_isochrone(g, centre, cutoffs = c(60, 120), weight = "travel_time")
 iso[c("cutoff", "n_nodes")]
 ```
 
 ```{r}
-plot(g, col = "grey80")
-plot(sf::st_geometry(iso), add = TRUE,
-     col = grDevices::adjustcolor(c("#0d3b66", "#2a9d8f"), 0.4), border = NA)
+plot(g, col = "grey85", lwd = 0.6)
+plot(sf::st_geometry(iso), add = TRUE, border = NA,
+     col = grDevices::adjustcolor(c("#0d3b66", "#2a9d8f"), 0.4))
 ```
 
-This is the core of accessibility analysis: with origins at schools or
-hospitals and `travel_time` cutoffs, the polygons describe who can reach a
-service within, say, 10 or 20 minutes — the basis for "Fluxo Verde" and
-territorial-planning studies.
+## Many-to-many distances
+
+For accessibility work you often need a full origin–destination matrix in one
+call (see the [Accessibility](accessibility.html) article):
+
+```{r}
+hubs <- ox_nearest_nodes(g,
+  x = c(-34.8553, -34.8505, -34.852),
+  y = c(-8.0089, -8.0125, -8.006))
+round(ox_distance_matrix(g, hubs, hubs, weight = "travel_time"))
+```
+
+## References
+
+Boeing, G. (2025). Modeling and analyzing urban networks and amenities with
+OSMnx. *Geographical Analysis*.

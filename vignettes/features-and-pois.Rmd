@@ -8,16 +8,17 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5, fig.height = 5.5)
 ```
 
 ```{r setup}
 library(osmnxr)
 ```
 
-Beyond street networks, `osmnxr` downloads arbitrary OpenStreetMap features —
-amenities, buildings, transit stops, shops — as tidy `sf` points. Because these
-calls contact the live Overpass API, the chunks below are not executed when the
+Beyond street networks, `osmnxr` downloads any OpenStreetMap **feature** —
+amenities, building footprints, transit stops, parks, shops — as tidy `sf`
+points, mirroring OSMnx's `features` module (Boeing 2025). Because these calls
+hit the live Overpass API, the download chunks below are not executed when the
 vignette is built; run them interactively.
 
 ## Tag filters
@@ -26,17 +27,23 @@ Features are selected with **tags**, given as a named list. Each entry is either
 `TRUE` (the key with any value) or a character vector of allowed values:
 
 ```{r, eval = FALSE}
-# all schools in a place
+# schools in a place
 ox_features_from_place("Olinda, Brazil", tags = list(amenity = "school"))
 
-# schools and hospitals together
+# the amenities studied in accessibility research, in one call
 ox_features_from_place(
   "Recife, Brazil",
-  tags = list(amenity = c("school", "hospital"))
+  tags = list(amenity = c("school", "hospital", "pharmacy", "marketplace"))
 )
 
-# every building (key present, any value)
+# every building footprint (key present, any value)
 ox_features_from_place("Olinda, Brazil", tags = list(building = TRUE))
+
+# parks and green space
+ox_features_from_place("Recife, Brazil", tags = list(leisure = "park"))
+
+# public transit stops
+ox_features_from_place("Recife, Brazil", tags = list(public_transport = "stop_position"))
 ```
 
 ## From a bounding box
@@ -50,26 +57,38 @@ pois <- ox_features_from_bbox(bbox, tags = list(amenity = c("pharmacy", "clinic"
 pois
 ```
 
-The result is an `sf` of points with `osm_type`, `osm_id` and one column per tag
-encountered, so it composes directly with `dplyr` and `sf`:
+## A tidy result
+
+Each call returns an `sf` of points with `osm_type`, `osm_id` and one column per
+tag encountered, so it composes directly with `dplyr` and `sf`:
 
 ```{r, eval = FALSE}
 library(dplyr)
 pois |>
+  st_drop_geometry() |>
   count(amenity, sort = TRUE)
 ```
 
 ## Combining features with a network
 
-Features and networks share the same CRS (EPSG:4326), so you can snap POIs to
-the network and analyse access. For example, find the nearest street node to
-each hospital and compute travel-time isochrones from them — see the
-[Routing and isochrones](routing-and-isochrones.html) and
-[Accessibility](accessibility.html) articles.
+Features and the street network share the same CRS (EPSG:4326), so you can snap
+facilities to the network and analyse access. This is the bridge to the
+[Accessibility](accessibility.html) article:
 
 ```{r, eval = FALSE}
-g <- ox_graph_from_place("Olinda, Brazil", network_type = "drive")
-hospitals <- ox_features_from_place("Olinda, Brazil", tags = list(amenity = "hospital"))
-xy <- sf::st_coordinates(hospitals)
+g <- ox_graph_from_place("Olinda, Brazil", network_type = "walk") |>
+  ox_simplify() |>
+  ox_add_edge_travel_times()
+
+schools <- ox_features_from_place("Olinda, Brazil", tags = list(amenity = "school"))
+xy <- sf::st_coordinates(schools)
 nodes <- ox_nearest_nodes(g, xy[, 1], xy[, 2])
+
+# 15-minute walking catchment around every school
+ox_isochrone(g, nodes, cutoffs = 900, weight = "travel_time")
 ```
+
+## References
+
+Boeing, G. (2025). Modeling and analyzing urban networks and amenities with
+OSMnx. *Geographical Analysis*.

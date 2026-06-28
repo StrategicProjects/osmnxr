@@ -31,11 +31,12 @@ test_that("ox_simplify removes interstitial degree-2 nodes", {
   expect_true(isTRUE(s$meta$simplified))
   # node 2 is interstitial; nodes 1,3,4,5 are endpoints/intersections
   expect_setequal(s$nodes$osmid, c(1, 3, 4, 5))
-  # chain 1-2-3 collapses into a single edge of length 200
+  # chain 1-2-3 collapses into one edge per traversable direction (two-way
+  # street -> both 1->3 and 3->1), each of length 200 over 2 segments
   e13 <- s$edges[(s$edges$u == 1 & s$edges$v == 3) | (s$edges$u == 3 & s$edges$v == 1), ]
-  expect_equal(nrow(e13), 1)
-  expect_equal(round(e13$length), 200)
-  expect_equal(e13$n_segments, 2L)
+  expect_equal(nrow(e13), 2)
+  expect_true(all(round(e13$length) == 200))
+  expect_true(all(e13$n_segments == 2L))
 })
 
 test_that("ox_simplify is idempotent / no-op on simplified graphs", {

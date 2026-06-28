@@ -1,3 +1,26 @@
+#' Load a bundled real-world example network
+#'
+#' Loads a small, real street network shipped with the package (downloaded once
+#' from OpenStreetMap and simplified) so that examples and vignettes can show
+#' real analyses without network access.
+#'
+#' @param name Which network to load. Currently `"olinda"` (the historic centre
+#'   of Olinda, Pernambuco, Brazil; drivable network, simplified).
+#'
+#' @return An [osm_graph][new_osm_graph].
+#' @export
+#'
+#' @examples
+#' g <- ox_example("olinda")
+#' g
+#' ox_basic_stats(g)
+ox_example <- function(name = c("olinda")) {
+  name <- match.arg(name)
+  path <- system.file("extdata", paste0(name, ".graphml"), package = "osmnxr")
+  if (path == "") cli::cli_abort("Example network {.val {name}} not found.", call = NULL)
+  ox_load_graphml(path)
+}
+
 #' A small synthetic `osm_graph` for examples and tests
 #'
 #' Builds a tiny `n x n` regular street grid as an [osm_graph][new_osm_graph], with no

@@ -15,7 +15,7 @@ has_tg  <- requireNamespace("tidygraph", quietly = TRUE)
 
 ```{r setup}
 library(osmnxr)
-g <- example_osm_graph(n = 5)
+g <- ox_example("olinda") # a small real network bundled with the package
 ```
 
 An `osm_graph` is deliberately thin: tidy `sf` nodes and edges. That makes it

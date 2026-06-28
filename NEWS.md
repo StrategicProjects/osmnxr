@@ -2,6 +2,17 @@
 
 First development version. Initial scaffold of *OSMnx for R*.
 
+* `ox_example()` loads a small bundled real network (central Olinda, Brazil) so
+  examples and vignettes show real analyses offline. The vignettes were
+  reworked around real cases from Boeing (2025) and the OSMnx examples gallery:
+  multi-city orientation entropy (Chicago/New Orleans/Rome), betweenness
+  chokepoints, travel-time routing and isochrones, and amenity accessibility.
+* `ox_orientation_entropy()` and `ox_plot_orientation()` now accept either an
+  `osm_graph` or a numeric vector of bearings.
+* `ox_simplify()` now preserves traversability per direction, emitting
+  bidirectional edges for two-way streets (fixes zero-valued routing/centrality
+  on simplified graphs).
+
 * Download street networks from OpenStreetMap (`ox_graph_from_place()`,
   `ox_graph_from_address()`, `ox_graph_from_point()`, `ox_graph_from_bbox()`)
   via the Overpass API, returning the tidy `sf`-backed `osm_graph` object.

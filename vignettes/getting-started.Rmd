@@ -8,7 +8,7 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5, fig.height = 5.5)
 ```
 
 ```{r setup}
@@ -17,27 +17,34 @@ library(osmnxr)
 
 ## What is osmnxr?
 
-`osmnxr` is *OSMnx for R*: it downloads, models, analyzes and visualizes
-street networks from [OpenStreetMap](https://www.openstreetmap.org/). The
-public API is tidyverse-friendly and returns
-[`sf`](https://r-spatial.github.io/sf/) objects; the heavy graph computation
-(routing, metrics, simplification) runs in a bundled **Rust core**.
+`osmnxr` is *OSMnx for R*: it downloads, models, analyzes and visualizes street
+networks from [OpenStreetMap](https://www.openstreetmap.org/). The public API is
+tidyverse-friendly and returns [`sf`](https://r-spatial.github.io/sf/) objects;
+the heavy graph computation (routing, metrics, simplification) runs in a bundled
+**Rust core**.
 
 The central object is the `osm_graph`: a pair of `sf` tables (nodes and edges)
 plus metadata.
 
-## Working offline
+## A real network
 
-Every part of the analysis API works without network access on a synthetic
-grid, which is handy for learning and for reproducible examples:
+The usual entry point is a place name, which downloads from OpenStreetMap:
+
+```{r, eval = FALSE}
+g <- ox_graph_from_place("Olinda, Brazil", network_type = "drive")
+g <- ox_simplify(g)
+```
+
+So this vignette runs offline, we load that exact network — the historic centre
+of Olinda, Brazil — from the copy bundled with the package:
 
 ```{r}
-g <- example_osm_graph(n = 5)
+g <- ox_example("olinda")
 g
 ```
 
 ```{r}
-plot(g, nodes = TRUE)
+plot(g)
 ```
 
 ## Network statistics
@@ -48,41 +55,32 @@ ox_basic_stats(g)
 
 ## Routing
 
-Find the nearest nodes to two coordinates, then compute the shortest path
-(Dijkstra, in Rust):
+Snap coordinates to graph nodes, then compute the shortest path (Dijkstra, in
+Rust):
 
 ```{r}
-from <- ox_nearest_nodes(g, x = 0,   y = 0)
-to   <- ox_nearest_nodes(g, x = 400, y = 400)
-ox_shortest_path(g, from, to)
+orig <- ox_nearest_nodes(g, x = -34.8553, y = -8.0089)
+dest <- ox_nearest_nodes(g, x = -34.8505, y = -8.0125)
+route <- ox_shortest_path(g, orig, dest)
+length(route) # nodes along the route
 ```
-
-Single-source distances to every node:
 
 ```{r}
-head(ox_distances(g, from))
+route_xy <- sf::st_coordinates(g$nodes)[match(route, g$nodes$osmid), ]
+plot(g, col = "grey80", lwd = 0.6)
+lines(route_xy, col = "#b7410e", lwd = 3)
 ```
 
-## Street orientation
+## Where to next
 
-The Shannon entropy of edge bearings summarises how ordered a street grid is —
-low for a gridiron, high for an organic network:
+- [Routing and isochrones](routing-and-isochrones.html) — travel time, route
+  alternatives, service areas.
+- [Urban metrics](urban-metrics.html) — circuity, centrality, chokepoints.
+- [Street orientation](street-orientation.html) — grid order across cities.
+- [Accessibility analysis](accessibility.html) — access to schools, hospitals,
+  parks.
+- [Features and points of interest](features-and-pois.html) — download POIs and
+  buildings.
 
-```{r}
-ox_orientation_entropy(g)
-```
-
-## Downloading real data
-
-With network access, build a graph straight from a place name (this contacts
-the OpenStreetMap Overpass API, so it is not run here):
-
-```{r, eval = FALSE}
-g <- ox_graph_from_place("Olinda, Brazil", network_type = "drive")
-plot(g)
-ox_basic_stats(g)
-```
-
-See `?ox_graph_from_bbox`, `?ox_graph_from_point` and `?ox_geocode` for the
-other download entry points, and `ox_settings()` to configure endpoints,
-timeouts and caching.
+No network needed at all? `example_osm_graph()` builds a synthetic grid for
+quick experiments.
