@@ -4,11 +4,13 @@
 \alias{ox_example}
 \title{Load a bundled real-world example network}
 \usage{
-ox_example(name = c("olinda"))
+ox_example(name = c("olinda", "manhattan", "rome"))
 }
 \arguments{
-\item{name}{Which network to load. Currently \code{"olinda"} (the historic centre
-of Olinda, Pernambuco, Brazil; drivable network, simplified).}
+\item{name}{Which network to load (all drivable, simplified):
+\code{"olinda"} (historic centre of Olinda, Pernambuco, Brazil), \code{"manhattan"}
+(a square mile of Midtown Manhattan, New York — a strong grid), or
+\code{"rome"} (the organic centro storico of Rome, Italy).}
 }
 \value{
 An \link[=new_osm_graph]{osm_graph}.

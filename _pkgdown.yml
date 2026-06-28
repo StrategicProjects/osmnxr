@@ -28,6 +28,8 @@ navbar:
           href: articles/urban-metrics.html
         - text: Street orientation
           href: articles/street-orientation.html
+        - text: Figure-ground diagrams
+          href: articles/figure-ground.html
         - text: Features and points of interest
           href: articles/features-and-pois.html
         - text: Interoperability and export
@@ -88,6 +90,7 @@ reference:
       - ox_bearings
       - ox_orientation_entropy
       - ox_plot_orientation
+      - ox_plot_figure_ground
 
   - title: "Interoperability"
     desc: "Hand graphs to the wider R network ecosystem."

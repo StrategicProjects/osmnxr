@@ -100,3 +100,30 @@ ox_as_sf <- function(g) {
   stopifnot(is_osm_graph(g))
   list(nodes = g$nodes, edges = g$edges)
 }
+
+#' Figure-ground diagram of a street network
+#'
+#' Draws a figure-ground diagram: the streets in a single colour on a solid
+#' background, with no axes or margins. Cropping different places to the same
+#' extent makes their network form directly comparable, as in Boeing (2025).
+#'
+#' @param g An [osm_graph][new_osm_graph].
+#' @param bg,col Background and street colours. Default white-on-black.
+#' @param lwd Street line width. Default `1.2`.
+#' @param title Optional panel title.
+#'
+#' @return Invisibly, the `osm_graph`.
+#' @export
+#'
+#' @examples
+#' g <- example_osm_graph()
+#' ox_plot_figure_ground(g)
+ox_plot_figure_ground <- function(g, bg = "black", col = "white", lwd = 1.2, title = NULL) {
+  stopifnot(is_osm_graph(g))
+  mar <- if (is.null(title)) c(0, 0, 0, 0) else c(0, 0, 1.6, 0)
+  op <- graphics::par(bg = bg, mar = mar)
+  on.exit(graphics::par(op))
+  plot(sf::st_geometry(g$edges), col = col, lwd = lwd)
+  if (!is.null(title)) graphics::title(main = title, col.main = col, line = 0.2)
+  invisible(g)
+}

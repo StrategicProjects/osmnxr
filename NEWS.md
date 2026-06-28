@@ -9,6 +9,9 @@ First development version. Initial scaffold of *OSMnx for R*.
   chokepoints, travel-time routing and isochrones, and amenity accessibility.
 * `ox_orientation_entropy()` and `ox_plot_orientation()` now accept either an
   `osm_graph` or a numeric vector of bearings.
+* `ox_plot_figure_ground()` draws figure-ground diagrams, and `ox_example()`
+  now also bundles `"manhattan"` and `"rome"` networks for the new
+  "Figure-ground diagrams" vignette (Boeing 2025, Fig. 3).
 * `ox_simplify()` now preserves traversability per direction, emitting
   bidirectional edges for two-way streets (fixes zero-valued routing/centrality
   on simplified graphs).

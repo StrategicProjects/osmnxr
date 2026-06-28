@@ -17,6 +17,23 @@ test_that("ox_example rejects unknown networks", {
   expect_error(ox_example("atlantis"))
 })
 
+test_that("bundled comparison networks load and contrast in form", {
+  man <- ox_example("manhattan")
+  rome <- ox_example("rome")
+  expect_s3_class(man, "osm_graph")
+  expect_s3_class(rome, "osm_graph")
+  # Manhattan's grid is far more ordered than Rome's organic core
+  expect_lt(ox_orientation_entropy(man), ox_orientation_entropy(rome))
+})
+
+test_that("ox_plot_figure_ground draws without error", {
+  g <- example_osm_graph()
+  pdf(NULL)
+  on.exit(dev.off())
+  expect_invisible(ox_plot_figure_ground(g))
+  expect_invisible(ox_plot_figure_ground(g, title = "test"))
+})
+
 test_that("orientation functions accept a numeric bearings vector", {
   b <- c(0, 0, 90, 90, 180, 270)
   expect_type(ox_orientation_entropy(b), "double")
