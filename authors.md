@@ -21,12 +21,12 @@ Source:
 
 Leite A, Wasilew M, Vasconcelos H, Amorin C, Bezerra D (2026). *osmnxr:
 Download, Model and Analyze 'OpenStreetMap' Street Networks*. R package
-version 0.0.0.9000, <https://github.com/StrategicProjects/osmnxr>.
+version 0.1.0, <https://github.com/StrategicProjects/osmnxr>.
 
     @Manual{,
       title = {osmnxr: Download, Model and Analyze 'OpenStreetMap' Street Networks},
       author = {Andre Leite and Marcos Wasilew and Hugo Vasconcelos and Carlos Amorin and Diogo Bezerra},
       year = {2026},
-      note = {R package version 0.0.0.9000},
+      note = {R package version 0.1.0},
       url = {https://github.com/StrategicProjects/osmnxr},
     }
