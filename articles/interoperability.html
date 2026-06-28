@@ -73,7 +73,7 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/StrategicProjects/osmnxr" class="external-link">osmnxr</a></span><span class="op">)</span></span>
-<span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/example_osm_graph.html">example_osm_graph</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_example.html">ox_example</a></span><span class="op">(</span><span class="st">"olinda"</span><span class="op">)</span> <span class="co"># a small real network bundled with the package</span></span></code></pre></div>
 <p>An <code>osm_graph</code> is deliberately thin: tidy <code>sf</code>
 nodes and edges. That makes it easy to hand off to the rest of the R
 spatial-network ecosystem, or to export for other tools.</p>
@@ -84,23 +84,34 @@ spatial-network ecosystem, or to export for other tools.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">parts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_as_sf.html">ox_as_sf</a></span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span>
 <span><span class="va">parts</span><span class="op">$</span><span class="va">edges</span></span>
-<span><span class="co">#&gt; Simple feature collection with 80 features and 6 fields</span></span>
+<span><span class="co">#&gt; Simple feature collection with 1191 features and 5 fields</span></span>
 <span><span class="co">#&gt; Geometry type: LINESTRING</span></span>
 <span><span class="co">#&gt; Dimension:     XY</span></span>
-<span><span class="co">#&gt; Bounding box:  xmin: 0 ymin: 0 xmax: 400 ymax: 400</span></span>
-<span><span class="co">#&gt; Projected CRS: WGS 84 / Pseudo-Mercator</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: -34.86427 ymin: -8.019512 xmax: -34.84686 ymax: -7.999988</span></span>
+<span><span class="co">#&gt; Geodetic CRS:  WGS 84</span></span>
 <span><span class="co">#&gt; First 10 features:</span></span>
-<span><span class="co">#&gt;     u  v osmid     highway oneway                    geometry length</span></span>
-<span><span class="co">#&gt; 1   1  6     1 residential  FALSE     LINESTRING (0 0, 100 0)    100</span></span>
-<span><span class="co">#&gt; 2   1  2     2 residential  FALSE     LINESTRING (0 0, 0 100)    100</span></span>
-<span><span class="co">#&gt; 3   6 11     3 residential  FALSE   LINESTRING (100 0, 200 0)    100</span></span>
-<span><span class="co">#&gt; 4   6  7     4 residential  FALSE LINESTRING (100 0, 100 100)    100</span></span>
-<span><span class="co">#&gt; 5  11 16     5 residential  FALSE   LINESTRING (200 0, 300 0)    100</span></span>
-<span><span class="co">#&gt; 6  11 12     6 residential  FALSE LINESTRING (200 0, 200 100)    100</span></span>
-<span><span class="co">#&gt; 7  16 21     7 residential  FALSE   LINESTRING (300 0, 400 0)    100</span></span>
-<span><span class="co">#&gt; 8  16 17     8 residential  FALSE LINESTRING (300 0, 300 100)    100</span></span>
-<span><span class="co">#&gt; 9  21 22     9 residential  FALSE LINESTRING (400 0, 400 100)    100</span></span>
-<span><span class="co">#&gt; 10  2  7    10 residential  FALSE LINESTRING (0 100, 100 100)    100</span></span></code></pre></div>
+<span><span class="co">#&gt;             u          v     length     highway                           name</span></span>
+<span><span class="co">#&gt; 1  3567235794  655141381 143.059872       trunk         Avenida Pan Nordestina</span></span>
+<span><span class="co">#&gt; 2   655141381 1572683340  39.206250       trunk         Avenida Pan Nordestina</span></span>
+<span><span class="co">#&gt; 3   655141381 1572703444 108.819636 residential Rua Honorato do Espírito Santo</span></span>
+<span><span class="co">#&gt; 4  1572703444  655141381 108.819636 residential Rua Honorato do Espírito Santo</span></span>
+<span><span class="co">#&gt; 5   655144602  655144717  47.559016    tertiary             Rua Lucilo Varejão</span></span>
+<span><span class="co">#&gt; 6   655144717  655144602  47.559016    tertiary             Rua Lucilo Varejão</span></span>
+<span><span class="co">#&gt; 7   655144602 1446749601  94.315783    tertiary  Rua Manuel Clementino Marques</span></span>
+<span><span class="co">#&gt; 8  1446749601  655144602  94.315783    tertiary  Rua Manuel Clementino Marques</span></span>
+<span><span class="co">#&gt; 9   655144602 7271784016   2.199505    tertiary  Rua Manuel Clementino Marques</span></span>
+<span><span class="co">#&gt; 10 7271784016  655144602   2.199505    tertiary  Rua Manuel Clementino Marques</span></span>
+<span><span class="co">#&gt;                          geometry</span></span>
+<span><span class="co">#&gt; 1  LINESTRING (-34.85776 -8.00...</span></span>
+<span><span class="co">#&gt; 2  LINESTRING (-34.85716 -8.00...</span></span>
+<span><span class="co">#&gt; 3  LINESTRING (-34.85716 -8.00...</span></span>
+<span><span class="co">#&gt; 4  LINESTRING (-34.85675 -8.00...</span></span>
+<span><span class="co">#&gt; 5  LINESTRING (-34.85867 -8.00...</span></span>
+<span><span class="co">#&gt; 6  LINESTRING (-34.85889 -8.00...</span></span>
+<span><span class="co">#&gt; 7  LINESTRING (-34.85867 -8.00...</span></span>
+<span><span class="co">#&gt; 8  LINESTRING (-34.8595 -8.007...</span></span>
+<span><span class="co">#&gt; 9  LINESTRING (-34.85867 -8.00...</span></span>
+<span><span class="co">#&gt; 10 LINESTRING (-34.85865 -8.00...</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="sfnetworks-and-tidygraph">sfnetworks and tidygraph<a class="anchor" aria-label="anchor" href="#sfnetworks-and-tidygraph"></a>
@@ -110,59 +121,59 @@ verb workflow, or to a bare <code>tbl_graph</code>:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">net</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_as_sfnetwork.html">ox_as_sfnetwork</a></span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span>
 <span><span class="va">net</span></span>
-<span><span class="co">#&gt; <span style="color: #555555;"># A sfnetwork with</span> <span style="color: #555555;">25</span> <span style="color: #555555;">nodes and</span> <span style="color: #555555;">80</span> <span style="color: #555555;">edges</span></span></span>
+<span><span class="co">#&gt; <span style="color: #555555;"># A sfnetwork with</span> <span style="color: #555555;">498</span> <span style="color: #555555;">nodes and</span> <span style="color: #555555;">1191</span> <span style="color: #555555;">edges</span></span></span>
 <span><span class="co"><span style="color: #555555;">#&gt; #</span></span></span>
-<span><span class="co"><span style="color: #555555;">#&gt; # CRS: </span> <span style="color: #555555;">EPSG:3857</span> </span></span>
+<span><span class="co"><span style="color: #555555;">#&gt; # CRS: </span> <span style="color: #555555;">WGS 84</span> </span></span>
 <span><span class="co"><span style="color: #555555;">#&gt; #</span></span></span>
-<span><span class="co"><span style="color: #555555;">#&gt; # A directed simple graph with 1 component with spatially explicit edges</span></span></span>
+<span><span class="co"><span style="color: #555555;">#&gt; # A directed multigraph with 2 components with spatially explicit edges</span></span></span>
 <span><span class="co"><span style="color: #555555;">#&gt; #</span></span></span>
-<span><span class="co"><span style="color: #555555;">#&gt; </span><span style="color: #949494;"># Node data: 25 × 4 (active)</span></span></span>
-<span><span class="co">#&gt;   osmid     x     y    geometry</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;POINT [m]&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     1     0     0       (0 0)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     2     0   100     (0 100)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     3     0   200     (0 200)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>     4     0   300     (0 300)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>     5     0   400     (0 400)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>     6   100     0     (100 0)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 19 more rows</span></span></span>
+<span><span class="co"><span style="color: #555555;">#&gt; </span><span style="color: #949494;"># Node data: 498 × 4 (active)</span></span></span>
+<span><span class="co">#&gt;       osmid     x     y              geometry</span></span>
+<span><span class="co">#&gt;       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;POINT [°]&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 655<span style="text-decoration: underline;">141</span>381 -<span style="color: #BB0000;">34.9</span> -<span style="color: #BB0000;">8.01</span> (-34.85716 -8.006496)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 655<span style="text-decoration: underline;">144</span>602 -<span style="color: #BB0000;">34.9</span> -<span style="color: #BB0000;">8.01</span> (-34.85867 -8.007528)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 655<span style="text-decoration: underline;">144</span>709 -<span style="color: #BB0000;">34.9</span> -<span style="color: #BB0000;">8.01</span> (-34.85801 -8.007735)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 655<span style="text-decoration: underline;">144</span>717 -<span style="color: #BB0000;">34.9</span> -<span style="color: #BB0000;">8.01</span> (-34.85889 -8.007159)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 655<span style="text-decoration: underline;">144</span>723 -<span style="color: #BB0000;">34.9</span> -<span style="color: #BB0000;">8.01</span> (-34.85817 -8.006279)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 655<span style="text-decoration: underline;">144</span>725 -<span style="color: #BB0000;">34.9</span> -<span style="color: #BB0000;">8.01</span> (-34.85909 -8.006797)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 492 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555;">#</span></span></span>
-<span><span class="co"><span style="color: #555555;">#&gt; </span><span style="color: #949494;"># Edge data: 80 × 9</span></span></span>
-<span><span class="co">#&gt;    from    to     u     v osmid highway  oneway         geometry length</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;LINESTRING [m]&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     1     6     1     6     1 residen… FALSE      (0 0, 100 0)    100</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     1     2     1     2     2 residen… FALSE      (0 0, 0 100)    100</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     6    11     6    11     3 residen… FALSE    (100 0, 200 0)    100</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 77 more rows</span></span></span></code></pre></div>
+<span><span class="co"><span style="color: #555555;">#&gt; </span><span style="color: #949494;"># Edge data: 1,191 × 8</span></span></span>
+<span><span class="co">#&gt;    from    to          u        v length highway name                   geometry</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;LINESTRING [°]&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>   260     1 <span style="text-decoration: underline;">3</span>567<span style="text-decoration: underline;">235</span>794   6.55<span style="color: #949494;">e</span>8  143.  trunk   Aven… (-34.85776 -8.00763, -34…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     1   206  655<span style="text-decoration: underline;">141</span>381   1.57<span style="color: #949494;">e</span>9   39.2 trunk   Aven… (-34.85716 -8.006496, -3…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     1   212  655<span style="text-decoration: underline;">141</span>381   1.57<span style="color: #949494;">e</span>9  109.  reside… Rua … (-34.85716 -8.006496, -3…</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1,188 more rows</span></span></span></code></pre></div>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tg</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_as_tidygraph.html">ox_as_tidygraph</a></span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span>
 <span><span class="va">tg</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tbl_graph: 25 nodes and 80 edges</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tbl_graph: 498 nodes and 1191 edges</span></span></span>
 <span><span class="co"><span style="color: #949494;">#&gt; #</span></span></span>
-<span><span class="co"><span style="color: #949494;">#&gt; # A directed simple graph with 1 component</span></span></span>
+<span><span class="co"><span style="color: #949494;">#&gt; # A directed multigraph with 2 components</span></span></span>
 <span><span class="co"><span style="color: #949494;">#&gt; #</span></span></span>
-<span><span class="co"><span style="color: #949494;">#&gt; # Node Data: 25 × 3 (active)</span></span></span>
-<span><span class="co">#&gt;    osmid     x     y</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>     1     0     0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>     2     0   100</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>     3     0   200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>     4     0   300</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>     5     0   400</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>     6   100     0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>     7   100   100</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>     8   100   200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>     9   100   300</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>    10   100   400</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 15 more rows</span></span></span>
+<span><span class="co"><span style="color: #949494;">#&gt; # Node Data: 498 × 3 (active)</span></span></span>
+<span><span class="co">#&gt;        osmid     x     y</span></span>
+<span><span class="co">#&gt;        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 655<span style="text-decoration: underline;">141</span>381 -<span style="color: #BB0000;">34.9</span> -<span style="color: #BB0000;">8.01</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 655<span style="text-decoration: underline;">144</span>602 -<span style="color: #BB0000;">34.9</span> -<span style="color: #BB0000;">8.01</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 655<span style="text-decoration: underline;">144</span>709 -<span style="color: #BB0000;">34.9</span> -<span style="color: #BB0000;">8.01</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 655<span style="text-decoration: underline;">144</span>717 -<span style="color: #BB0000;">34.9</span> -<span style="color: #BB0000;">8.01</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 655<span style="text-decoration: underline;">144</span>723 -<span style="color: #BB0000;">34.9</span> -<span style="color: #BB0000;">8.01</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 655<span style="text-decoration: underline;">144</span>725 -<span style="color: #BB0000;">34.9</span> -<span style="color: #BB0000;">8.01</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 655<span style="text-decoration: underline;">144</span>730 -<span style="color: #BB0000;">34.9</span> -<span style="color: #BB0000;">8.01</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 655<span style="text-decoration: underline;">144</span>731 -<span style="color: #BB0000;">34.9</span> -<span style="color: #BB0000;">8.01</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 655<span style="text-decoration: underline;">144</span>732 -<span style="color: #BB0000;">34.9</span> -<span style="color: #BB0000;">8.01</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 655<span style="text-decoration: underline;">144</span>733 -<span style="color: #BB0000;">34.9</span> -<span style="color: #BB0000;">8.01</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 488 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#</span></span></span>
-<span><span class="co"><span style="color: #949494;">#&gt; # Edge Data: 80 × 8</span></span></span>
-<span><span class="co">#&gt;    from    to     u     v osmid highway     oneway length</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     1     6     1     6     1 residential FALSE     100</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     1     2     1     2     2 residential FALSE     100</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     6    11     6    11     3 residential FALSE     100</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 77 more rows</span></span></span></code></pre></div>
+<span><span class="co"><span style="color: #949494;">#&gt; # Edge Data: 1,191 × 7</span></span></span>
+<span><span class="co">#&gt;    from    to          u          v length highway     name                     </span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>   260     1 <span style="text-decoration: underline;">3</span>567<span style="text-decoration: underline;">235</span>794  655<span style="text-decoration: underline;">141</span>381  143.  trunk       Avenida Pan Nordestina   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     1   206  655<span style="text-decoration: underline;">141</span>381 <span style="text-decoration: underline;">1</span>572<span style="text-decoration: underline;">683</span>340   39.2 trunk       Avenida Pan Nordestina   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     1   212  655<span style="text-decoration: underline;">141</span>381 <span style="text-decoration: underline;">1</span>572<span style="text-decoration: underline;">703</span>444  109.  residential Rua Honorato do Espírito…</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1,188 more rows</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="dodgr">dodgr<a class="anchor" aria-label="anchor" href="#dodgr"></a>
@@ -206,7 +217,7 @@ Edge geometry is stored as WKT, so the round-trip is lossless:</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 7</span></span></span>
 <span><span class="co">#&gt;   n_nodes n_edges total_length mean_length mean_out_degree self_loops circuity</span></span>
 <span><span class="co">#&gt;     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>      25      80         <span style="text-decoration: underline;">8</span>000         100             3.2          0        1</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     498    <span style="text-decoration: underline;">1</span>191       <span style="text-decoration: underline;">95</span>484.        80.2            2.39          1     1.06</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

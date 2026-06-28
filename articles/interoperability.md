@@ -3,7 +3,7 @@
 ``` r
 
 library(osmnxr)
-g <- example_osm_graph(n = 5)
+g <- ox_example("olinda") # a small real network bundled with the package
 ```
 
 An `osm_graph` is deliberately thin: tidy `sf` nodes and edges. That
@@ -18,23 +18,34 @@ The nodes and edges are always available as `sf`:
 
 parts <- ox_as_sf(g)
 parts$edges
-#> Simple feature collection with 80 features and 6 fields
+#> Simple feature collection with 1191 features and 5 fields
 #> Geometry type: LINESTRING
 #> Dimension:     XY
-#> Bounding box:  xmin: 0 ymin: 0 xmax: 400 ymax: 400
-#> Projected CRS: WGS 84 / Pseudo-Mercator
+#> Bounding box:  xmin: -34.86427 ymin: -8.019512 xmax: -34.84686 ymax: -7.999988
+#> Geodetic CRS:  WGS 84
 #> First 10 features:
-#>     u  v osmid     highway oneway                    geometry length
-#> 1   1  6     1 residential  FALSE     LINESTRING (0 0, 100 0)    100
-#> 2   1  2     2 residential  FALSE     LINESTRING (0 0, 0 100)    100
-#> 3   6 11     3 residential  FALSE   LINESTRING (100 0, 200 0)    100
-#> 4   6  7     4 residential  FALSE LINESTRING (100 0, 100 100)    100
-#> 5  11 16     5 residential  FALSE   LINESTRING (200 0, 300 0)    100
-#> 6  11 12     6 residential  FALSE LINESTRING (200 0, 200 100)    100
-#> 7  16 21     7 residential  FALSE   LINESTRING (300 0, 400 0)    100
-#> 8  16 17     8 residential  FALSE LINESTRING (300 0, 300 100)    100
-#> 9  21 22     9 residential  FALSE LINESTRING (400 0, 400 100)    100
-#> 10  2  7    10 residential  FALSE LINESTRING (0 100, 100 100)    100
+#>             u          v     length     highway                           name
+#> 1  3567235794  655141381 143.059872       trunk         Avenida Pan Nordestina
+#> 2   655141381 1572683340  39.206250       trunk         Avenida Pan Nordestina
+#> 3   655141381 1572703444 108.819636 residential Rua Honorato do Espírito Santo
+#> 4  1572703444  655141381 108.819636 residential Rua Honorato do Espírito Santo
+#> 5   655144602  655144717  47.559016    tertiary             Rua Lucilo Varejão
+#> 6   655144717  655144602  47.559016    tertiary             Rua Lucilo Varejão
+#> 7   655144602 1446749601  94.315783    tertiary  Rua Manuel Clementino Marques
+#> 8  1446749601  655144602  94.315783    tertiary  Rua Manuel Clementino Marques
+#> 9   655144602 7271784016   2.199505    tertiary  Rua Manuel Clementino Marques
+#> 10 7271784016  655144602   2.199505    tertiary  Rua Manuel Clementino Marques
+#>                          geometry
+#> 1  LINESTRING (-34.85776 -8.00...
+#> 2  LINESTRING (-34.85716 -8.00...
+#> 3  LINESTRING (-34.85716 -8.00...
+#> 4  LINESTRING (-34.85675 -8.00...
+#> 5  LINESTRING (-34.85867 -8.00...
+#> 6  LINESTRING (-34.85889 -8.00...
+#> 7  LINESTRING (-34.85867 -8.00...
+#> 8  LINESTRING (-34.8595 -8.007...
+#> 9  LINESTRING (-34.85867 -8.00...
+#> 10 LINESTRING (-34.85865 -8.00...
 ```
 
 ## sfnetworks and tidygraph
@@ -46,62 +57,62 @@ bare `tbl_graph`:
 
 net <- ox_as_sfnetwork(g)
 net
-#> # A sfnetwork with 25 nodes and 80 edges
+#> # A sfnetwork with 498 nodes and 1191 edges
 #> #
-#> # CRS:  EPSG:3857 
+#> # CRS:  WGS 84 
 #> #
-#> # A directed simple graph with 1 component with spatially explicit edges
+#> # A directed multigraph with 2 components with spatially explicit edges
 #> #
-#> # Node data: 25 × 4 (active)
-#>   osmid     x     y    geometry
-#>   <int> <dbl> <dbl> <POINT [m]>
-#> 1     1     0     0       (0 0)
-#> 2     2     0   100     (0 100)
-#> 3     3     0   200     (0 200)
-#> 4     4     0   300     (0 300)
-#> 5     5     0   400     (0 400)
-#> 6     6   100     0     (100 0)
-#> # ℹ 19 more rows
+#> # Node data: 498 × 4 (active)
+#>       osmid     x     y              geometry
+#>       <dbl> <dbl> <dbl>           <POINT [°]>
+#> 1 655141381 -34.9 -8.01 (-34.85716 -8.006496)
+#> 2 655144602 -34.9 -8.01 (-34.85867 -8.007528)
+#> 3 655144709 -34.9 -8.01 (-34.85801 -8.007735)
+#> 4 655144717 -34.9 -8.01 (-34.85889 -8.007159)
+#> 5 655144723 -34.9 -8.01 (-34.85817 -8.006279)
+#> 6 655144725 -34.9 -8.01 (-34.85909 -8.006797)
+#> # ℹ 492 more rows
 #> #
-#> # Edge data: 80 × 9
-#>    from    to     u     v osmid highway  oneway         geometry length
-#>   <int> <int> <int> <int> <int> <chr>    <lgl>  <LINESTRING [m]>  <dbl>
-#> 1     1     6     1     6     1 residen… FALSE      (0 0, 100 0)    100
-#> 2     1     2     1     2     2 residen… FALSE      (0 0, 0 100)    100
-#> 3     6    11     6    11     3 residen… FALSE    (100 0, 200 0)    100
-#> # ℹ 77 more rows
+#> # Edge data: 1,191 × 8
+#>    from    to          u        v length highway name                   geometry
+#>   <int> <int>      <dbl>    <dbl>  <dbl> <chr>   <chr>          <LINESTRING [°]>
+#> 1   260     1 3567235794   6.55e8  143.  trunk   Aven… (-34.85776 -8.00763, -34…
+#> 2     1   206  655141381   1.57e9   39.2 trunk   Aven… (-34.85716 -8.006496, -3…
+#> 3     1   212  655141381   1.57e9  109.  reside… Rua … (-34.85716 -8.006496, -3…
+#> # ℹ 1,188 more rows
 ```
 
 ``` r
 
 tg <- ox_as_tidygraph(g)
 tg
-#> # A tbl_graph: 25 nodes and 80 edges
+#> # A tbl_graph: 498 nodes and 1191 edges
 #> #
-#> # A directed simple graph with 1 component
+#> # A directed multigraph with 2 components
 #> #
-#> # Node Data: 25 × 3 (active)
-#>    osmid     x     y
-#>    <int> <dbl> <dbl>
-#>  1     1     0     0
-#>  2     2     0   100
-#>  3     3     0   200
-#>  4     4     0   300
-#>  5     5     0   400
-#>  6     6   100     0
-#>  7     7   100   100
-#>  8     8   100   200
-#>  9     9   100   300
-#> 10    10   100   400
-#> # ℹ 15 more rows
+#> # Node Data: 498 × 3 (active)
+#>        osmid     x     y
+#>        <dbl> <dbl> <dbl>
+#>  1 655141381 -34.9 -8.01
+#>  2 655144602 -34.9 -8.01
+#>  3 655144709 -34.9 -8.01
+#>  4 655144717 -34.9 -8.01
+#>  5 655144723 -34.9 -8.01
+#>  6 655144725 -34.9 -8.01
+#>  7 655144730 -34.9 -8.01
+#>  8 655144731 -34.9 -8.01
+#>  9 655144732 -34.9 -8.01
+#> 10 655144733 -34.9 -8.01
+#> # ℹ 488 more rows
 #> #
-#> # Edge Data: 80 × 8
-#>    from    to     u     v osmid highway     oneway length
-#>   <int> <int> <int> <int> <int> <chr>       <lgl>   <dbl>
-#> 1     1     6     1     6     1 residential FALSE     100
-#> 2     1     2     1     2     2 residential FALSE     100
-#> 3     6    11     6    11     3 residential FALSE     100
-#> # ℹ 77 more rows
+#> # Edge Data: 1,191 × 7
+#>    from    to          u          v length highway     name                     
+#>   <int> <int>      <dbl>      <dbl>  <dbl> <chr>       <chr>                    
+#> 1   260     1 3567235794  655141381  143.  trunk       Avenida Pan Nordestina   
+#> 2     1   206  655141381 1572683340   39.2 trunk       Avenida Pan Nordestina   
+#> 3     1   212  655141381 1572703444  109.  residential Rua Honorato do Espírito…
+#> # ℹ 1,188 more rows
 ```
 
 ## dodgr
@@ -153,5 +164,5 @@ ox_basic_stats(g2)
 #> # A tibble: 1 × 7
 #>   n_nodes n_edges total_length mean_length mean_out_degree self_loops circuity
 #>     <int>   <int>        <dbl>       <dbl>           <dbl>      <int>    <dbl>
-#> 1      25      80         8000         100             3.2          0        1
+#> 1     498    1191       95484.        80.2            2.39          1     1.06
 ```

@@ -7,15 +7,22 @@ Requires `ggplot2`.
 ## Usage
 
 ``` r
-ox_plot_orientation(g, num_bins = 36, fill = "#0d3b66")
+ox_plot_orientation(
+  x,
+  num_bins = 36,
+  fill = "#0d3b66",
+  title = "Street orientation"
+)
 ```
 
 ## Arguments
 
-- g:
+- x:
 
   An
-  [osm_graph](https://strategicprojects.github.io/osmnxr/reference/new_osm_graph.md).
+  [osm_graph](https://strategicprojects.github.io/osmnxr/reference/new_osm_graph.md)
+  or a numeric vector of bearings (degrees), e.g. from
+  [`ox_bearings()`](https://strategicprojects.github.io/osmnxr/reference/ox_bearings.md).
 
 - num_bins:
 
@@ -24,6 +31,10 @@ ox_plot_orientation(g, num_bins = 36, fill = "#0d3b66")
 - fill:
 
   Bar fill colour. Default the package blue.
+
+- title:
+
+  Optional plot title.
 
 ## Value
 

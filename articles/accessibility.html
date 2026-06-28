@@ -73,67 +73,70 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/StrategicProjects/osmnxr" class="external-link">osmnxr</a></span><span class="op">)</span></span></code></pre></div>
-<p>This article walks through the kind of analysis <code>osmnxr</code>
-is built for: who can reach a service, and how quickly. It underpins
-studies of urban mobility, green mobility (“Fluxo Verde”), and access to
-schools and hospitals. We use the offline grid so it runs anywhere; on a
-real city the steps are identical.</p>
+<p>A central use of street networks is <strong>accessibility</strong>:
+who can reach a service, and how quickly (Foti 2014; Liu et al. 2022).
+The pattern is always the same — snap facilities to the network, then
+solve shortest paths or isochrones, weighted by distance or travel time.
+It underpins studies of urban mobility, green mobility (“Fluxo Verde”),
+and access to schools, hospitals and parks.</p>
+<p>We use the bundled real network of central Olinda, Brazil, with
+travel times, so this runs offline.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/example_osm_graph.html">example_osm_graph</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">10</span>, spacing <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
-<span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_add_edge_travel_times.html">ox_add_edge_travel_times</a></span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_add_edge_travel_times.html">ox_add_edge_travel_times</a></span><span class="op">(</span><span class="fu"><a href="../reference/ox_example.html">ox_example</a></span><span class="op">(</span><span class="st">"olinda"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
-<h2 id="travel-time-isochrones-from-a-facility">Travel-time isochrones from a facility<a class="anchor" aria-label="anchor" href="#travel-time-isochrones-from-a-facility"></a>
+<h2 id="travel-time-service-areas-from-a-facility">Travel-time service areas from a facility<a class="anchor" aria-label="anchor" href="#travel-time-service-areas-from-a-facility"></a>
 </h2>
-<p>Suppose a hospital sits near the centre of the area. The set of
-locations reachable within a time budget is its
-<strong>isochrone</strong>. With <code>travel_time</code> as the weight,
-cutoffs are in seconds:</p>
+<p>Suppose a clinic sits near the centre. Its isochrones are the nested
+areas reachable within each time budget:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">hospital</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, x <span class="op">=</span> <span class="fl">450</span>, y <span class="op">=</span> <span class="fl">450</span><span class="op">)</span></span>
-<span><span class="va">iso</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_isochrone.html">ox_isochrone</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">hospital</span>, cutoffs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span>, <span class="fl">120</span><span class="op">)</span>, weight <span class="op">=</span> <span class="st">"travel_time"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">clinic</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, x <span class="op">=</span> <span class="op">-</span><span class="fl">34.8553</span>, y <span class="op">=</span> <span class="op">-</span><span class="fl">8.0089</span><span class="op">)</span></span>
+<span><span class="va">iso</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_isochrone.html">ox_isochrone</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">clinic</span>, cutoffs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span>, <span class="fl">120</span>, <span class="fl">180</span><span class="op">)</span>, weight <span class="op">=</span> <span class="st">"travel_time"</span><span class="op">)</span></span>
 <span><span class="va">iso</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cutoff"</span>, <span class="st">"n_nodes"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt; Simple feature collection with 2 features and 2 fields</span></span>
+<span><span class="co">#&gt; Simple feature collection with 3 features and 2 fields</span></span>
 <span><span class="co">#&gt; Geometry type: POLYGON</span></span>
 <span><span class="co">#&gt; Dimension:     XY</span></span>
-<span><span class="co">#&gt; Bounding box:  xmin: 0 ymin: 0 xmax: 900 ymax: 900</span></span>
-<span><span class="co">#&gt; Projected CRS: WGS 84 / Pseudo-Mercator</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: -34.86427 ymin: -8.017667 xmax: -34.84766 ymax: -7.999988</span></span>
+<span><span class="co">#&gt; Geodetic CRS:  WGS 84</span></span>
 <span><span class="co">#&gt;   cutoff n_nodes                       geometry</span></span>
-<span><span class="co">#&gt; 1    120     100 POLYGON ((0 800, 0 900, 100...</span></span>
-<span><span class="co">#&gt; 2     60      59 POLYGON ((100 400, 0 400, 1...</span></span></code></pre></div>
+<span><span class="co">#&gt; 1    180     468 POLYGON ((-34.86237 -8.0066...</span></span>
+<span><span class="co">#&gt; 2    120     368 POLYGON ((-34.86141 -8.0064...</span></span>
+<span><span class="co">#&gt; 3     60     104 POLYGON ((-34.85679 -8.0048...</span></span></code></pre></div>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">g</span>, col <span class="op">=</span> <span class="st">"grey85"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">g</span>, col <span class="op">=</span> <span class="st">"grey85"</span>, lwd <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">iso</span><span class="op">)</span>, add <span class="op">=</span> <span class="cn">TRUE</span>, border <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>     col <span class="op">=</span> <span class="fu">grDevices</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grDevices/adjustcolor.html" class="external-link">adjustcolor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#0d3b66"</span>, <span class="st">"#2a9d8f"</span><span class="op">)</span>, <span class="fl">0.4</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="accessibility_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="576"></p>
-<p>The polygons are nested service areas: everything in the inner
-polygon is within one minute of the hospital, the outer within two.</p>
+<span>     col <span class="op">=</span> <span class="fu">grDevices</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grDevices/adjustcolor.html" class="external-link">adjustcolor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#0d3b66"</span>, <span class="st">"#1f7a8c"</span>, <span class="st">"#2a9d8f"</span><span class="op">)</span>, <span class="fl">0.35</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="accessibility_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="624"></p>
 </div>
 <div class="section level2">
-<h2 id="distance-from-many-origins-to-many-destinations">Distance from many origins to many destinations<a class="anchor" aria-label="anchor" href="#distance-from-many-origins-to-many-destinations"></a>
+<h2 id="nearest-facility-for-each-origin">Nearest facility for each origin<a class="anchor" aria-label="anchor" href="#nearest-facility-for-each-origin"></a>
 </h2>
-<p>To measure how far a set of “schools” is from a set of “homes”, use a
-distance matrix. Here every cell is travel time in seconds:</p>
+<p>With several facilities and several demand points (homes), a distance
+matrix gives the travel time from every home to every facility; the row
+minimum is each home’s nearest facility:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">homes</span>   <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">900</span>, <span class="fl">0</span><span class="op">)</span>,   y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">900</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">schools</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">450</span>, <span class="fl">100</span><span class="op">)</span>,    y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">450</span>, <span class="fl">800</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_distance_matrix.html">ox_distance_matrix</a></span><span class="op">(</span><span class="va">g</span>, from <span class="op">=</span> <span class="va">homes</span>, to <span class="op">=</span> <span class="va">schools</span>, weight <span class="op">=</span> <span class="st">"travel_time"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span></span>
-<span><span class="co">#&gt;     55  19</span></span>
-<span><span class="co">#&gt; 1  108 108</span></span>
-<span><span class="co">#&gt; 91  96 192</span></span>
-<span><span class="co">#&gt; 10 120  24</span></span></code></pre></div>
-<p>The nearest school for each home is the row minimum:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">m</span>, <span class="fl">1</span>, <span class="va">min</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   1  91  10 </span></span>
-<span><span class="co">#&gt; 108  96  24</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">homes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>,</span>
+<span>  x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">34.8505</span>, <span class="op">-</span><span class="fl">34.852</span>, <span class="op">-</span><span class="fl">34.8585</span><span class="op">)</span>,</span>
+<span>  y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">8.0125</span>, <span class="op">-</span><span class="fl">8.006</span>, <span class="op">-</span><span class="fl">8.011</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">facilities</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>,</span>
+<span>  x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">34.8553</span>, <span class="op">-</span><span class="fl">34.8500</span><span class="op">)</span>,</span>
+<span>  y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">8.0089</span>, <span class="op">-</span><span class="fl">8.0140</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_distance_matrix.html">ox_distance_matrix</a></span><span class="op">(</span><span class="va">g</span>, from <span class="op">=</span> <span class="va">homes</span>, to <span class="op">=</span> <span class="va">facilities</span>, weight <span class="op">=</span> <span class="st">"travel_time"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span>                 <span class="co"># seconds, homes x facilities</span></span>
+<span><span class="co">#&gt;            8945592343 5515883370</span></span>
+<span><span class="co">#&gt; 1206764895         76         38</span></span>
+<span><span class="co">#&gt; 1499391454         73        164</span></span>
+<span><span class="co">#&gt; 7272198752         95        176</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">m</span>, <span class="fl">1</span>, <span class="va">min</span><span class="op">)</span><span class="op">)</span>  <span class="co"># travel time to the nearest facility</span></span>
+<span><span class="co">#&gt; 1206764895 1499391454 7272198752 </span></span>
+<span><span class="co">#&gt;         38         73         95</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="putting-it-together-on-real-data">Putting it together on real data<a class="anchor" aria-label="anchor" href="#putting-it-together-on-real-data"></a>
+<h2 id="on-real-data">On real data<a class="anchor" aria-label="anchor" href="#on-real-data"></a>
 </h2>
-<p>With network access, the same pipeline runs on a city and its real
-facilities:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<p>With network access, the facilities come straight from OpenStreetMap
+via the <code>features</code> module, and the workflow is identical:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_graph_from_place.html">ox_graph_from_place</a></span><span class="op">(</span><span class="st">"Olinda, Brazil"</span>, network_type <span class="op">=</span> <span class="st">"drive"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/ox_simplify.html">ox_simplify</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/ox_add_edge_travel_times.html">ox_add_edge_travel_times</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -142,11 +145,19 @@ facilities:</p>
 <span><span class="va">xy</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_coordinates.html" class="external-link">st_coordinates</a></span><span class="op">(</span><span class="va">hospitals</span><span class="op">)</span></span>
 <span><span class="va">origins</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">xy</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="va">xy</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># 10- and 20-minute service areas across all hospitals</span></span>
+<span><span class="co"># 10- and 20-minute drive-time service areas across all hospitals</span></span>
 <span><span class="fu"><a href="../reference/ox_isochrone.html">ox_isochrone</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">origins</span>, cutoffs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">600</span>, <span class="fl">1200</span><span class="op">)</span>, weight <span class="op">=</span> <span class="st">"travel_time"</span><span class="op">)</span></span></code></pre></div>
-<p>That polygon set is the basis for equity analysis: overlay population
-and you can quantify how many people fall outside a 20-minute reach —
-the core question in accessibility and territorial planning.</p>
+<p>Overlay population on those polygons and you can quantify how many
+people fall outside a 20-minute reach — the core question in
+accessibility and territorial planning.</p>
+</div>
+<div class="section level2">
+<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<p>Foti, F. (2014). <em>Behavioral framework for measuring
+walkability.</em> PhD thesis, UC Berkeley.</p>
+<p>Liu, S. et al. (2022). A generalized framework for measuring
+pedestrian accessibility. <em>Geographical Analysis</em> 54.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

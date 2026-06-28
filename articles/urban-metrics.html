@@ -73,63 +73,100 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/StrategicProjects/osmnxr" class="external-link">osmnxr</a></span><span class="op">)</span></span></code></pre></div>
-<p><code>osmnxr</code> summarises a street network with a handful of
-metrics, all computed in the Rust core. This article uses the offline
-grid; the workflow is identical on a network from
-<code><a href="../reference/ox_graph_from_place.html">ox_graph_from_place()</a></code>.</p>
+<p><code>osmnxr</code> summarises a street network with the geometric
+and topological measures used in urban morphology (Boeing 2025). We use
+a bundled real network — the centre of Olinda, Brazil — so everything
+here runs offline.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/example_osm_graph.html">example_osm_graph</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">8</span>, spacing <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_example.html">ox_example</a></span><span class="op">(</span><span class="st">"olinda"</span><span class="op">)</span></span>
+<span><span class="va">g</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">osm_graph</span> <span style="color: #00BBBB;">───────────────────────────────────────────────────────────────────</span></span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">498</span> nodes, <span style="font-weight: bold;">1191</span> edges</span></span>
+<span><span class="co">#&gt; Network type: <span style="color: #0000BB;">"unknown"</span></span></span>
+<span><span class="co">#&gt; Simplified: <span style="color: #0000BB;">FALSE</span></span></span>
+<span><span class="co">#&gt; CRS: <span style="color: #0000BB;">"WGS 84"</span></span></span></code></pre></div>
 <div class="section level2">
 <h2 id="basic-statistics">Basic statistics<a class="anchor" aria-label="anchor" href="#basic-statistics"></a>
 </h2>
-<p><code><a href="../reference/ox_basic_stats.html">ox_basic_stats()</a></code> reports node and edge counts, total and
-mean edge length, mean out-degree, self-loops and average circuity:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ox_basic_stats.html">ox_basic_stats</a></span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 7</span></span></span>
 <span><span class="co">#&gt;   n_nodes n_edges total_length mean_length mean_out_degree self_loops circuity</span></span>
 <span><span class="co">#&gt;     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>      64     224        <span style="text-decoration: underline;">22</span>400         100             3.5          0        1</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     498    <span style="text-decoration: underline;">1</span>191       <span style="text-decoration: underline;">95</span>484.        80.2            2.39          1     1.06</span></span></code></pre></div>
+<p>The pieces of this summary are standard urban indicators:</p>
+<ul>
+<li>
+<strong><code>n_nodes</code> / <code>n_edges</code></strong> —
+intersections and street segments. Intersection density (nodes per km²)
+is the most common measure of network “grain”.</li>
+<li>
+<strong><code>mean_length</code></strong> — average street segment
+length, a proxy for block size.</li>
+<li>
+<strong><code>total_length</code></strong> — total street length;
+divide by area for street density.</li>
+<li>
+<strong><code>circuity</code></strong> — how much streets deviate
+from straight lines.</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">area_km2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html" class="external-link">st_area</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_unary.html" class="external-link">st_convex_hull</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_combine.html" class="external-link">st_union</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">nodes</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="fl">1e6</span></span>
+<span><span class="va">n_intersections</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">nodes</span><span class="op">$</span><span class="va">osmid</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">edges</span><span class="op">$</span><span class="va">u</span>, <span class="va">g</span><span class="op">$</span><span class="va">edges</span><span class="op">$</span><span class="va">v</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">n_intersections</span> <span class="op">/</span> <span class="va">area_km2</span> <span class="co"># intersections per km^2</span></span>
+<span><span class="co">#&gt; [1] 151.0356</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="circuity">Circuity<a class="anchor" aria-label="anchor" href="#circuity"></a>
 </h2>
-<p>Circuity is the ratio of street length to straight-line distance
-between edge endpoints. A value of <code>1</code> means perfectly
-straight streets; higher values mean more winding ones. A grid is
-exactly straight:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<p>Circuity is total street length over straight-line distance between
+segment endpoints. A value near <code>1</code> means straight streets;
+higher means more winding:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ox_circuity.html">ox_circuity</a></span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 1</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 1.061807</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="centrality">Centrality<a class="anchor" aria-label="anchor" href="#centrality"></a>
+<h2 id="centrality-finding-chokepoints">Centrality: finding chokepoints<a class="anchor" aria-label="anchor" href="#centrality-finding-chokepoints"></a>
 </h2>
-<p>Which intersections carry the most through-traffic, and which are
-most central? <code><a href="../reference/ox_centrality.html">ox_centrality()</a></code> returns betweenness (Brandes’
-algorithm) and closeness:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ct</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_centrality.html">ox_centrality</a></span><span class="op">(</span><span class="va">g</span>, normalized <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">ct</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="va">ct</span><span class="op">$</span><span class="va">betweenness</span><span class="op">)</span>, <span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="op">]</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 5 × 3</span></span></span>
-<span><span class="co">#&gt;   osmid betweenness closeness</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>    36       0.153   0.002<span style="text-decoration: underline;">46</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>    28       0.153   0.002<span style="text-decoration: underline;">46</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>    29       0.153   0.002<span style="text-decoration: underline;">46</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>    37       0.153   0.002<span style="text-decoration: underline;">46</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>    20       0.133   0.002<span style="text-decoration: underline;">32</span></span></span></code></pre></div>
-<p>Join the scores back onto the nodes to map them:</p>
+<p>Betweenness centrality counts the share of shortest paths passing
+through each node. Its maximum highlights structural chokepoints — “a
+bridge connecting a city’s halves” (Boeing &amp; Ha 2024) — that are
+single points of failure for mobility and resilience.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ct</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_centrality.html">ox_centrality</a></span><span class="op">(</span><span class="va">g</span>, type <span class="op">=</span> <span class="st">"betweenness"</span>, normalized <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">ct</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="va">ct</span><span class="op">$</span><span class="va">betweenness</span><span class="op">)</span>, <span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="op">]</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 5 × 2</span></span></span>
+<span><span class="co">#&gt;        osmid betweenness</span></span>
+<span><span class="co">#&gt;        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> <span style="text-decoration: underline;">6</span>146<span style="text-decoration: underline;">825</span>103       0.183</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> <span style="text-decoration: underline;">5</span>662<span style="text-decoration: underline;">175</span>659       0.178</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> <span style="text-decoration: underline;">8</span>291<span style="text-decoration: underline;">701</span>581       0.165</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> <span style="text-decoration: underline;">1</span>572<span style="text-decoration: underline;">677</span>068       0.163</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> <span style="text-decoration: underline;">5</span>662<span style="text-decoration: underline;">175</span>651       0.160</span></span></code></pre></div>
+<p>Map it: the darkest, largest nodes carry the most
+through-traffic.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nodes</span> <span class="op">&lt;-</span> <span class="va">g</span><span class="op">$</span><span class="va">nodes</span></span>
 <span><span class="va">nodes</span><span class="op">$</span><span class="va">betweenness</span> <span class="op">&lt;-</span> <span class="va">ct</span><span class="op">$</span><span class="va">betweenness</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="va">nodes</span><span class="op">$</span><span class="va">osmid</span>, <span class="va">ct</span><span class="op">$</span><span class="va">osmid</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">g</span>, col <span class="op">=</span> <span class="st">"grey85"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">nodes</span><span class="op">[</span><span class="st">"betweenness"</span><span class="op">]</span>, pch <span class="op">=</span> <span class="fl">19</span>, add <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="urban-metrics_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" alt="" width="576"></p>
-<p>The most between-central nodes sit in the core of the grid — exactly
-where shortest paths concentrate. On a real network this highlights
-structurally important junctions for mobility and resilience
-planning.</p>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">g</span>, col <span class="op">=</span> <span class="st">"grey80"</span>, lwd <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">nodes</span><span class="op">[</span><span class="st">"betweenness"</span><span class="op">]</span>, pch <span class="op">=</span> <span class="fl">19</span>,</span>
+<span>     cex <span class="op">=</span> <span class="fl">0.4</span> <span class="op">+</span> <span class="fl">4</span> <span class="op">*</span> <span class="va">nodes</span><span class="op">$</span><span class="va">betweenness</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">nodes</span><span class="op">$</span><span class="va">betweenness</span><span class="op">)</span>,</span>
+<span>     pal <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html" class="external-link">hcl.colors</a></span><span class="op">(</span><span class="va">n</span>, <span class="st">"YlOrRd"</span>, rev <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, add <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p><img src="urban-metrics_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="624"></p>
+<p>The high-betweenness nodes trace the through-routes that hold the
+network together — exactly the junctions a planner would protect or
+reinforce.</p>
+</div>
+<div class="section level2">
+<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<p>Boeing, G. (2025). Modeling and analyzing urban networks and
+amenities with OSMnx. <em>Geographical Analysis</em>.</p>
+<p>Boeing, G., &amp; Ha, J. (2024). Resilient by design: simulating
+street network disruptions across every urban area in the world.
+<em>Transportation Research Part A</em>.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

@@ -73,11 +73,12 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/StrategicProjects/osmnxr" class="external-link">osmnxr</a></span><span class="op">)</span></span></code></pre></div>
-<p>Beyond street networks, <code>osmnxr</code> downloads arbitrary
-OpenStreetMap features — amenities, buildings, transit stops, shops — as
-tidy <code>sf</code> points. Because these calls contact the live
-Overpass API, the chunks below are not executed when the vignette is
-built; run them interactively.</p>
+<p>Beyond street networks, <code>osmnxr</code> downloads any
+OpenStreetMap <strong>feature</strong> — amenities, building footprints,
+transit stops, parks, shops — as tidy <code>sf</code> points, mirroring
+OSMnx’s <code>features</code> module (Boeing 2025). Because these calls
+hit the live Overpass API, the download chunks below are not executed
+when the vignette is built; run them interactively.</p>
 <div class="section level2">
 <h2 id="tag-filters">Tag filters<a class="anchor" aria-label="anchor" href="#tag-filters"></a>
 </h2>
@@ -85,17 +86,23 @@ built; run them interactively.</p>
 list. Each entry is either <code>TRUE</code> (the key with any value) or
 a character vector of allowed values:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># all schools in a place</span></span>
+<code class="sourceCode R"><span><span class="co"># schools in a place</span></span>
 <span><span class="fu"><a href="../reference/ox_features_from_place.html">ox_features_from_place</a></span><span class="op">(</span><span class="st">"Olinda, Brazil"</span>, tags <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>amenity <span class="op">=</span> <span class="st">"school"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># schools and hospitals together</span></span>
+<span><span class="co"># the amenities studied in accessibility research, in one call</span></span>
 <span><span class="fu"><a href="../reference/ox_features_from_place.html">ox_features_from_place</a></span><span class="op">(</span></span>
 <span>  <span class="st">"Recife, Brazil"</span>,</span>
-<span>  tags <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>amenity <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"school"</span>, <span class="st">"hospital"</span><span class="op">)</span><span class="op">)</span></span>
+<span>  tags <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>amenity <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"school"</span>, <span class="st">"hospital"</span>, <span class="st">"pharmacy"</span>, <span class="st">"marketplace"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># every building (key present, any value)</span></span>
-<span><span class="fu"><a href="../reference/ox_features_from_place.html">ox_features_from_place</a></span><span class="op">(</span><span class="st">"Olinda, Brazil"</span>, tags <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>building <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># every building footprint (key present, any value)</span></span>
+<span><span class="fu"><a href="../reference/ox_features_from_place.html">ox_features_from_place</a></span><span class="op">(</span><span class="st">"Olinda, Brazil"</span>, tags <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>building <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># parks and green space</span></span>
+<span><span class="fu"><a href="../reference/ox_features_from_place.html">ox_features_from_place</a></span><span class="op">(</span><span class="st">"Recife, Brazil"</span>, tags <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>leisure <span class="op">=</span> <span class="st">"park"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># public transit stops</span></span>
+<span><span class="fu"><a href="../reference/ox_features_from_place.html">ox_features_from_place</a></span><span class="op">(</span><span class="st">"Recife, Brazil"</span>, tags <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>public_transport <span class="op">=</span> <span class="st">"stop_position"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="from-a-bounding-box">From a bounding box<a class="anchor" aria-label="anchor" href="#from-a-bounding-box"></a>
@@ -107,29 +114,44 @@ directly:</p>
 <code class="sourceCode R"><span><span class="va">bbox</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">34.91</span>, <span class="op">-</span><span class="fl">8.07</span>, <span class="op">-</span><span class="fl">34.87</span>, <span class="op">-</span><span class="fl">8.04</span><span class="op">)</span></span>
 <span><span class="va">pois</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_features_from_bbox.html">ox_features_from_bbox</a></span><span class="op">(</span><span class="va">bbox</span>, tags <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>amenity <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pharmacy"</span>, <span class="st">"clinic"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">pois</span></span></code></pre></div>
-<p>The result is an <code>sf</code> of points with
+</div>
+<div class="section level2">
+<h2 id="a-tidy-result">A tidy result<a class="anchor" aria-label="anchor" href="#a-tidy-result"></a>
+</h2>
+<p>Each call returns an <code>sf</code> of points with
 <code>osm_type</code>, <code>osm_id</code> and one column per tag
 encountered, so it composes directly with <code>dplyr</code> and
 <code>sf</code>:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="va">pois</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">st_drop_geometry</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">count</a></span><span class="op">(</span><span class="va">amenity</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="combining-features-with-a-network">Combining features with a network<a class="anchor" aria-label="anchor" href="#combining-features-with-a-network"></a>
 </h2>
-<p>Features and networks share the same CRS (EPSG:4326), so you can snap
-POIs to the network and analyse access. For example, find the nearest
-street node to each hospital and compute travel-time isochrones from
-them — see the <a href="routing-and-isochrones.html">Routing and
-isochrones</a> and <a href="accessibility.html">Accessibility</a>
-articles.</p>
+<p>Features and the street network share the same CRS (EPSG:4326), so
+you can snap facilities to the network and analyse access. This is the
+bridge to the <a href="accessibility.html">Accessibility</a>
+article:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_graph_from_place.html">ox_graph_from_place</a></span><span class="op">(</span><span class="st">"Olinda, Brazil"</span>, network_type <span class="op">=</span> <span class="st">"drive"</span><span class="op">)</span></span>
-<span><span class="va">hospitals</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_features_from_place.html">ox_features_from_place</a></span><span class="op">(</span><span class="st">"Olinda, Brazil"</span>, tags <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>amenity <span class="op">=</span> <span class="st">"hospital"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">xy</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_coordinates.html" class="external-link">st_coordinates</a></span><span class="op">(</span><span class="va">hospitals</span><span class="op">)</span></span>
-<span><span class="va">nodes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">xy</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="va">xy</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_graph_from_place.html">ox_graph_from_place</a></span><span class="op">(</span><span class="st">"Olinda, Brazil"</span>, network_type <span class="op">=</span> <span class="st">"walk"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/ox_simplify.html">ox_simplify</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/ox_add_edge_travel_times.html">ox_add_edge_travel_times</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">schools</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_features_from_place.html">ox_features_from_place</a></span><span class="op">(</span><span class="st">"Olinda, Brazil"</span>, tags <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>amenity <span class="op">=</span> <span class="st">"school"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">xy</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_coordinates.html" class="external-link">st_coordinates</a></span><span class="op">(</span><span class="va">schools</span><span class="op">)</span></span>
+<span><span class="va">nodes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">xy</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="va">xy</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 15-minute walking catchment around every school</span></span>
+<span><span class="fu"><a href="../reference/ox_isochrone.html">ox_isochrone</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">nodes</span>, cutoffs <span class="op">=</span> <span class="fl">900</span>, weight <span class="op">=</span> <span class="st">"travel_time"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<p>Boeing, G. (2025). Modeling and analyzing urban networks and
+amenities with OSMnx. <em>Geographical Analysis</em>.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

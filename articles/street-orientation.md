@@ -5,66 +5,93 @@
 library(osmnxr)
 ```
 
-Street-orientation analysis asks how ordered a city’s grid is. `osmnxr`
-computes the compass bearing of every edge and summarises the
-distribution with Shannon entropy, all in the Rust core.
+How ordered is a city’s street grid? Following Boeing (2019, 2025),
+`osmnxr` measures this with the **compass bearing** of every street and
+the **Shannon entropy** of their distribution: low entropy for a rigid
+gridiron, high entropy for an organic, winding network.
 
-## Bearings
+## A real first network
 
-``` r
-
-g <- example_osm_graph(n = 6, spacing = 100)
-b <- ox_bearings(g)
-table(round(b))
-#> 
-#>   0  90 180 270 
-#>  30  30  30  30
-```
-
-A regular grid points in only a few directions, so its bearings cluster.
-
-## Orientation entropy
-
-Entropy (in nats) is low for an ordered gridiron and high for a
-disordered, organic network. The perfectly aligned grid sits near the
-low end:
+`ox_example("olinda")` loads a small real network (the historic centre
+of Olinda, Brazil) bundled with the package, so this runs without
+network access:
 
 ``` r
 
+g <- ox_example("olinda")
 ox_orientation_entropy(g)
-#> [1] 1.498935
+#> [1] 3.486313
 ```
-
-For comparison, a network whose streets ran in every direction equally
-would approach `log(num_bins)`:
 
 ``` r
 
-log(36)
-#> [1] 3.583519
+ox_plot_orientation(g, title = "Olinda")
 ```
 
-## Rose plot
+![](street-orientation_files/figure-html/unnamed-chunk-3-1.png)
 
-[`ox_plot_orientation()`](https://strategicprojects.github.io/osmnxr/reference/ox_plot_orientation.md)
-draws the classic polar histogram of bearings (requires `ggplot2`):
+Olinda’s colonial street pattern is irregular, so its rose plot points
+in many directions and its entropy is high.
+
+## Comparing cities
+
+The package bundles the bearings of three cities that span the spectrum
+— the same comparison as Figure 2 of Boeing (2025). These are real
+bearings, sampled from each city’s drivable network:
 
 ``` r
 
-ox_plot_orientation(g, num_bins = 36)
+cities <- readRDS(system.file("extdata", "city_orientations.rds", package = "osmnxr"))
+ent <- tapply(cities$bearing, cities$city, ox_orientation_entropy)
+round(ent, 3)
+#>     Chicago New Orleans        Rome 
+#>       2.473       3.272       3.550
 ```
 
-![](street-orientation_files/figure-html/unnamed-chunk-5-1.png)
-
-With a real network this is where the character of a city shows:
-download one with
-[`ox_graph_from_place()`](https://strategicprojects.github.io/osmnxr/reference/ox_graph_from_place.md),
-simplify it, and plot:
+Chicago’s relentless grid gives the lowest entropy; New Orleans, bending
+along the Mississippi, sits in the middle; Rome’s ancient organic core
+is highest — near the theoretical maximum of `log(36) =` 3.58.
 
 ``` r
 
-city <- ox_graph_from_place("Manhattan, New York, USA", network_type = "drive")
-city <- ox_simplify(city)
-ox_orientation_entropy(city) # low: a famous grid
-ox_plot_orientation(city)
+library(ggplot2)
+
+bins <- 36; bw <- 360 / bins
+cities$sector <- (floor((cities$bearing %% 360) / bw) + 0.5) * bw
+counts <- as.data.frame(table(city = cities$city, sector = cities$sector))
+counts$sector <- as.numeric(as.character(counts$sector))
+
+ggplot(counts, aes(sector, Freq)) +
+  geom_col(width = bw, fill = "#0d3b66", colour = "white", linewidth = 0.1) +
+  coord_polar(start = 0) +
+  scale_x_continuous(limits = c(0, 360), breaks = seq(0, 315, 45),
+                     labels = c("N", "NE", "E", "SE", "S", "SW", "W", "NW")) +
+  facet_wrap(~ city) +
+  labs(x = NULL, y = NULL,
+       title = "Street orientation: ordered (Chicago) to organic (Rome)") +
+  theme_minimal(base_size = 9) +
+  theme(axis.text.y = element_blank(), panel.grid.minor = element_blank())
 ```
+
+![](street-orientation_files/figure-html/orientation-roses-1.png)
+
+## On your own city
+
+With network access, compute this for any place straight from
+OpenStreetMap:
+
+``` r
+
+g <- ox_graph_from_place("Manhattan, New York, USA", network_type = "drive") |>
+  ox_simplify()
+ox_orientation_entropy(g) # low: a famous grid
+ox_plot_orientation(g, title = "Manhattan")
+```
+
+## References
+
+Boeing, G. (2019). Urban spatial order: street network orientation,
+configuration, and entropy. *Applied Network Science* 4(1).
+
+Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+with OSMnx. *Geographical Analysis*.

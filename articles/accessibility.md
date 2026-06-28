@@ -5,81 +5,81 @@
 library(osmnxr)
 ```
 
-This article walks through the kind of analysis `osmnxr` is built for:
-who can reach a service, and how quickly. It underpins studies of urban
-mobility, green mobility (“Fluxo Verde”), and access to schools and
-hospitals. We use the offline grid so it runs anywhere; on a real city
-the steps are identical.
+A central use of street networks is **accessibility**: who can reach a
+service, and how quickly (Foti 2014; Liu et al. 2022). The pattern is
+always the same — snap facilities to the network, then solve shortest
+paths or isochrones, weighted by distance or travel time. It underpins
+studies of urban mobility, green mobility (“Fluxo Verde”), and access to
+schools, hospitals and parks.
+
+We use the bundled real network of central Olinda, Brazil, with travel
+times, so this runs offline.
 
 ``` r
 
-g <- example_osm_graph(n = 10, spacing = 100)
-g <- ox_add_edge_travel_times(g)
+g <- ox_add_edge_travel_times(ox_example("olinda"))
 ```
 
-## Travel-time isochrones from a facility
+## Travel-time service areas from a facility
 
-Suppose a hospital sits near the centre of the area. The set of
-locations reachable within a time budget is its **isochrone**. With
-`travel_time` as the weight, cutoffs are in seconds:
+Suppose a clinic sits near the centre. Its isochrones are the nested
+areas reachable within each time budget:
 
 ``` r
 
-hospital <- ox_nearest_nodes(g, x = 450, y = 450)
-iso <- ox_isochrone(g, hospital, cutoffs = c(60, 120), weight = "travel_time")
+clinic <- ox_nearest_nodes(g, x = -34.8553, y = -8.0089)
+iso <- ox_isochrone(g, clinic, cutoffs = c(60, 120, 180), weight = "travel_time")
 iso[c("cutoff", "n_nodes")]
-#> Simple feature collection with 2 features and 2 fields
+#> Simple feature collection with 3 features and 2 fields
 #> Geometry type: POLYGON
 #> Dimension:     XY
-#> Bounding box:  xmin: 0 ymin: 0 xmax: 900 ymax: 900
-#> Projected CRS: WGS 84 / Pseudo-Mercator
+#> Bounding box:  xmin: -34.86427 ymin: -8.017667 xmax: -34.84766 ymax: -7.999988
+#> Geodetic CRS:  WGS 84
 #>   cutoff n_nodes                       geometry
-#> 1    120     100 POLYGON ((0 800, 0 900, 100...
-#> 2     60      59 POLYGON ((100 400, 0 400, 1...
+#> 1    180     468 POLYGON ((-34.86237 -8.0066...
+#> 2    120     368 POLYGON ((-34.86141 -8.0064...
+#> 3     60     104 POLYGON ((-34.85679 -8.0048...
 ```
 
 ``` r
 
-plot(g, col = "grey85")
+plot(g, col = "grey85", lwd = 0.6)
 plot(sf::st_geometry(iso), add = TRUE, border = NA,
-     col = grDevices::adjustcolor(c("#0d3b66", "#2a9d8f"), 0.4))
+     col = grDevices::adjustcolor(c("#0d3b66", "#1f7a8c", "#2a9d8f"), 0.35))
 ```
 
 ![](accessibility_files/figure-html/unnamed-chunk-4-1.png)
 
-The polygons are nested service areas: everything in the inner polygon
-is within one minute of the hospital, the outer within two.
+## Nearest facility for each origin
 
-## Distance from many origins to many destinations
-
-To measure how far a set of “schools” is from a set of “homes”, use a
-distance matrix. Here every cell is travel time in seconds:
+With several facilities and several demand points (homes), a distance
+matrix gives the travel time from every home to every facility; the row
+minimum is each home’s nearest facility:
 
 ``` r
 
-homes   <- ox_nearest_nodes(g, x = c(0, 900, 0),   y = c(0, 0, 900))
-schools <- ox_nearest_nodes(g, x = c(450, 100),    y = c(450, 800))
-m <- ox_distance_matrix(g, from = homes, to = schools, weight = "travel_time")
-round(m)
-#>     55  19
-#> 1  108 108
-#> 91  96 192
-#> 10 120  24
+homes <- ox_nearest_nodes(g,
+  x = c(-34.8505, -34.852, -34.8585),
+  y = c(-8.0125, -8.006, -8.011))
+facilities <- ox_nearest_nodes(g,
+  x = c(-34.8553, -34.8500),
+  y = c(-8.0089, -8.0140))
+
+m <- ox_distance_matrix(g, from = homes, to = facilities, weight = "travel_time")
+round(m)                 # seconds, homes x facilities
+#>            8945592343 5515883370
+#> 1206764895         76         38
+#> 1499391454         73        164
+#> 7272198752         95        176
+round(apply(m, 1, min))  # travel time to the nearest facility
+#> 1206764895 1499391454 7272198752 
+#>         38         73         95
 ```
 
-The nearest school for each home is the row minimum:
+## On real data
 
-``` r
-
-apply(m, 1, min)
-#>   1  91  10 
-#> 108  96  24
-```
-
-## Putting it together on real data
-
-With network access, the same pipeline runs on a city and its real
-facilities:
+With network access, the facilities come straight from OpenStreetMap via
+the `features` module, and the workflow is identical:
 
 ``` r
 
@@ -91,10 +91,18 @@ hospitals <- ox_features_from_place("Olinda, Brazil", tags = list(amenity = "hos
 xy <- sf::st_coordinates(hospitals)
 origins <- ox_nearest_nodes(g, xy[, 1], xy[, 2])
 
-# 10- and 20-minute service areas across all hospitals
+# 10- and 20-minute drive-time service areas across all hospitals
 ox_isochrone(g, origins, cutoffs = c(600, 1200), weight = "travel_time")
 ```
 
-That polygon set is the basis for equity analysis: overlay population
-and you can quantify how many people fall outside a 20-minute reach —
-the core question in accessibility and territorial planning.
+Overlay population on those polygons and you can quantify how many
+people fall outside a 20-minute reach — the core question in
+accessibility and territorial planning.
+
+## References
+
+Foti, F. (2014). *Behavioral framework for measuring walkability.* PhD
+thesis, UC Berkeley.
+
+Liu, S. et al. (2022). A generalized framework for measuring pedestrian
+accessibility. *Geographical Analysis* 54.

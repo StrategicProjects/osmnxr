@@ -7,15 +7,17 @@ binned into equal sectors. Higher values indicate a more disordered
 ## Usage
 
 ``` r
-ox_orientation_entropy(g, num_bins = 36)
+ox_orientation_entropy(x, num_bins = 36)
 ```
 
 ## Arguments
 
-- g:
+- x:
 
   An
-  [osm_graph](https://strategicprojects.github.io/osmnxr/reference/new_osm_graph.md).
+  [osm_graph](https://strategicprojects.github.io/osmnxr/reference/new_osm_graph.md)
+  or a numeric vector of bearings (degrees), e.g. from
+  [`ox_bearings()`](https://strategicprojects.github.io/osmnxr/reference/ox_bearings.md).
 
 - num_bins:
 

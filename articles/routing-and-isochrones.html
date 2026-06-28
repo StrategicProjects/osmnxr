@@ -72,102 +72,114 @@
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/StrategicProjects/osmnxr" class="external-link">osmnxr</a></span><span class="op">)</span></span></code></pre></div>
-<p>This article uses the offline synthetic grid so it runs anywhere.
-With a real network from <code><a href="../reference/ox_graph_from_place.html">ox_graph_from_place()</a></code> the workflow
-is identical.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/example_osm_graph.html">example_osm_graph</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">8</span>, spacing <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/StrategicProjects/osmnxr" class="external-link">osmnxr</a></span><span class="op">)</span></span>
+<span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_example.html">ox_example</a></span><span class="op">(</span><span class="st">"olinda"</span><span class="op">)</span></span></code></pre></div>
+<p>Routing in <code>osmnxr</code> runs in the Rust core (Dijkstra, Yen,
+multi-source). We use the bundled real network of central Olinda,
+Brazil, so this runs offline.</p>
 <div class="section level2">
-<h2 id="shortest-paths">Shortest paths<a class="anchor" aria-label="anchor" href="#shortest-paths"></a>
+<h2 id="shortest-path-by-distance">Shortest path by distance<a class="anchor" aria-label="anchor" href="#shortest-path-by-distance"></a>
 </h2>
-<p>Snap coordinates to graph nodes, then route between them. Routing
-runs in the Rust core (Dijkstra).</p>
+<p>Snap two coordinates to the nearest nodes, then route between
+them:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">orig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, x <span class="op">=</span> <span class="op">-</span><span class="fl">34.8553</span>, y <span class="op">=</span> <span class="op">-</span><span class="fl">8.0089</span><span class="op">)</span></span>
+<span><span class="va">dest</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, x <span class="op">=</span> <span class="op">-</span><span class="fl">34.8505</span>, y <span class="op">=</span> <span class="op">-</span><span class="fl">8.0125</span><span class="op">)</span></span>
+<span><span class="va">route</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_shortest_path.html">ox_shortest_path</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">orig</span>, <span class="va">dest</span>, weight <span class="op">=</span> <span class="st">"length"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">route</span><span class="op">)</span> <span class="co"># nodes along the route</span></span>
+<span><span class="co">#&gt; [1] 8</span></span></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">from</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, x <span class="op">=</span> <span class="fl">0</span>,   y <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
-<span><span class="va">to</span>   <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, x <span class="op">=</span> <span class="fl">700</span>, y <span class="op">=</span> <span class="fl">700</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/ox_shortest_path.html">ox_shortest_path</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">from</span>, <span class="va">to</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [1]  1  9 17 25 26 27 35 43 44 52 60 61 62 63 64</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="route-alternatives">Route alternatives<a class="anchor" aria-label="anchor" href="#route-alternatives"></a>
-</h3>
-<p><code><a href="../reference/ox_k_shortest_paths.html">ox_k_shortest_paths()</a></code> returns the <em>k</em> loopless
-shortest paths (Yen’s algorithm) as a tidy tibble with a list-column of
-node ids:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/ox_k_shortest_paths.html">ox_k_shortest_paths</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">from</span>, <span class="va">to</span>, k <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 3</span></span></span>
-<span><span class="co">#&gt;    rank  cost path      </span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;list&gt;</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     1  <span style="text-decoration: underline;">1</span>400 <span style="color: #949494;">&lt;int [15]&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     2  <span style="text-decoration: underline;">1</span>400 <span style="color: #949494;">&lt;int [15]&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     3  <span style="text-decoration: underline;">1</span>400 <span style="color: #949494;">&lt;int [15]&gt;</span></span></span></code></pre></div>
-</div>
+<code class="sourceCode R"><span><span class="va">route_xy</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_coordinates.html" class="external-link">st_coordinates</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">nodes</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="va">route</span>, <span class="va">g</span><span class="op">$</span><span class="va">nodes</span><span class="op">$</span><span class="va">osmid</span><span class="op">)</span>, <span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">g</span>, col <span class="op">=</span> <span class="st">"grey80"</span>, lwd <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">route_xy</span>, col <span class="op">=</span> <span class="st">"#b7410e"</span>, lwd <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">route_xy</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">route_xy</span><span class="op">)</span><span class="op">)</span>, <span class="op">]</span>, pch <span class="op">=</span> <span class="fl">19</span>, col <span class="op">=</span> <span class="st">"#0d3b66"</span>, cex <span class="op">=</span> <span class="fl">1.2</span><span class="op">)</span></span></code></pre></div>
+<p><img src="routing-and-isochrones_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" alt="" width="624"></p>
 </div>
 <div class="section level2">
 <h2 id="travel-time-instead-of-distance">Travel time instead of distance<a class="anchor" aria-label="anchor" href="#travel-time-instead-of-distance"></a>
 </h2>
-<p>Attach speeds by road class and derive per-edge travel times, then
-route by time by passing <code>weight = "travel_time"</code>.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<p>Real routing usually minimises <em>time</em>, not distance. Impute
+free-flow speeds from each road’s class, derive per-edge travel times,
+then route on them (Boeing 2025, <code>routing</code> module):</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_add_edge_travel_times.html">ox_add_edge_travel_times</a></span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">edges</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"highway"</span>, <span class="st">"length"</span>, <span class="st">"speed_kph"</span>, <span class="st">"travel_time"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Simple feature collection with 6 features and 4 fields</span></span>
 <span><span class="co">#&gt; Geometry type: LINESTRING</span></span>
 <span><span class="co">#&gt; Dimension:     XY</span></span>
-<span><span class="co">#&gt; Bounding box:  xmin: 0 ymin: 0 xmax: 300 ymax: 100</span></span>
-<span><span class="co">#&gt; Projected CRS: WGS 84 / Pseudo-Mercator</span></span>
-<span><span class="co">#&gt;       highway length speed_kph travel_time                    geometry</span></span>
-<span><span class="co">#&gt; 1 residential    100        30          12     LINESTRING (0 0, 100 0)</span></span>
-<span><span class="co">#&gt; 2 residential    100        30          12     LINESTRING (0 0, 0 100)</span></span>
-<span><span class="co">#&gt; 3 residential    100        30          12   LINESTRING (100 0, 200 0)</span></span>
-<span><span class="co">#&gt; 4 residential    100        30          12 LINESTRING (100 0, 100 100)</span></span>
-<span><span class="co">#&gt; 5 residential    100        30          12   LINESTRING (200 0, 300 0)</span></span>
-<span><span class="co">#&gt; 6 residential    100        30          12 LINESTRING (200 0, 200 100)</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: -34.85889 ymin: -8.00763 xmax: -34.85675 ymax: -8.006154</span></span>
+<span><span class="co">#&gt; Geodetic CRS:  WGS 84</span></span>
+<span><span class="co">#&gt;       highway    length speed_kph travel_time                       geometry</span></span>
+<span><span class="co">#&gt; 1       trunk 143.05987        80    6.437694 LINESTRING (-34.85776 -8.00...</span></span>
+<span><span class="co">#&gt; 2       trunk  39.20625        80    1.764281 LINESTRING (-34.85716 -8.00...</span></span>
+<span><span class="co">#&gt; 3 residential 108.81964        30   13.058356 LINESTRING (-34.85716 -8.00...</span></span>
+<span><span class="co">#&gt; 4 residential 108.81964        30   13.058356 LINESTRING (-34.85675 -8.00...</span></span>
+<span><span class="co">#&gt; 5    tertiary  47.55902        40    4.280311 LINESTRING (-34.85867 -8.00...</span></span>
+<span><span class="co">#&gt; 6    tertiary  47.55902        40    4.280311 LINESTRING (-34.85889 -8.00...</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/ox_shortest_path.html">ox_shortest_path</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">from</span>, <span class="va">to</span>, weight <span class="op">=</span> <span class="st">"travel_time"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [1]  1  9 17 25 26 27 35 43 44 52 60 61 62 63 64</span></span></code></pre></div>
+<span><span class="va">route_t</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_shortest_path.html">ox_shortest_path</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">orig</span>, <span class="va">dest</span>, weight <span class="op">=</span> <span class="st">"travel_time"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">route_t</span>, <span class="va">route</span><span class="op">)</span> <span class="co"># may differ: the fastest route is not always shortest</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="distance-matrices">Distance matrices<a class="anchor" aria-label="anchor" href="#distance-matrices"></a>
+<h2 id="route-alternatives">Route alternatives<a class="anchor" aria-label="anchor" href="#route-alternatives"></a>
 </h2>
-<p>Many-to-many shortest-path costs in one call:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">hubs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">700</span>, <span class="fl">0</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">700</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/ox_distance_matrix.html">ox_distance_matrix</a></span><span class="op">(</span><span class="va">g</span>, from <span class="op">=</span> <span class="va">hubs</span>, to <span class="op">=</span> <span class="va">hubs</span><span class="op">)</span></span>
-<span><span class="co">#&gt;      1   57    8</span></span>
-<span><span class="co">#&gt; 1    0  700  700</span></span>
-<span><span class="co">#&gt; 57 700    0 1400</span></span>
-<span><span class="co">#&gt; 8  700 1400    0</span></span></code></pre></div>
+<p><code><a href="../reference/ox_k_shortest_paths.html">ox_k_shortest_paths()</a></code> returns the <em>k</em> shortest
+loopless routes (Yen’s algorithm) — useful for comparing options or
+modelling redundancy:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/ox_k_shortest_paths.html">ox_k_shortest_paths</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">orig</span>, <span class="va">dest</span>, k <span class="op">=</span> <span class="fl">3</span>, weight <span class="op">=</span> <span class="st">"travel_time"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 3</span></span></span>
+<span><span class="co">#&gt;    rank  cost path      </span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;list&gt;</span>    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     1  72.1 <span style="color: #949494;">&lt;dbl [8]&gt;</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     2  90.7 <span style="color: #949494;">&lt;dbl [11]&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     3 111.  <span style="color: #949494;">&lt;dbl [16]&gt;</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="isochrones-service-areas">Isochrones (service areas)<a class="anchor" aria-label="anchor" href="#isochrones-service-areas"></a>
 </h2>
-<p>An isochrone is the area reachable from one or more origins within a
-cost budget. <code><a href="../reference/ox_isochrone.html">ox_isochrone()</a></code> finds the reachable nodes (Rust
-Dijkstra) and hulls them; with <code>travel_time</code> as the weight,
-cutoffs are in seconds.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">center</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, x <span class="op">=</span> <span class="fl">350</span>, y <span class="op">=</span> <span class="fl">350</span><span class="op">)</span></span>
-<span><span class="va">iso</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_isochrone.html">ox_isochrone</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">center</span>, cutoffs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">150</span>, <span class="fl">350</span><span class="op">)</span>, weight <span class="op">=</span> <span class="st">"length"</span><span class="op">)</span></span>
+<p>An isochrone is the area reachable from an origin within a budget.
+With <code>travel_time</code> as the weight, cutoffs are in seconds —
+here, 1- and 2-minute drive-time service areas from a central point:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">centre</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, x <span class="op">=</span> <span class="op">-</span><span class="fl">34.8553</span>, y <span class="op">=</span> <span class="op">-</span><span class="fl">8.0089</span><span class="op">)</span></span>
+<span><span class="va">iso</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_isochrone.html">ox_isochrone</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">centre</span>, cutoffs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span>, <span class="fl">120</span><span class="op">)</span>, weight <span class="op">=</span> <span class="st">"travel_time"</span><span class="op">)</span></span>
 <span><span class="va">iso</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cutoff"</span>, <span class="st">"n_nodes"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt; Simple feature collection with 2 features and 2 fields</span></span>
 <span><span class="co">#&gt; Geometry type: POLYGON</span></span>
 <span><span class="co">#&gt; Dimension:     XY</span></span>
-<span><span class="co">#&gt; Bounding box:  xmin: 100 ymin: 0 xmax: 700 ymax: 600</span></span>
-<span><span class="co">#&gt; Projected CRS: WGS 84 / Pseudo-Mercator</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: -34.86146 ymin: -8.016166 xmax: -34.84852 ymax: -8.001461</span></span>
+<span><span class="co">#&gt; Geodetic CRS:  WGS 84</span></span>
 <span><span class="co">#&gt;   cutoff n_nodes                       geometry</span></span>
-<span><span class="co">#&gt; 1    350      25 POLYGON ((200 300, 100 300,...</span></span>
-<span><span class="co">#&gt; 2    150       5 POLYGON ((400 300, 300 300,...</span></span></code></pre></div>
+<span><span class="co">#&gt; 1    120     368 POLYGON ((-34.86141 -8.0064...</span></span>
+<span><span class="co">#&gt; 2     60     104 POLYGON ((-34.85679 -8.0048...</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">g</span>, col <span class="op">=</span> <span class="st">"grey85"</span>, lwd <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">iso</span><span class="op">)</span>, add <span class="op">=</span> <span class="cn">TRUE</span>, border <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>     col <span class="op">=</span> <span class="fu">grDevices</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grDevices/adjustcolor.html" class="external-link">adjustcolor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#0d3b66"</span>, <span class="st">"#2a9d8f"</span><span class="op">)</span>, <span class="fl">0.4</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="routing-and-isochrones_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="624"></p>
+</div>
+<div class="section level2">
+<h2 id="many-to-many-distances">Many-to-many distances<a class="anchor" aria-label="anchor" href="#many-to-many-distances"></a>
+</h2>
+<p>For accessibility work you often need a full origin–destination
+matrix in one call (see the <a href="accessibility.html">Accessibility</a> article):</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">g</span>, col <span class="op">=</span> <span class="st">"grey80"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">iso</span><span class="op">)</span>, add <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>     col <span class="op">=</span> <span class="fu">grDevices</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grDevices/adjustcolor.html" class="external-link">adjustcolor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#0d3b66"</span>, <span class="st">"#2a9d8f"</span><span class="op">)</span>, <span class="fl">0.4</span><span class="op">)</span>, border <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span></code></pre></div>
-<p><img src="routing-and-isochrones_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" alt="" width="576"></p>
-<p>This is the core of accessibility analysis: with origins at schools
-or hospitals and <code>travel_time</code> cutoffs, the polygons describe
-who can reach a service within, say, 10 or 20 minutes — the basis for
-“Fluxo Verde” and territorial-planning studies.</p>
+<code class="sourceCode R"><span><span class="va">hubs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>,</span>
+<span>  x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">34.8553</span>, <span class="op">-</span><span class="fl">34.8505</span>, <span class="op">-</span><span class="fl">34.852</span><span class="op">)</span>,</span>
+<span>  y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">8.0089</span>, <span class="op">-</span><span class="fl">8.0125</span>, <span class="op">-</span><span class="fl">8.006</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="../reference/ox_distance_matrix.html">ox_distance_matrix</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">hubs</span>, <span class="va">hubs</span>, weight <span class="op">=</span> <span class="st">"travel_time"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;            8945592343 1206764895 1499391454</span></span>
+<span><span class="co">#&gt; 8945592343          0         72         73</span></span>
+<span><span class="co">#&gt; 1206764895         76          0        134</span></span>
+<span><span class="co">#&gt; 1499391454         73        129          0</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<p>Boeing, G. (2025). Modeling and analyzing urban networks and
+amenities with OSMnx. <em>Geographical Analysis</em>.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

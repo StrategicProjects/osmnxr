@@ -133,6 +133,9 @@ Hand graphs to the wider R network ecosystem.
 
   Plot an `osm_graph`
 
+- [`ox_example()`](https://strategicprojects.github.io/osmnxr/reference/ox_example.md)
+  : Load a bundled real-world example network
+
 - [`example_osm_graph()`](https://strategicprojects.github.io/osmnxr/reference/example_osm_graph.md)
   :
 

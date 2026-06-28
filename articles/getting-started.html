@@ -85,79 +85,78 @@ bundled <strong>Rust core</strong>.</p>
 <code>sf</code> tables (nodes and edges) plus metadata.</p>
 </div>
 <div class="section level2">
-<h2 id="working-offline">Working offline<a class="anchor" aria-label="anchor" href="#working-offline"></a>
+<h2 id="a-real-network">A real network<a class="anchor" aria-label="anchor" href="#a-real-network"></a>
 </h2>
-<p>Every part of the analysis API works without network access on a
-synthetic grid, which is handy for learning and for reproducible
-examples:</p>
+<p>The usual entry point is a place name, which downloads from
+OpenStreetMap:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/example_osm_graph.html">example_osm_graph</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_graph_from_place.html">ox_graph_from_place</a></span><span class="op">(</span><span class="st">"Olinda, Brazil"</span>, network_type <span class="op">=</span> <span class="st">"drive"</span><span class="op">)</span></span>
+<span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_simplify.html">ox_simplify</a></span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span></code></pre></div>
+<p>So this vignette runs offline, we load that exact network — the
+historic centre of Olinda, Brazil — from the copy bundled with the
+package:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_example.html">ox_example</a></span><span class="op">(</span><span class="st">"olinda"</span><span class="op">)</span></span>
 <span><span class="va">g</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">osm_graph</span> <span style="color: #00BBBB;">───────────────────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; <span style="font-weight: bold;">25</span> nodes, <span style="font-weight: bold;">80</span> edges</span></span>
-<span><span class="co">#&gt; Network type: <span style="color: #0000BB;">"drive"</span></span></span>
-<span><span class="co">#&gt; Simplified: <span style="color: #0000BB;">TRUE</span></span></span>
-<span><span class="co">#&gt; CRS: <span style="color: #0000BB;">"EPSG:3857"</span></span></span></code></pre></div>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">g</span>, nodes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="getting-started_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" alt="" width="700"></p>
+<span><span class="co">#&gt; <span style="font-weight: bold;">498</span> nodes, <span style="font-weight: bold;">1191</span> edges</span></span>
+<span><span class="co">#&gt; Network type: <span style="color: #0000BB;">"unknown"</span></span></span>
+<span><span class="co">#&gt; Simplified: <span style="color: #0000BB;">FALSE</span></span></span>
+<span><span class="co">#&gt; CRS: <span style="color: #0000BB;">"WGS 84"</span></span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span></code></pre></div>
+<p><img src="getting-started_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="624"></p>
 </div>
 <div class="section level2">
 <h2 id="network-statistics">Network statistics<a class="anchor" aria-label="anchor" href="#network-statistics"></a>
 </h2>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ox_basic_stats.html">ox_basic_stats</a></span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 7</span></span></span>
 <span><span class="co">#&gt;   n_nodes n_edges total_length mean_length mean_out_degree self_loops circuity</span></span>
 <span><span class="co">#&gt;     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>      25      80         <span style="text-decoration: underline;">8</span>000         100             3.2          0        1</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     498    <span style="text-decoration: underline;">1</span>191       <span style="text-decoration: underline;">95</span>484.        80.2            2.39          1     1.06</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="routing">Routing<a class="anchor" aria-label="anchor" href="#routing"></a>
 </h2>
-<p>Find the nearest nodes to two coordinates, then compute the shortest
-path (Dijkstra, in Rust):</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">from</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, x <span class="op">=</span> <span class="fl">0</span>,   y <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
-<span><span class="va">to</span>   <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, x <span class="op">=</span> <span class="fl">400</span>, y <span class="op">=</span> <span class="fl">400</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/ox_shortest_path.html">ox_shortest_path</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">from</span>, <span class="va">to</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1]  1  6 11 16 17 18 19 20 25</span></span></code></pre></div>
-<p>Single-source distances to every node:</p>
+<p>Snap coordinates to graph nodes, then compute the shortest path
+(Dijkstra, in Rust):</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/ox_distances.html">ox_distances</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">from</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 2</span></span></span>
-<span><span class="co">#&gt;   osmid distance</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     1        0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     2      100</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     3      200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>     4      300</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>     5      400</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>     6      100</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="street-orientation">Street orientation<a class="anchor" aria-label="anchor" href="#street-orientation"></a>
-</h2>
-<p>The Shannon entropy of edge bearings summarises how ordered a street
-grid is — low for a gridiron, high for an organic network:</p>
+<code class="sourceCode R"><span><span class="va">orig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, x <span class="op">=</span> <span class="op">-</span><span class="fl">34.8553</span>, y <span class="op">=</span> <span class="op">-</span><span class="fl">8.0089</span><span class="op">)</span></span>
+<span><span class="va">dest</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, x <span class="op">=</span> <span class="op">-</span><span class="fl">34.8505</span>, y <span class="op">=</span> <span class="op">-</span><span class="fl">8.0125</span><span class="op">)</span></span>
+<span><span class="va">route</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_shortest_path.html">ox_shortest_path</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">orig</span>, <span class="va">dest</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">route</span><span class="op">)</span> <span class="co"># nodes along the route</span></span>
+<span><span class="co">#&gt; [1] 8</span></span></code></pre></div>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/ox_orientation_entropy.html">ox_orientation_entropy</a></span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 1.511395</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">route_xy</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_coordinates.html" class="external-link">st_coordinates</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">nodes</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="va">route</span>, <span class="va">g</span><span class="op">$</span><span class="va">nodes</span><span class="op">$</span><span class="va">osmid</span><span class="op">)</span>, <span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">g</span>, col <span class="op">=</span> <span class="st">"grey80"</span>, lwd <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">route_xy</span>, col <span class="op">=</span> <span class="st">"#b7410e"</span>, lwd <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<p><img src="getting-started_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="624"></p>
 </div>
 <div class="section level2">
-<h2 id="downloading-real-data">Downloading real data<a class="anchor" aria-label="anchor" href="#downloading-real-data"></a>
+<h2 id="where-to-next">Where to next<a class="anchor" aria-label="anchor" href="#where-to-next"></a>
 </h2>
-<p>With network access, build a graph straight from a place name (this
-contacts the OpenStreetMap Overpass API, so it is not run here):</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_graph_from_place.html">ox_graph_from_place</a></span><span class="op">(</span><span class="st">"Olinda, Brazil"</span>, network_type <span class="op">=</span> <span class="st">"drive"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/ox_basic_stats.html">ox_basic_stats</a></span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span></code></pre></div>
-<p>See <code><a href="../reference/ox_graph_from_bbox.html">?ox_graph_from_bbox</a></code>,
-<code><a href="../reference/ox_graph_from_point.html">?ox_graph_from_point</a></code> and <code><a href="../reference/ox_geocode.html">?ox_geocode</a></code> for the
-other download entry points, and <code><a href="../reference/ox_settings.html">ox_settings()</a></code> to configure
-endpoints, timeouts and caching.</p>
+<ul>
+<li>
+<a href="routing-and-isochrones.html">Routing and isochrones</a> —
+travel time, route alternatives, service areas.</li>
+<li>
+<a href="urban-metrics.html">Urban metrics</a> — circuity,
+centrality, chokepoints.</li>
+<li>
+<a href="street-orientation.html">Street orientation</a> — grid
+order across cities.</li>
+<li>
+<a href="accessibility.html">Accessibility analysis</a> — access to
+schools, hospitals, parks.</li>
+<li>
+<a href="features-and-pois.html">Features and points of interest</a>
+— download POIs and buildings.</li>
+</ul>
+<p>No network needed at all? <code><a href="../reference/example_osm_graph.html">example_osm_graph()</a></code> builds a
+synthetic grid for quick experiments.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
