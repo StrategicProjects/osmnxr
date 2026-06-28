@@ -3,8 +3,8 @@
 #' Basic street-network statistics
 #'
 #' Summary measures for an `osm_graph`: node and edge counts, total and mean
-#' edge length, mean out-degree and self-loop count. Computation is performed
-#' by the bundled Rust core.
+#' edge length, mean out-degree, self-loop count and average circuity.
+#' Computation is performed by the bundled Rust core.
 #'
 #' @param g An [osm_graph][new_osm_graph].
 #' @param weight Edge column used as length/weight. Default `"length"`.
@@ -19,7 +19,9 @@ ox_basic_stats <- function(g, weight = "length") {
   stopifnot(is_osm_graph(g))
   ea <- graph_edge_arrays(g, weight)
   s <- rs_basic_stats(ea$from, ea$to, ea$weight, ea$n_nodes)
-  tibble::as_tibble(s)
+  out <- tibble::as_tibble(s)
+  out$circuity <- ox_circuity(g)
+  out
 }
 
 #' Street-orientation entropy
@@ -69,4 +71,71 @@ ox_bearings <- function(g) {
   })
   ends <- do.call(rbind, ends)
   rs_bearings(ends[, 2], ends[, 1], ends[, 4], ends[, 3])
+}
+
+#' Node centrality
+#'
+#' Computes betweenness and/or closeness centrality for every node, using the
+#' Rust core (Brandes' algorithm for betweenness; one Dijkstra per node for
+#' closeness).
+#'
+#' @param g An [osm_graph][new_osm_graph].
+#' @param type Centrality measures to compute: any of `"betweenness"` and
+#'   `"closeness"`. Default both.
+#' @param weight Edge column used as weight. Default `"length"`.
+#' @param normalized Scale scores for comparability across graphs. Betweenness
+#'   is divided by `(n - 1)(n - 2)`; closeness uses the Wasserman--Faust
+#'   correction for disconnected graphs. Default `TRUE`.
+#'
+#' @return A [tibble][tibble::tibble] with column `osmid` plus one column per
+#'   requested measure.
+#' @export
+#'
+#' @examples
+#' g <- example_osm_graph(n = 4)
+#' ox_centrality(g, type = "betweenness")
+ox_centrality <- function(g, type = c("betweenness", "closeness"),
+                          weight = "length", normalized = TRUE) {
+  stopifnot(is_osm_graph(g))
+  type <- match.arg(type, c("betweenness", "closeness"), several.ok = TRUE)
+  ea <- graph_edge_arrays(g, weight)
+  out <- tibble::tibble(osmid = ea$node_ids)
+  if ("betweenness" %in% type) {
+    out$betweenness <- rs_betweenness(ea$from, ea$to, ea$weight, ea$n_nodes, normalized)
+  }
+  if ("closeness" %in% type) {
+    out$closeness <- rs_closeness(ea$from, ea$to, ea$weight, ea$n_nodes, normalized)
+  }
+  out
+}
+
+#' Average network circuity
+#'
+#' The ratio of total edge length to total straight-line (great-circle for
+#' geographic CRS, Euclidean for projected) distance between edge endpoints. A
+#' value of `1` means perfectly straight streets; higher values indicate more
+#' winding networks.
+#'
+#' @param g An [osm_graph][new_osm_graph].
+#'
+#' @return A numeric scalar (>= 1).
+#' @export
+#'
+#' @examples
+#' g <- example_osm_graph()
+#' ox_circuity(g)
+ox_circuity <- function(g) {
+  stopifnot(is_osm_graph(g))
+  ids <- g$nodes$osmid
+  xy <- sf::st_coordinates(g$nodes)
+  ui <- match(g$edges$u, ids)
+  vi <- match(g$edges$v, ids)
+  if (isTRUE(sf::st_is_longlat(g$nodes))) {
+    sld <- haversine(xy[ui, 1], xy[ui, 2], xy[vi, 1], xy[vi, 2])
+  } else {
+    sld <- sqrt((xy[ui, 1] - xy[vi, 1])^2 + (xy[ui, 2] - xy[vi, 2])^2)
+  }
+  total_sld <- sum(sld)
+  if (total_sld == 0) return(NA_real_)
+  sum(as.numeric(g$edges$length)) / total_sld
 }

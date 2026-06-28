@@ -44,17 +44,31 @@ reference:
       - ox_geocode
       - ox_geocode_to_sf
 
+  - title: "Network processing"
+    desc: "Clean and transform graph topology (Rust core)."
+    contents:
+      - ox_simplify
+      - ox_consolidate_intersections
+      - ox_add_edge_speeds
+      - ox_add_edge_travel_times
+
   - title: "Routing"
-    desc: "Shortest paths and distances (Rust core)."
+    desc: "Shortest paths, distances and service areas (Rust core)."
     contents:
       - ox_nearest_nodes
+      - ox_nearest_edges
       - ox_shortest_path
+      - ox_k_shortest_paths
       - ox_distances
+      - ox_distance_matrix
+      - ox_isochrone
 
   - title: "Metrics"
     desc: "Urban and network statistics (Rust core)."
     contents:
       - ox_basic_stats
+      - ox_centrality
+      - ox_circuity
       - ox_bearings
       - ox_orientation_entropy
 

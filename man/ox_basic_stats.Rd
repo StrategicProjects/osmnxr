@@ -16,8 +16,8 @@ A one-row \link[tibble:tibble]{tibble} of statistics.
 }
 \description{
 Summary measures for an \code{osm_graph}: node and edge counts, total and mean
-edge length, mean out-degree and self-loop count. Computation is performed
-by the bundled Rust core.
+edge length, mean out-degree, self-loop count and average circuity.
+Computation is performed by the bundled Rust core.
 }
 \examples{
 g <- example_osm_graph()

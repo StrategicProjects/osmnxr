@@ -22,3 +22,6 @@ First development version. Initial scaffold of *OSMnx for R*.
   add `speed_kph` / `travel_time` edge columns for time-weighted shortest
   paths and isochrones.
 * New vignette: "Routing and isochrones".
+* Network metrics (Rust core): `ox_centrality()` (betweenness via Brandes'
+  algorithm, closeness) and `ox_circuity()` (street straightness). Circuity is
+  now also reported by `ox_basic_stats()`.

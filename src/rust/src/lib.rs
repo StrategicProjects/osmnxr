@@ -1,5 +1,6 @@
 use extendr_api::prelude::*;
 
+mod centrality;
 mod graph;
 mod metrics;
 mod routing;
@@ -128,6 +129,34 @@ fn rs_k_shortest_paths(
     list!(paths = paths, costs = costs)
 }
 
+/// Betweenness centrality (Brandes) for every node.
+/// @keywords internal
+#[extendr]
+fn rs_betweenness(
+    from: Vec<i32>,
+    to: Vec<i32>,
+    weight: Vec<f64>,
+    n_nodes: i32,
+    normalized: bool,
+) -> Vec<f64> {
+    let g = Graph::from_edges(&as_idx(&from), &as_idx(&to), &weight, n_nodes as usize);
+    centrality::betweenness_centrality(&g, normalized)
+}
+
+/// Closeness centrality for every node.
+/// @keywords internal
+#[extendr]
+fn rs_closeness(
+    from: Vec<i32>,
+    to: Vec<i32>,
+    weight: Vec<f64>,
+    n_nodes: i32,
+    normalized: bool,
+) -> Vec<f64> {
+    let g = Graph::from_edges(&as_idx(&from), &as_idx(&to), &weight, n_nodes as usize);
+    centrality::closeness_centrality(&g, normalized)
+}
+
 /// Row-major shortest-distance matrix from each source to each target
 /// (0-based indices). Length is `sources * targets`.
 /// @keywords internal
@@ -158,4 +187,6 @@ extendr_module! {
     fn rs_connected_components;
     fn rs_k_shortest_paths;
     fn rs_distance_matrix;
+    fn rs_betweenness;
+    fn rs_closeness;
 }

@@ -46,4 +46,12 @@ rs_k_shortest_paths <- function(from, to, weight, n_nodes, source, target, k) .C
 #' @keywords internal
 rs_distance_matrix <- function(from, to, weight, n_nodes, sources, targets) .Call(wrap__rs_distance_matrix, from, to, weight, n_nodes, sources, targets)
 
+#' Betweenness centrality (Brandes) for every node.
+#' @keywords internal
+rs_betweenness <- function(from, to, weight, n_nodes, normalized) .Call(wrap__rs_betweenness, from, to, weight, n_nodes, normalized)
+
+#' Closeness centrality for every node.
+#' @keywords internal
+rs_closeness <- function(from, to, weight, n_nodes, normalized) .Call(wrap__rs_closeness, from, to, weight, n_nodes, normalized)
+
 # nolint end
