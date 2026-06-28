@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="516" height="596" viewBox="0 0 516 596" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <clipPath id="hex">
+      <path d="M258 8 L502 149 L502 447 L258 588 L14 447 L14 149 Z"/>
+    </clipPath>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#10477a"/>
+      <stop offset="1" stop-color="#0a2f54"/>
+    </linearGradient>
+  </defs>
+
+  <!-- hex fill + border -->
+  <path d="M258 8 L502 149 L502 447 L258 588 L14 447 L14 149 Z" fill="url(#bg)"/>
+
+  <!-- street network inside -->
+  <g clip-path="url(#hex)">
+    <!-- faint grid of streets -->
+    <g stroke="#2b5e93" stroke-width="6" stroke-linecap="round" opacity="0.55">
+      <line x1="70" y1="180" x2="450" y2="180"/>
+      <line x1="60" y1="260" x2="460" y2="260"/>
+      <line x1="80" y1="340" x2="440" y2="340"/>
+      <line x1="100" y1="420" x2="420" y2="420"/>
+      <line x1="150" y1="120" x2="150" y2="470"/>
+      <line x1="258" y1="110" x2="258" y2="480"/>
+      <line x1="366" y1="120" x2="366" y2="470"/>
+      <line x1="110" y1="150" x2="300" y2="450"/>
+      <line x1="410" y1="160" x2="220" y2="460"/>
+    </g>
+
+    <!-- highlighted route -->
+    <polyline points="120,420 150,340 258,340 258,260 366,260 410,180"
+      fill="none" stroke="#2a9d8f" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- intersection nodes -->
+    <g fill="#dbe7f6">
+      <circle cx="150" cy="340" r="9"/>
+      <circle cx="258" cy="340" r="9"/>
+      <circle cx="258" cy="260" r="9"/>
+      <circle cx="366" cy="260" r="9"/>
+    </g>
+    <!-- endpoints (rust accent) -->
+    <circle cx="120" cy="420" r="13" fill="#b7410e" stroke="#ffffff" stroke-width="3"/>
+    <circle cx="410" cy="180" r="13" fill="#b7410e" stroke="#ffffff" stroke-width="3"/>
+  </g>
+
+  <!-- hex border on top -->
+  <path d="M258 8 L502 149 L502 447 L258 588 L14 447 L14 149 Z"
+    fill="none" stroke="#2a9d8f" stroke-width="14"/>
+
+  <!-- wordmark -->
+  <text x="258" y="538" text-anchor="middle" font-size="74" font-weight="800" fill="#ffffff" letter-spacing="1">osmnxr</text>
+</svg>

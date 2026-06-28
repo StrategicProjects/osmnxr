@@ -1,0 +1,74 @@
+# Features and points of interest
+
+``` r
+
+library(osmnxr)
+```
+
+Beyond street networks, `osmnxr` downloads arbitrary OpenStreetMap
+features — amenities, buildings, transit stops, shops — as tidy `sf`
+points. Because these calls contact the live Overpass API, the chunks
+below are not executed when the vignette is built; run them
+interactively.
+
+## Tag filters
+
+Features are selected with **tags**, given as a named list. Each entry
+is either `TRUE` (the key with any value) or a character vector of
+allowed values:
+
+``` r
+
+# all schools in a place
+ox_features_from_place("Olinda, Brazil", tags = list(amenity = "school"))
+
+# schools and hospitals together
+ox_features_from_place(
+  "Recife, Brazil",
+  tags = list(amenity = c("school", "hospital"))
+)
+
+# every building (key present, any value)
+ox_features_from_place("Olinda, Brazil", tags = list(building = TRUE))
+```
+
+## From a bounding box
+
+When you already know the extent, query a bounding box
+(`c(xmin, ymin, xmax, ymax)` in longitude/latitude) directly:
+
+``` r
+
+bbox <- c(-34.91, -8.07, -34.87, -8.04)
+pois <- ox_features_from_bbox(bbox, tags = list(amenity = c("pharmacy", "clinic")))
+pois
+```
+
+The result is an `sf` of points with `osm_type`, `osm_id` and one column
+per tag encountered, so it composes directly with `dplyr` and `sf`:
+
+``` r
+
+library(dplyr)
+pois |>
+  count(amenity, sort = TRUE)
+```
+
+## Combining features with a network
+
+Features and networks share the same CRS (EPSG:4326), so you can snap
+POIs to the network and analyse access. For example, find the nearest
+street node to each hospital and compute travel-time isochrones from
+them — see the [Routing and
+isochrones](https://strategicprojects.github.io/osmnxr/articles/routing-and-isochrones.md)
+and
+[Accessibility](https://strategicprojects.github.io/osmnxr/articles/accessibility.md)
+articles.
+
+``` r
+
+g <- ox_graph_from_place("Olinda, Brazil", network_type = "drive")
+hospitals <- ox_features_from_place("Olinda, Brazil", tags = list(amenity = "hospital"))
+xy <- sf::st_coordinates(hospitals)
+nodes <- ox_nearest_nodes(g, xy[, 1], xy[, 2])
+```

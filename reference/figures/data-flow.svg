@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="600" viewBox="0 0 940 600" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#0d3b66"/>
+    </marker>
+    <filter id="s2" x="-6%" y="-6%" width="112%" height="118%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0d3b66" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+
+  <rect width="940" height="600" fill="#f7f9fc"/>
+  <text x="40" y="46" font-size="26" font-weight="700" fill="#0d3b66">osmnxr — How it works</text>
+  <text x="40" y="70" font-size="14" fill="#5a6b85">From a place name to a routable, analyzable street network in one pipeline</text>
+
+  <!-- legend -->
+  <g font-size="12">
+    <rect x="600" y="36" width="14" height="14" rx="3" fill="#dbe7f6" stroke="#0d3b66"/><text x="620" y="48" fill="#27374d">R step</text>
+    <rect x="690" y="36" width="14" height="14" rx="3" fill="#fbeee5" stroke="#b7410e"/><text x="710" y="48" fill="#27374d">Rust step</text>
+    <rect x="790" y="36" width="14" height="14" rx="3" fill="#e3f3ef" stroke="#1d7d6e"/><text x="810" y="48" fill="#27374d">output</text>
+  </g>
+
+  <!-- Pipeline row 1 -->
+  <g font-size="13">
+    <!-- input -->
+    <g filter="url(#s2)"><rect x="40" y="100" width="150" height="62" rx="10" fill="#ffffff" stroke="#c4d2e6"/></g>
+    <text x="115" y="128" text-anchor="middle" font-weight="700" fill="#0d3b66">"Recife, BR"</text>
+    <text x="115" y="147" text-anchor="middle" font-size="11" fill="#5a6b85">place · address · point · bbox</text>
+
+    <g filter="url(#s2)"><rect x="230" y="100" width="150" height="62" rx="10" fill="#dbe7f6" stroke="#0d3b66"/></g>
+    <text x="305" y="128" text-anchor="middle" font-weight="700" fill="#0d3b66">ox_geocode()</text>
+    <text x="305" y="147" text-anchor="middle" font-size="11" fill="#27374d">Nominatim → polygon</text>
+
+    <g filter="url(#s2)"><rect x="420" y="100" width="160" height="62" rx="10" fill="#dbe7f6" stroke="#0d3b66"/></g>
+    <text x="500" y="128" text-anchor="middle" font-weight="700" fill="#0d3b66">Overpass query</text>
+    <text x="500" y="147" text-anchor="middle" font-size="11" fill="#27374d">network_type filter</text>
+
+    <g filter="url(#s2)"><rect x="620" y="100" width="160" height="62" rx="10" fill="#dbe7f6" stroke="#0d3b66"/></g>
+    <text x="700" y="128" text-anchor="middle" font-weight="700" fill="#0d3b66">parse → sf</text>
+    <text x="700" y="147" text-anchor="middle" font-size="11" fill="#27374d">nodes + edges</text>
+  </g>
+
+  <!-- arrows row1 -->
+  <g stroke="#0d3b66" stroke-width="2" fill="none" marker-end="url(#a2)">
+    <line x1="190" y1="131" x2="228" y2="131"/>
+    <line x1="380" y1="131" x2="418" y2="131"/>
+    <line x1="580" y1="131" x2="618" y2="131"/>
+  </g>
+
+  <!-- down connector to row 2 -->
+  <g stroke="#0d3b66" stroke-width="2" fill="none" marker-end="url(#a2)">
+    <path d="M700 162 L700 188 L115 188 L115 214"/>
+  </g>
+
+  <!-- Pipeline row 2 -->
+  <g font-size="13">
+    <g filter="url(#s2)"><rect x="40" y="216" width="160" height="62" rx="10" fill="#fbeee5" stroke="#b7410e"/></g>
+    <text x="120" y="244" text-anchor="middle" font-weight="700" fill="#b7410e">build graph</text>
+    <text x="120" y="263" text-anchor="middle" font-size="11" fill="#7a3411">CSR adjacency (Rust)</text>
+
+    <g filter="url(#s2)"><rect x="240" y="216" width="160" height="62" rx="10" fill="#fbeee5" stroke="#b7410e"/></g>
+    <text x="320" y="244" text-anchor="middle" font-weight="700" fill="#b7410e">ox_simplify()</text>
+    <text x="320" y="263" text-anchor="middle" font-size="11" fill="#7a3411">topology cleanup</text>
+
+    <g filter="url(#s2)"><rect x="440" y="216" width="170" height="62" rx="10" fill="#dbe7f6" stroke="#0d3b66"/></g>
+    <text x="525" y="244" text-anchor="middle" font-weight="700" fill="#0d3b66">classify · project</text>
+    <text x="525" y="263" text-anchor="middle" font-size="11" fill="#27374d">highway · speeds · CRS</text>
+
+    <g filter="url(#s2)"><rect x="650" y="216" width="170" height="62" rx="10" fill="#ffffff" stroke="#c4d2e6"/></g>
+    <text x="735" y="244" text-anchor="middle" font-weight="700" fill="#0d3b66">osm_graph</text>
+    <text x="735" y="263" text-anchor="middle" font-size="11" fill="#5a6b85">tidy sf + Rust handle</text>
+  </g>
+
+  <!-- arrows row2 -->
+  <g stroke="#0d3b66" stroke-width="2" fill="none" marker-end="url(#a2)">
+    <line x1="200" y1="247" x2="238" y2="247"/>
+    <line x1="400" y1="247" x2="438" y2="247"/>
+    <line x1="610" y1="247" x2="648" y2="247"/>
+  </g>
+
+  <!-- branch down to three analysis tracks -->
+  <g stroke="#0d3b66" stroke-width="2" fill="none">
+    <path d="M735 278 L735 308 L210 308" marker-end="url(#a2)"/>
+    <path d="M735 308 L470 308" />
+    <path d="M735 308 L735 338" marker-end="url(#a2)"/>
+    <line x1="210" y1="308" x2="210" y2="338" marker-end="url(#a2)"/>
+    <line x1="470" y1="308" x2="470" y2="338" marker-end="url(#a2)"/>
+  </g>
+
+  <!-- three Rust analysis boxes -->
+  <g font-size="13">
+    <g filter="url(#s2)"><rect x="110" y="340" width="200" height="66" rx="10" fill="#fbeee5" stroke="#b7410e"/></g>
+    <text x="210" y="368" text-anchor="middle" font-weight="700" fill="#b7410e">Routing (Rust)</text>
+    <text x="210" y="388" text-anchor="middle" font-size="11" fill="#7a3411">shortest_path · k_paths · matrix</text>
+
+    <g filter="url(#s2)"><rect x="370" y="340" width="200" height="66" rx="10" fill="#fbeee5" stroke="#b7410e"/></g>
+    <text x="470" y="368" text-anchor="middle" font-weight="700" fill="#b7410e">Isochrones (Rust)</text>
+    <text x="470" y="388" text-anchor="middle" font-size="11" fill="#7a3411">multi-source + concave hull</text>
+
+    <g filter="url(#s2)"><rect x="630" y="340" width="200" height="66" rx="10" fill="#fbeee5" stroke="#b7410e"/></g>
+    <text x="730" y="368" text-anchor="middle" font-weight="700" fill="#b7410e">Metrics (Rust)</text>
+    <text x="730" y="388" text-anchor="middle" font-size="11" fill="#7a3411">stats · entropy · centrality</text>
+  </g>
+
+  <!-- arrows to outputs -->
+  <g stroke="#1d7d6e" stroke-width="2" fill="none" marker-end="url(#a2)">
+    <line x1="210" y1="406" x2="210" y2="446"/>
+    <line x1="470" y1="406" x2="470" y2="446"/>
+    <line x1="730" y1="406" x2="730" y2="446"/>
+  </g>
+
+  <!-- outputs row -->
+  <g font-size="13">
+    <g filter="url(#s2)"><rect x="100" y="448" width="220" height="56" rx="10" fill="#e3f3ef" stroke="#1d7d6e"/></g>
+    <text x="210" y="472" text-anchor="middle" font-weight="700" fill="#1d7d6e">sf routes / paths</text>
+    <text x="210" y="491" text-anchor="middle" font-size="11" fill="#1d7d6e">accessibility to schools/hospitals</text>
+
+    <g filter="url(#s2)"><rect x="360" y="448" width="220" height="56" rx="10" fill="#e3f3ef" stroke="#1d7d6e"/></g>
+    <text x="470" y="472" text-anchor="middle" font-weight="700" fill="#1d7d6e">sf service areas</text>
+    <text x="470" y="491" text-anchor="middle" font-size="11" fill="#1d7d6e">"Fluxo Verde" coverage</text>
+
+    <g filter="url(#s2)"><rect x="620" y="448" width="220" height="56" rx="10" fill="#e3f3ef" stroke="#1d7d6e"/></g>
+    <text x="730" y="472" text-anchor="middle" font-weight="700" fill="#1d7d6e">stats / plots</text>
+    <text x="730" y="491" text-anchor="middle" font-size="11" fill="#1d7d6e">ggplot2 · MapLibre · GeoJSON</text>
+  </g>
+
+  <text x="470" y="548" text-anchor="middle" font-size="13" fill="#5a6b85" font-style="italic">
+    One line: ox_graph_from_place("Recife, Brazil", "drive") |&gt; ox_simplify() |&gt; ox_basic_stats()
+  </text>
+</svg>

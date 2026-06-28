@@ -1,0 +1,146 @@
+# Package index
+
+## Download networks
+
+Build routable street graphs from OpenStreetMap.
+
+- [`ox_graph_from_place()`](https://strategicprojects.github.io/osmnxr/reference/ox_graph_from_place.md)
+  : Download a street network for a named place
+- [`ox_graph_from_address()`](https://strategicprojects.github.io/osmnxr/reference/ox_graph_from_address.md)
+  : Download a street network around an address
+- [`ox_graph_from_point()`](https://strategicprojects.github.io/osmnxr/reference/ox_graph_from_point.md)
+  : Download a street network around a point
+- [`ox_graph_from_bbox()`](https://strategicprojects.github.io/osmnxr/reference/ox_graph_from_bbox.md)
+  : Download a street network within a bounding box
+
+## Features
+
+Download points of interest, buildings and amenities.
+
+- [`ox_features_from_place()`](https://strategicprojects.github.io/osmnxr/reference/ox_features_from_place.md)
+  : Download features for a named place
+- [`ox_features_from_bbox()`](https://strategicprojects.github.io/osmnxr/reference/ox_features_from_bbox.md)
+  : Download features within a bounding box
+
+## Geocoding
+
+- [`ox_geocode()`](https://strategicprojects.github.io/osmnxr/reference/ox_geocode.md)
+  : Geocode a place or address
+
+- [`ox_geocode_to_sf()`](https://strategicprojects.github.io/osmnxr/reference/ox_geocode_to_sf.md)
+  :
+
+  Geocode a place to an `sf` boundary
+
+## Network processing
+
+Clean and transform graph topology (Rust core).
+
+- [`ox_simplify()`](https://strategicprojects.github.io/osmnxr/reference/ox_simplify.md)
+  : Simplify street-network topology
+- [`ox_consolidate_intersections()`](https://strategicprojects.github.io/osmnxr/reference/ox_consolidate_intersections.md)
+  : Consolidate nearby intersections
+- [`ox_add_edge_speeds()`](https://strategicprojects.github.io/osmnxr/reference/ox_add_edge_speeds.md)
+  : Add edge speeds
+- [`ox_add_edge_travel_times()`](https://strategicprojects.github.io/osmnxr/reference/ox_add_edge_travel_times.md)
+  : Add edge travel times
+
+## Routing
+
+Shortest paths, distances and service areas (Rust core).
+
+- [`ox_nearest_nodes()`](https://strategicprojects.github.io/osmnxr/reference/ox_nearest_nodes.md)
+  : Find the nearest node to a point
+- [`ox_nearest_edges()`](https://strategicprojects.github.io/osmnxr/reference/ox_nearest_edges.md)
+  : Find the nearest edge to a point
+- [`ox_shortest_path()`](https://strategicprojects.github.io/osmnxr/reference/ox_shortest_path.md)
+  : Shortest path between two nodes
+- [`ox_k_shortest_paths()`](https://strategicprojects.github.io/osmnxr/reference/ox_k_shortest_paths.md)
+  : k shortest paths between two nodes
+- [`ox_distances()`](https://strategicprojects.github.io/osmnxr/reference/ox_distances.md)
+  : Single-source shortest distances
+- [`ox_distance_matrix()`](https://strategicprojects.github.io/osmnxr/reference/ox_distance_matrix.md)
+  : Shortest-path distance matrix
+- [`ox_isochrone()`](https://strategicprojects.github.io/osmnxr/reference/ox_isochrone.md)
+  : Compute isochrones (service areas)
+
+## Metrics
+
+Urban and network statistics (Rust core).
+
+- [`ox_basic_stats()`](https://strategicprojects.github.io/osmnxr/reference/ox_basic_stats.md)
+  : Basic street-network statistics
+- [`ox_centrality()`](https://strategicprojects.github.io/osmnxr/reference/ox_centrality.md)
+  : Node centrality
+- [`ox_circuity()`](https://strategicprojects.github.io/osmnxr/reference/ox_circuity.md)
+  : Average network circuity
+- [`ox_bearings()`](https://strategicprojects.github.io/osmnxr/reference/ox_bearings.md)
+  : Compute edge compass bearings
+- [`ox_orientation_entropy()`](https://strategicprojects.github.io/osmnxr/reference/ox_orientation_entropy.md)
+  : Street-orientation entropy
+- [`ox_plot_orientation()`](https://strategicprojects.github.io/osmnxr/reference/ox_plot_orientation.md)
+  : Polar plot of street orientations
+
+## Interoperability
+
+Hand graphs to the wider R network ecosystem.
+
+- [`ox_as_sfnetwork()`](https://strategicprojects.github.io/osmnxr/reference/ox_as_sfnetwork.md)
+  :
+
+  Convert to an `sfnetwork`
+
+- [`ox_as_tidygraph()`](https://strategicprojects.github.io/osmnxr/reference/ox_as_tidygraph.md)
+  :
+
+  Convert to a `tidygraph` table graph
+
+- [`ox_as_dodgr()`](https://strategicprojects.github.io/osmnxr/reference/ox_as_dodgr.md)
+  :
+
+  Convert to a `dodgr` graph
+
+## Export and persistence
+
+- [`ox_to_geojson()`](https://strategicprojects.github.io/osmnxr/reference/ox_to_geojson.md)
+  : Export to GeoJSON
+- [`ox_to_maplibre()`](https://strategicprojects.github.io/osmnxr/reference/ox_to_maplibre.md)
+  : Build a MapLibre GL style fragment
+- [`ox_save_graphml()`](https://strategicprojects.github.io/osmnxr/reference/ox_save_graphml.md)
+  : Save a graph to GraphML
+- [`ox_load_graphml()`](https://strategicprojects.github.io/osmnxr/reference/ox_load_graphml.md)
+  : Load a graph from GraphML
+
+## The osm_graph object
+
+- [`new_osm_graph()`](https://strategicprojects.github.io/osmnxr/reference/new_osm_graph.md)
+  :
+
+  Construct an `osm_graph`
+
+- [`is_osm_graph()`](https://strategicprojects.github.io/osmnxr/reference/is_osm_graph.md)
+  :
+
+  Test whether an object is an `osm_graph`
+
+- [`ox_as_sf()`](https://strategicprojects.github.io/osmnxr/reference/ox_as_sf.md)
+  :
+
+  Extract `sf` nodes and edges from an `osm_graph`
+
+- [`plot(`*`<osm_graph>`*`)`](https://strategicprojects.github.io/osmnxr/reference/plot.osm_graph.md)
+  :
+
+  Plot an `osm_graph`
+
+- [`example_osm_graph()`](https://strategicprojects.github.io/osmnxr/reference/example_osm_graph.md)
+  :
+
+  A small synthetic `osm_graph` for examples and tests
+
+## Configuration
+
+- [`ox_settings()`](https://strategicprojects.github.io/osmnxr/reference/ox_settings.md)
+  : Get or set package settings
+- [`ox_clear_cache()`](https://strategicprojects.github.io/osmnxr/reference/ox_clear_cache.md)
+  : Clear the session cache

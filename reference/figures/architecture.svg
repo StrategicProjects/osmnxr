@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="660" viewBox="0 0 940 660" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#5a6b85"/>
+    </marker>
+    <filter id="sh" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0d3b66" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect width="940" height="660" fill="#f7f9fc"/>
+  <text x="40" y="46" font-size="26" font-weight="700" fill="#0d3b66">osmnxr — Architecture</text>
+  <text x="40" y="70" font-size="14" fill="#5a6b85">OSMnx for R · tidyverse API over a Rust compute core</text>
+
+  <!-- External sources -->
+  <g filter="url(#sh)">
+    <rect x="40" y="96" width="860" height="78" rx="12" fill="#eaf0f8" stroke="#c4d2e6"/>
+  </g>
+  <text x="60" y="122" font-size="13" font-weight="700" fill="#0d3b66">EXTERNAL SOURCES</text>
+  <g font-size="13" fill="#27374d">
+    <rect x="60" y="132" width="180" height="30" rx="8" fill="#ffffff" stroke="#c4d2e6"/><text x="150" y="152" text-anchor="middle">OpenStreetMap</text>
+    <rect x="255" y="132" width="180" height="30" rx="8" fill="#ffffff" stroke="#c4d2e6"/><text x="345" y="152" text-anchor="middle">Overpass API</text>
+    <rect x="450" y="132" width="180" height="30" rx="8" fill="#ffffff" stroke="#c4d2e6"/><text x="540" y="152" text-anchor="middle">Nominatim (geocode)</text>
+    <rect x="645" y="132" width="235" height="30" rx="8" fill="#ffffff" stroke="#c4d2e6"/><text x="762" y="152" text-anchor="middle">*.osm.pbf (offline)</text>
+  </g>
+
+  <!-- R public API -->
+  <g filter="url(#sh)">
+    <rect x="40" y="210" width="860" height="96" rx="12" fill="#0d3b66"/>
+  </g>
+  <text x="60" y="236" font-size="13" font-weight="700" fill="#9fc0e8">R PUBLIC API · ox_* · tidyverse · sf</text>
+  <g font-size="12.5" fill="#0d3b66">
+    <rect x="60" y="248" width="150" height="46" rx="8" fill="#dbe7f6"/><text x="135" y="268" text-anchor="middle" font-weight="600">Download</text><text x="135" y="284" text-anchor="middle" font-size="11">graph_from_*</text>
+    <rect x="222" y="248" width="150" height="46" rx="8" fill="#dbe7f6"/><text x="297" y="268" text-anchor="middle" font-weight="600">Features</text><text x="297" y="284" text-anchor="middle" font-size="11">buildings · POIs</text>
+    <rect x="384" y="248" width="150" height="46" rx="8" fill="#dbe7f6"/><text x="459" y="268" text-anchor="middle" font-weight="600">Routing</text><text x="459" y="284" text-anchor="middle" font-size="11">shortest_path</text>
+    <rect x="546" y="248" width="150" height="46" rx="8" fill="#dbe7f6"/><text x="621" y="268" text-anchor="middle" font-weight="600">Isochrones</text><text x="621" y="284" text-anchor="middle" font-size="11">service areas</text>
+    <rect x="708" y="248" width="172" height="46" rx="8" fill="#dbe7f6"/><text x="794" y="268" text-anchor="middle" font-weight="600">Metrics</text><text x="794" y="284" text-anchor="middle" font-size="11">stats · bearings</text>
+  </g>
+
+  <!-- R core -->
+  <g filter="url(#sh)">
+    <rect x="40" y="342" width="860" height="74" rx="12" fill="#ffffff" stroke="#c4d2e6"/>
+  </g>
+  <text x="60" y="368" font-size="13" font-weight="700" fill="#0d3b66">R CORE</text>
+  <g font-size="12.5" fill="#27374d">
+    <rect x="60" y="376" width="250" height="30" rx="8" fill="#eef3fa" stroke="#c4d2e6"/><text x="185" y="396" text-anchor="middle">httr2 I/O · parse Overpass JSON → sf</text>
+    <rect x="325" y="376" width="240" height="30" rx="8" fill="#eef3fa" stroke="#c4d2e6"/><text x="445" y="396" text-anchor="middle">classify · validate · cli messages</text>
+    <rect x="580" y="376" width="300" height="30" rx="8" fill="#eef3fa" stroke="#c4d2e6"/><text x="730" y="396" text-anchor="middle">osm_graph S3 object (nodes/edges sf + handle)</text>
+  </g>
+
+  <!-- Rust core -->
+  <g filter="url(#sh)">
+    <rect x="40" y="452" width="860" height="100" rx="12" fill="#fbeee5" stroke="#e0b495"/>
+  </g>
+  <text x="60" y="478" font-size="13" font-weight="700" fill="#b7410e">RUST CORE · extendr</text>
+  <g font-size="12" fill="#7a3411">
+    <rect x="60" y="490" width="150" height="48" rx="8" fill="#ffffff" stroke="#e0b495"/><text x="135" y="510" text-anchor="middle" font-weight="600">Graph (CSR)</text><text x="135" y="526" text-anchor="middle" font-size="11">build · adjacency</text>
+    <rect x="222" y="490" width="150" height="48" rx="8" fill="#ffffff" stroke="#e0b495"/><text x="297" y="510" text-anchor="middle" font-weight="600">Simplify</text><text x="297" y="526" text-anchor="middle" font-size="11">topology · consolidate</text>
+    <rect x="384" y="490" width="150" height="48" rx="8" fill="#ffffff" stroke="#e0b495"/><text x="459" y="510" text-anchor="middle" font-weight="600">Routing</text><text x="459" y="526" text-anchor="middle" font-size="11">Dijkstra · A* · Yen</text>
+    <rect x="546" y="490" width="150" height="48" rx="8" fill="#ffffff" stroke="#e0b495"/><text x="621" y="510" text-anchor="middle" font-weight="600">Isochrone</text><text x="621" y="526" text-anchor="middle" font-size="11">multi-src · hull</text>
+    <rect x="708" y="490" width="172" height="48" rx="8" fill="#ffffff" stroke="#e0b495"/><text x="794" y="510" text-anchor="middle" font-weight="600">Metrics + R*-tree</text><text x="794" y="526" text-anchor="middle" font-size="11">centrality · entropy</text>
+  </g>
+
+  <!-- Outputs -->
+  <g filter="url(#sh)">
+    <rect x="40" y="588" width="860" height="50" rx="12" fill="#e3f3ef" stroke="#9fd3c8"/>
+  </g>
+  <text x="60" y="618" font-size="13" font-weight="700" fill="#1d7d6e">OUTPUTS</text>
+  <g font-size="12.5" fill="#1d7d6e">
+    <rect x="175" y="600" width="120" height="26" rx="8" fill="#ffffff" stroke="#9fd3c8"/><text x="235" y="617" text-anchor="middle">sf / tibble</text>
+    <rect x="305" y="600" width="170" height="26" rx="8" fill="#ffffff" stroke="#9fd3c8"/><text x="390" y="617" text-anchor="middle">sfnetworks · tidygraph</text>
+    <rect x="485" y="600" width="110" height="26" rx="8" fill="#ffffff" stroke="#9fd3c8"/><text x="540" y="617" text-anchor="middle">dodgr</text>
+    <rect x="605" y="600" width="130" height="26" rx="8" fill="#ffffff" stroke="#9fd3c8"/><text x="670" y="617" text-anchor="middle">GeoJSON · MapLibre</text>
+    <rect x="745" y="600" width="135" height="26" rx="8" fill="#ffffff" stroke="#9fd3c8"/><text x="812" y="617" text-anchor="middle">ggplot2</text>
+  </g>
+
+  <!-- connecting arrows -->
+  <g stroke="#5a6b85" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <line x1="470" y1="174" x2="470" y2="208"/>
+    <line x1="470" y1="306" x2="470" y2="340"/>
+    <line x1="470" y1="416" x2="470" y2="450"/>
+    <line x1="470" y1="552" x2="470" y2="586"/>
+  </g>
+  <text x="486" y="196" font-size="11" fill="#5a6b85">httr2</text>
+  <text x="486" y="436" font-size="11" fill="#5a6b85">extendr (externalptr)</text>
+</svg>
