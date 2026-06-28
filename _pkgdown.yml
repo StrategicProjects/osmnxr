@@ -72,6 +72,20 @@ reference:
       - ox_bearings
       - ox_orientation_entropy
 
+  - title: "Interoperability"
+    desc: "Hand graphs to the wider R network ecosystem."
+    contents:
+      - ox_as_sfnetwork
+      - ox_as_tidygraph
+      - ox_as_dodgr
+
+  - title: "Export and persistence"
+    contents:
+      - ox_to_geojson
+      - ox_to_maplibre
+      - ox_save_graphml
+      - ox_load_graphml
+
   - title: "The osm_graph object"
     contents:
       - new_osm_graph

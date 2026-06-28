@@ -37,12 +37,14 @@ Imports:
 Suggests:
     dodgr,
     ggplot2,
+    jsonlite,
     knitr,
     rmarkdown,
     sfnetworks,
     testthat (>= 3.0.0),
     tidygraph,
-    units
+    units,
+    xml2
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Config/rextendr/version: 0.5.0

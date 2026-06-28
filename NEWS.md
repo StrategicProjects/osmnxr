@@ -25,3 +25,9 @@ First development version. Initial scaffold of *OSMnx for R*.
 * Network metrics (Rust core): `ox_centrality()` (betweenness via Brandes'
   algorithm, closeness) and `ox_circuity()` (street straightness). Circuity is
   now also reported by `ox_basic_stats()`.
+* Interoperability: `ox_as_sfnetwork()`, `ox_as_tidygraph()` and
+  `ox_as_dodgr()` hand the graph to the wider R network ecosystem.
+* Export and persistence: `ox_to_geojson()`, `ox_to_maplibre()` (style
+  fragment), and `ox_save_graphml()` / `ox_load_graphml()` for a lossless
+  round-trip (edge geometry stored as WKT), compatible with OSMnx / NetworkX /
+  Gephi.
