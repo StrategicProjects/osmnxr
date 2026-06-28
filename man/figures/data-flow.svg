@@ -26,29 +26,29 @@
     <text x="123" y="128" text-anchor="middle" font-weight="700" fill="#0d3b66">"Recife, BR"</text>
     <text x="123" y="147" text-anchor="middle" font-size="10.5" fill="#5a6b85">place · address · point · bbox</text>
 
-    <g filter="url(#s2)"><rect x="230" y="100" width="150" height="62" rx="10" fill="#dbe7f6" stroke="#0d3b66"/></g>
-    <text x="305" y="128" text-anchor="middle" font-weight="700" fill="#0d3b66">ox_geocode()</text>
-    <text x="305" y="147" text-anchor="middle" font-size="11" fill="#27374d">Nominatim → polygon</text>
+    <g filter="url(#s2)"><rect x="256" y="100" width="150" height="62" rx="10" fill="#dbe7f6" stroke="#0d3b66"/></g>
+    <text x="331" y="128" text-anchor="middle" font-weight="700" fill="#0d3b66">ox_geocode()</text>
+    <text x="331" y="147" text-anchor="middle" font-size="11" fill="#27374d">Nominatim → polygon</text>
 
-    <g filter="url(#s2)"><rect x="420" y="100" width="160" height="62" rx="10" fill="#dbe7f6" stroke="#0d3b66"/></g>
-    <text x="500" y="128" text-anchor="middle" font-weight="700" fill="#0d3b66">Overpass query</text>
-    <text x="500" y="147" text-anchor="middle" font-size="11" fill="#27374d">network_type filter</text>
+    <g filter="url(#s2)"><rect x="446" y="100" width="160" height="62" rx="10" fill="#dbe7f6" stroke="#0d3b66"/></g>
+    <text x="526" y="128" text-anchor="middle" font-weight="700" fill="#0d3b66">Overpass query</text>
+    <text x="526" y="147" text-anchor="middle" font-size="11" fill="#27374d">network_type filter</text>
 
-    <g filter="url(#s2)"><rect x="620" y="100" width="160" height="62" rx="10" fill="#dbe7f6" stroke="#0d3b66"/></g>
-    <text x="700" y="128" text-anchor="middle" font-weight="700" fill="#0d3b66">parse → sf</text>
-    <text x="700" y="147" text-anchor="middle" font-size="11" fill="#27374d">nodes + edges</text>
+    <g filter="url(#s2)"><rect x="646" y="100" width="160" height="62" rx="10" fill="#dbe7f6" stroke="#0d3b66"/></g>
+    <text x="726" y="128" text-anchor="middle" font-weight="700" fill="#0d3b66">parse → sf</text>
+    <text x="726" y="147" text-anchor="middle" font-size="11" fill="#27374d">nodes + edges</text>
   </g>
 
   <!-- arrows row1 -->
   <g stroke="#0d3b66" stroke-width="2" fill="none" marker-end="url(#a2)">
-    <line x1="216" y1="131" x2="228" y2="131"/>
-    <line x1="380" y1="131" x2="418" y2="131"/>
-    <line x1="580" y1="131" x2="618" y2="131"/>
+    <line x1="216" y1="131" x2="254" y2="131"/>
+    <line x1="406" y1="131" x2="444" y2="131"/>
+    <line x1="606" y1="131" x2="644" y2="131"/>
   </g>
 
   <!-- down connector to row 2 -->
   <g stroke="#0d3b66" stroke-width="2" fill="none" marker-end="url(#a2)">
-    <path d="M700 162 L700 188 L120 188 L120 214"/>
+    <path d="M726 162 L726 188 L120 188 L120 214"/>
   </g>
 
   <!-- Pipeline row 2 -->
