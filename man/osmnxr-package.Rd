@@ -25,10 +25,11 @@ Useful links:
 Authors:
 \itemize{
   \item Andre Leite \email{leite@castlab.org}
-  \item Marcos Wasilew \email{marcos.wasilew@gmail.com}
+  \item Marcos Wasiliew \email{marcos.wasiliew@gmail.com} (\href{https://orcid.org/0009-0004-4694-3159}{ORCID})
   \item Hugo Vasconcelos \email{hugo.vasconcelos@ufpe.br}
   \item Carlos Amorim \email{carlos.agaf@ufpe.br}
   \item Diogo Bezerra \email{diogo.bezerra@ufpe.br}
+  \item Júlia Nascimento Barreto \email{juliabarreto@gd.seplag.pe.gov.br} (\href{https://orcid.org/0009-0004-2851-7770}{ORCID})
 }
 
 Other contributors:
