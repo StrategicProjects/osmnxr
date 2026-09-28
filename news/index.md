@@ -2,6 +2,8 @@
 
 ## osmnxr 0.1.1
 
+CRAN release: 2026-07-05
+
 - Fix installation on Windows (R-devel). The rextendr 0.5.0 Makevars
   templates ran an unnecessary install-time `cargo run --bin document`
   step that failed on Windows (`os error 193` while running a build

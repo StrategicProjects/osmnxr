@@ -4,13 +4,16 @@
 
 - **Andre Leite**. Author, maintainer.
 
-- **Marcos Wasilew**. Author.
+- **Marcos Wasiliew**. Author. [](https://orcid.org/0009-0004-4694-3159)
 
 - **Hugo Vasconcelos**. Author.
 
 - **Carlos Amorim**. Author.
 
 - **Diogo Bezerra**. Author.
+
+- **Júlia Nascimento Barreto**. Author.
+  [](https://orcid.org/0009-0004-2851-7770)
 
 - **StrategicProjects**. Copyright holder, funder.
 
@@ -38,13 +41,14 @@
 Source:
 [`DESCRIPTION`](https://github.com/StrategicProjects/osmnxr/blob/main/DESCRIPTION)
 
-Leite A, Wasilew M, Vasconcelos H, Amorim C, Bezerra D (2026). *osmnxr:
-Download, Model and Analyze 'OpenStreetMap' Street Networks*. R package
-version 0.1.1, <https://github.com/StrategicProjects/osmnxr>.
+Leite A, Wasiliew M, Vasconcelos H, Amorim C, Bezerra D, Nascimento
+Barreto J (2026). *osmnxr: Download, Model and Analyze 'OpenStreetMap'
+Street Networks*. R package version 0.1.1,
+<https://github.com/StrategicProjects/osmnxr>.
 
     @Manual{,
       title = {osmnxr: Download, Model and Analyze 'OpenStreetMap' Street Networks},
-      author = {Andre Leite and Marcos Wasilew and Hugo Vasconcelos and Carlos Amorim and Diogo Bezerra},
+      author = {Andre Leite and Marcos Wasiliew and Hugo Vasconcelos and Carlos Amorim and Diogo Bezerra and Júlia {Nascimento Barreto}},
       year = {2026},
       note = {R package version 0.1.1},
       url = {https://github.com/StrategicProjects/osmnxr},
