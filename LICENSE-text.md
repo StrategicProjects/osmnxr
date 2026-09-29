@@ -1,4 +1,4 @@
 # License
 
     YEAR: 2026
-    COPYRIGHT HOLDER: Andre Leite
+    COPYRIGHT HOLDER: André Leite

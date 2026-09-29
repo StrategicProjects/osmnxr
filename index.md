@@ -74,4 +74,4 @@ same Overpass API used by
 
 ## License
 
-MIT © Andre Leite and contributors / StrategicProjects.
+MIT © André Leite and contributors / StrategicProjects.
