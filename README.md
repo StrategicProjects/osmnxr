@@ -77,4 +77,4 @@ Overpass API used by [`osmdata`](https://docs.ropensci.org/osmdata/).
 
 ## License
 
-MIT © Andre Leite and contributors / StrategicProjects.
+MIT © André Leite and contributors / StrategicProjects.
