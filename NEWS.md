@@ -1,3 +1,13 @@
+# osmnxr 0.1.2
+
+* New `ox_union()` combines two or more `osm_graph` objects into one: node and
+  edge tables are stacked, nodes sharing an `osmid` are merged and edges
+  duplicated across graphs are dropped (`dedupe_edges = FALSE` keeps them).
+  Attribute columns present in one graph but not another are filled with `NA`.
+  Designed for multimodal networks — union a street graph with a hand-built
+  layer (e.g. metro) whose transfer edges reference street-node `osmid`s, then
+  route across both (#1, requested by @talegari).
+
 # osmnxr 0.1.1
 
 * Fix installation on Windows (R-devel). The rextendr 0.5.0 Makevars templates
