@@ -41,7 +41,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/StrategicProjects/osmnxr/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/StrategicProjects/osmnxr/blob/v0.1.2/DESCRIPTION)
 
 Leite A, Wasiliew M, Vasconcelos H, Amorim C, Bezerra D, Nascimento
 Barreto J (2026). *osmnxr: Download, Model and Analyze 'OpenStreetMap'
