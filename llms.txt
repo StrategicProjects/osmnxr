@@ -208,6 +208,11 @@ Hand graphs to the wider R network ecosystem.
 
   Extract `sf` nodes and edges from an `osm_graph`
 
+- [`ox_union()`](https://strategicprojects.github.io/osmnxr/reference/ox_union.md)
+  :
+
+  Union of `osm_graph` objects
+
 - [`plot(`*`<osm_graph>`*`)`](https://strategicprojects.github.io/osmnxr/reference/plot.osm_graph.md)
   :
 
