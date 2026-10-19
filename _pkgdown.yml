@@ -111,6 +111,7 @@ reference:
       - new_osm_graph
       - is_osm_graph
       - ox_as_sf
+      - ox_union
       - plot.osm_graph
       - ox_example
       - example_osm_graph
