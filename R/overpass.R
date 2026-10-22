@@ -32,34 +32,30 @@ overpass_to_graph <- function(res, network_type = "drive", query = NULL) {
   node_id <- vapply(node_el, function(e) as.numeric(e$id), numeric(1))
   node_lon <- vapply(node_el, function(e) as.numeric(e$lon), numeric(1))
   node_lat <- vapply(node_el, function(e) as.numeric(e$lat), numeric(1))
-  lon_of <- stats::setNames(node_lon, as.character(node_id))
-  lat_of <- stats::setNames(node_lat, as.character(node_id))
 
   way_el <- elements[types == "way"]
-  edge_rows <- list()
-  for (w in way_el) {
+  way_edges <- vector("list", length(way_el))
+  for (k in seq_along(way_el)) {
+    w <- way_el[[k]]
     refs <- vapply(w$nodes, as.numeric, numeric(1))
     if (length(refs) < 2) next
     tags <- w$tags %||% list()
-    oneway <- isTRUE(tags$oneway %in% c("yes", "true", "1"))
-    name <- tags$name %||% NA_character_
-    highway <- tags$highway %||% NA_character_
-    for (i in seq_len(length(refs) - 1L)) {
-      edge_rows[[length(edge_rows) + 1L]] <- list(
-        u = refs[i], v = refs[i + 1L], osmid = as.numeric(w$id),
-        name = name, highway = highway, oneway = oneway
-      )
-    }
+    n <- length(refs) - 1L
+    way_edges[[k]] <- list(
+      u = refs[-length(refs)], v = refs[-1L],
+      osmid = rep.int(as.numeric(w$id), n),
+      name = rep.int(tags$name %||% NA_character_, n),
+      highway = rep.int(tags$highway %||% NA_character_, n),
+      oneway = rep.int(isTRUE(tags$oneway %in% c("yes", "true", "1")), n)
+    )
   }
-  if (length(edge_rows) == 0) cli::cli_abort("No usable ways in Overpass response.", call = NULL)
+  way_edges <- way_edges[!vapply(way_edges, is.null, logical(1))]
+  if (length(way_edges) == 0) cli::cli_abort("No usable ways in Overpass response.", call = NULL)
 
+  pull <- function(field) unlist(lapply(way_edges, `[[`, field), use.names = FALSE)
   ed <- tibble::tibble(
-    u = vapply(edge_rows, `[[`, numeric(1), "u"),
-    v = vapply(edge_rows, `[[`, numeric(1), "v"),
-    osmid = vapply(edge_rows, `[[`, numeric(1), "osmid"),
-    name = vapply(edge_rows, `[[`, character(1), "name"),
-    highway = vapply(edge_rows, `[[`, character(1), "highway"),
-    oneway = vapply(edge_rows, `[[`, logical(1), "oneway")
+    u = pull("u"), v = pull("v"), osmid = pull("osmid"),
+    name = pull("name"), highway = pull("highway"), oneway = pull("oneway")
   )
   # add reverse direction for two-way edges
   rev <- ed[!ed$oneway, ]
@@ -67,23 +63,27 @@ overpass_to_graph <- function(res, network_type = "drive", query = NULL) {
   ed <- rbind(ed, rev)
 
   # keep only edges whose endpoints we have coordinates for
-  ed <- ed[as.character(ed$u) %in% names(lon_of) & as.character(ed$v) %in% names(lon_of), ]
+  iu <- match(ed$u, node_id)
+  iv <- match(ed$v, node_id)
+  keep <- !is.na(iu) & !is.na(iv)
+  ed <- ed[keep, ]
+  iu <- iu[keep]
+  iv <- iv[keep]
+  ux <- node_lon[iu]
+  uy <- node_lat[iu]
+  vx <- node_lon[iv]
+  vy <- node_lat[iv]
 
   geoms <- lapply(seq_len(nrow(ed)), function(i) {
-    sf::st_linestring(rbind(
-      c(lon_of[[as.character(ed$u[i])]], lat_of[[as.character(ed$u[i])]]),
-      c(lon_of[[as.character(ed$v[i])]], lat_of[[as.character(ed$v[i])]])
-    ))
+    sf::st_linestring(matrix(c(ux[i], vx[i], uy[i], vy[i]), 2L, 2L))
   })
   edges <- sf::st_sf(ed, geometry = sf::st_sfc(geoms, crs = 4326))
-  edges$length <- haversine(
-    lon_of[as.character(ed$u)], lat_of[as.character(ed$u)],
-    lon_of[as.character(ed$v)], lat_of[as.character(ed$v)]
-  )
+  edges$length <- haversine(ux, uy, vx, vy)
 
   used <- sort(unique(c(ed$u, ed$v)))
+  ui <- match(used, node_id)
   nodes <- sf::st_as_sf(
-    data.frame(osmid = used, x = lon_of[as.character(used)], y = lat_of[as.character(used)]),
+    data.frame(osmid = used, x = node_lon[ui], y = node_lat[ui]),
     coords = c("x", "y"), crs = 4326, remove = FALSE
   )
 

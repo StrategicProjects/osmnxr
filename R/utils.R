@@ -5,7 +5,15 @@ ox_request <- function(url) {
   httr2::request(url) |>
     httr2::req_user_agent(.osmnxr_settings$user_agent) |>
     httr2::req_timeout(.osmnxr_settings$timeout) |>
-    httr2::req_retry(max_tries = .osmnxr_settings$max_tries)
+    httr2::req_retry(
+      max_tries = .osmnxr_settings$max_tries,
+      # Overpass/Nominatim also answer 500/502/504 when overloaded; httr2's
+      # default only retries 429/503.
+      is_transient = function(resp) {
+        httr2::resp_status(resp) %in% c(429L, 500L, 502L, 503L, 504L)
+      },
+      retry_on_failure = TRUE
+    )
 }
 
 # Perform a request and parse the JSON body, with optional session caching.
