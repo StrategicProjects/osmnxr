@@ -23,6 +23,17 @@ ox_settings(...)
 A named list of settings (current values, or the previous values
 invisibly when updating).
 
+## Details
+
+`timeout` (seconds) applies both to the HTTP request and to the Overpass
+server-side query timeout. `max_tries` is the total number of attempts
+per request: transient failures — HTTP 429, 500, 502, 503, 504 and
+dropped connections, which busy Overpass/Nominatim servers routinely
+return — are retried with exponential backoff (honouring any
+`Retry-After` header) before an error is raised. `cache` toggles the
+in-session response cache (see
+[`ox_clear_cache()`](https://strategicprojects.github.io/osmnxr/reference/ox_clear_cache.md)).
+
 ## Examples
 
 ``` r

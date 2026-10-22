@@ -76,6 +76,16 @@ and returns the previous values invisibly.</p>
     <p>A named list of settings (current values, or the previous values
 invisibly when updating).</p>
     </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p><code>timeout</code> (seconds) applies both to the HTTP request and to the Overpass
+server-side query timeout. <code>max_tries</code> is the total number of attempts per
+request: transient failures — HTTP 429, 500, 502, 503, 504 and dropped
+connections, which busy Overpass/Nominatim servers routinely return — are
+retried with exponential backoff (honouring any <code>Retry-After</code> header)
+before an error is raised. <code>cache</code> toggles the in-session response cache
+(see <code><a href="ox_clear_cache.html">ox_clear_cache()</a></code>).</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>

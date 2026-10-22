@@ -70,6 +70,12 @@
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An <a href="new_osm_graph.html">osm_graph</a>.</p>
     </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Transient Overpass failures (HTTP 429/5xx, dropped connections) are retried
+automatically with exponential backoff; the Overpass endpoint, timeout and
+number of attempts are configurable via <code><a href="ox_settings.html">ox_settings()</a></code>.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>

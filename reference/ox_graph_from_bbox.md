@@ -24,6 +24,13 @@ ox_graph_from_bbox(bbox, network_type = "drive")
 An
 [osm_graph](https://strategicprojects.github.io/osmnxr/reference/new_osm_graph.md).
 
+## Details
+
+Transient Overpass failures (HTTP 429/5xx, dropped connections) are
+retried automatically with exponential backoff; the Overpass endpoint,
+timeout and number of attempts are configurable via
+[`ox_settings()`](https://strategicprojects.github.io/osmnxr/reference/ox_settings.md).
+
 ## Examples
 
 ``` r
