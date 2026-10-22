@@ -18,6 +18,11 @@ An \link[=new_osm_graph]{osm_graph}.
 \description{
 Download a street network within a bounding box
 }
+\details{
+Transient Overpass failures (HTTP 429/5xx, dropped connections) are retried
+automatically with exponential backoff; the Overpass endpoint, timeout and
+number of attempts are configurable via \code{\link[=ox_settings]{ox_settings()}}.
+}
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 bbox <- c(-34.91, -8.07, -34.87, -8.04)

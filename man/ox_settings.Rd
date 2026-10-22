@@ -20,6 +20,15 @@ used by all \verb{ox_*} download functions. Called with no arguments it returns
 the current settings as a list; called with named arguments it updates them
 and returns the previous values invisibly.
 }
+\details{
+\code{timeout} (seconds) applies both to the HTTP request and to the Overpass
+server-side query timeout. \code{max_tries} is the total number of attempts per
+request: transient failures — HTTP 429, 500, 502, 503, 504 and dropped
+connections, which busy Overpass/Nominatim servers routinely return — are
+retried with exponential backoff (honouring any \code{Retry-After} header)
+before an error is raised. \code{cache} toggles the in-session response cache
+(see \code{\link[=ox_clear_cache]{ox_clear_cache()}}).
+}
 \examples{
 ox_settings()
 old <- ox_settings(timeout = 300)

@@ -27,6 +27,15 @@ default_settings <- function() {
 #' @param ... Named settings to update. Recognised names: `overpass_url`,
 #'   `nominatim_url`, `user_agent`, `timeout`, `max_tries`, `cache`.
 #'
+#' @details
+#' `timeout` (seconds) applies both to the HTTP request and to the Overpass
+#' server-side query timeout. `max_tries` is the total number of attempts per
+#' request: transient failures — HTTP 429, 500, 502, 503, 504 and dropped
+#' connections, which busy Overpass/Nominatim servers routinely return — are
+#' retried with exponential backoff (honouring any `Retry-After` header)
+#' before an error is raised. `cache` toggles the in-session response cache
+#' (see [ox_clear_cache()]).
+#'
 #' @return A named list of settings (current values, or the previous values
 #'   invisibly when updating).
 #' @export

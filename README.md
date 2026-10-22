@@ -75,6 +75,20 @@ The pipeline, from a place name to an analyzable network:
 [`dodgr`](https://urbananalyst.github.io/dodgr/), and downloads via the same
 Overpass API used by [`osmdata`](https://docs.ropensci.org/osmdata/).
 
+## Acknowledgements
+
+`osmnxr` owes its design to [Geoff Boeing](https://geoffboeing.com/)'s
+[OSMnx](https://osmnx.readthedocs.io/), and its data to the
+[OpenStreetMap](https://www.openstreetmap.org/) contributors and the public
+[Overpass](https://overpass-api.de/) and
+[Nominatim](https://nominatim.openstreetmap.org/) services.
+
+Thanks to everyone who files issues — user reports shape this package.
+[Srikanth K S (\@talegari)](https://github.com/talegari) proposed `ox_union()`
+for multimodal routing (#1), and his careful reports with reproducible
+benchmarks led to automatic retries on transient Overpass failures (#2) and to
+a ~250× faster graph-building phase on metro-sized extracts (#3).
+
 ## License
 
 MIT © André Leite and contributors / StrategicProjects.

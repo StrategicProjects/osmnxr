@@ -6,6 +6,11 @@
 #'   (EPSG:4326).
 #' @param network_type One of `"drive"`, `"walk"`, `"bike"` or `"all"`.
 #'
+#' @details
+#' Transient Overpass failures (HTTP 429/5xx, dropped connections) are retried
+#' automatically with exponential backoff; the Overpass endpoint, timeout and
+#' number of attempts are configurable via [ox_settings()].
+#'
 #' @return An [osm_graph][new_osm_graph].
 #' @export
 #'
