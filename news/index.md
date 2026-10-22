@@ -1,6 +1,24 @@
 # Changelog
 
+## osmnxr 0.1.3
+
+- `ox_graph_from_*()` is dramatically faster on large areas: building
+  the graph from the Overpass response was quadratic in the number of
+  edges (it never finished on a metro-sized bbox) and is now vectorised
+  — a response with 600,000 nodes / 1 million directed edges parses in
+  ~15 s ([\#3](https://github.com/StrategicProjects/osmnxr/issues/3),
+  reported by [@talegari](https://github.com/talegari)).
+
+- Overpass and Nominatim requests now retry on HTTP 500, 502 and 504
+  (and on connection failures) in addition to httr2’s default 429/503,
+  with exponential backoff. The number of attempts remains configurable
+  via `ox_settings(max_tries = )`
+  ([\#2](https://github.com/StrategicProjects/osmnxr/issues/2), reported
+  by [@talegari](https://github.com/talegari)).
+
 ## osmnxr 0.1.2
+
+CRAN release: 2026-10-19
 
 - New
   [`ox_union()`](https://strategicprojects.github.io/osmnxr/reference/ox_union.md)

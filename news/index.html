@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">osmnxr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,7 +44,12 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.2" id="osmnxr-012">osmnxr 0.1.2<a class="anchor" aria-label="anchor" href="#osmnxr-012"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.3" id="osmnxr-013">osmnxr 0.1.3<a class="anchor" aria-label="anchor" href="#osmnxr-013"></a></h2>
+<ul><li><p><code>ox_graph_from_*()</code> is dramatically faster on large areas: building the graph from the Overpass response was quadratic in the number of edges (it never finished on a metro-sized bbox) and is now vectorised — a response with 600,000 nodes / 1 million directed edges parses in ~15 s (<a href="https://github.com/StrategicProjects/osmnxr/issues/3" class="external-link">#3</a>, reported by <a href="https://github.com/talegari" class="external-link">@talegari</a>).</p></li>
+<li><p>Overpass and Nominatim requests now retry on HTTP 500, 502 and 504 (and on connection failures) in addition to httr2’s default 429/503, with exponential backoff. The number of attempts remains configurable via <code>ox_settings(max_tries = )</code> (<a href="https://github.com/StrategicProjects/osmnxr/issues/2" class="external-link">#2</a>, reported by <a href="https://github.com/talegari" class="external-link">@talegari</a>).</p></li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.2" id="osmnxr-012">osmnxr 0.1.2<a class="anchor" aria-label="anchor" href="#osmnxr-012"></a></h2><p class="text-muted">CRAN release: 2026-10-19</p>
 <ul><li>New <code><a href="../reference/ox_union.html">ox_union()</a></code> combines two or more <code>osm_graph</code> objects into one: node and edge tables are stacked, nodes sharing an <code>osmid</code> are merged and edges duplicated across graphs are dropped (<code>dedupe_edges = FALSE</code> keeps them). Attribute columns present in one graph but not another are filled with <code>NA</code>. Designed for multimodal networks — union a street graph with a hand-built layer (e.g. metro) whose transfer edges reference street-node <code>osmid</code>s, then route across both (<a href="https://github.com/StrategicProjects/osmnxr/issues/1" class="external-link">#1</a>, requested by <a href="https://github.com/talegari" class="external-link">@talegari</a>).</li>
 </ul></div>
     <div class="section level2">
