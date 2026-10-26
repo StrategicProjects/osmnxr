@@ -17,6 +17,9 @@
 - **Júlia Nascimento Barreto**. Author.
   [](https://orcid.org/0009-0004-2851-7770)
 
+- **Srikanth Komala Sheshachala**. Contributor.  
+  Issue reports and feature proposals (GitHub: talegari)
+
 - **StrategicProjects**. Copyright holder, funder.
 
 - **The extendr authors**. Copyright holder.  
@@ -41,7 +44,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/StrategicProjects/osmnxr/blob/v0.1.4/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/StrategicProjects/osmnxr/blob/main/DESCRIPTION)
 
 Leite A, Wasiliew M, Vasconcelos H, Amorim C, Bezerra D, Nascimento
 Barreto J (2026). *osmnxr: Download, Model and Analyze 'OpenStreetMap'

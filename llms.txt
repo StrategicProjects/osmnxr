@@ -81,11 +81,15 @@ public [Overpass](https://overpass-api.de/) and
 [Nominatim](https://nominatim.openstreetmap.org/) services.
 
 Thanks to everyone who files issues — user reports shape this package.
-[Srikanth K S (@talegari)](https://github.com/talegari) proposed
+[Srikanth Komala Sheshachala (@talegari)](https://github.com/talegari)
+proposed
 [`ox_union()`](https://strategicprojects.github.io/osmnxr/reference/ox_union.md)
-for multimodal routing (#1), and his careful reports with reproducible
-benchmarks led to automatic retries on transient Overpass failures (#2)
-and to a ~250× faster graph-building phase on metro-sized extracts (#3).
+for multimodal routing (#1) and
+[`ox_route_tsp()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_tsp.md)
+for travelling-salesman routes (#4), and his careful reports with
+reproducible benchmarks led to automatic retries on transient Overpass
+failures (#2) and to a ~250× faster graph-building phase on metro-sized
+extracts (#3).
 
 ## License
 
