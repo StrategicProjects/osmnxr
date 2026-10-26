@@ -154,6 +154,8 @@ Shortest paths, distances and service areas (Rust core).
   : Single-source shortest distances
 - [`ox_distance_matrix()`](https://strategicprojects.github.io/osmnxr/reference/ox_distance_matrix.md)
   : Shortest-path distance matrix
+- [`ox_route_tsp()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_tsp.md)
+  : Travelling-salesman route through a set of nodes
 - [`ox_isochrone()`](https://strategicprojects.github.io/osmnxr/reference/ox_isochrone.md)
   : Compute isochrones (service areas)
 

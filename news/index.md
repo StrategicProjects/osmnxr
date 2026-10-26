@@ -1,5 +1,25 @@
 # Changelog
 
+## osmnxr 0.1.4
+
+- New
+  [`ox_route_tsp()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_tsp.md)
+  solves a travelling-salesman route through a set of stops over the
+  street network, in the spirit of `sfnetworks::st_network_travel()`:
+  the asymmetric network-distance matrix (one-way streets respected) is
+  computed in the Rust core, the visiting order is solved there too with
+  an iterated local search (or-opt + swap + 2-opt descent restarted from
+  double-bridge perturbations, deterministic), and each leg is returned
+  as an `sf` row with its cost, node path and street geometry. Supports
+  closed tours (`end = start`, the default), open routes (`end = NULL`)
+  and a pinned final stop. Benchmarked against `TSP::solve_TSP()` (the
+  backend of `sfnetworks::st_network_travel()`) on identical cost
+  matrices over the bundled real networks, it matched or beat it in all
+  80 random instances tried (8–50 stops), by ~1% on average at 8 stops
+  up to ~10% at 50
+  ([\#4](https://github.com/StrategicProjects/osmnxr/issues/4),
+  requested by [@talegari](https://github.com/talegari)).
+
 ## osmnxr 0.1.3
 
 - `ox_graph_from_*()` is dramatically faster on large areas: building
