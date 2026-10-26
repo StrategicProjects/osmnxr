@@ -468,6 +468,147 @@ pub fn tsp_tour(
     tour
 }
 
+/// A Pareto-optimal route found by [`pareto_paths`].
+pub struct ParetoRoute {
+    pub path: Vec<usize>,
+    pub cost: f64,
+    pub resource: f64,
+}
+
+/// A label in the bicriteria search: the node reached, and the arena index of
+/// the predecessor label (`usize::MAX` for the source). The accumulated
+/// cost/resource pair travels in the heap entry instead.
+struct Label {
+    node: usize,
+    pred: usize,
+}
+
+/// Heap entry ordered lexicographically by ascending `(cost, resource)`.
+struct BiState {
+    cost: f64,
+    resource: f64,
+    label: usize,
+}
+
+impl PartialEq for BiState {
+    fn eq(&self, other: &Self) -> bool {
+        self.cost == other.cost && self.resource == other.resource
+    }
+}
+impl Eq for BiState {}
+impl PartialOrd for BiState {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl Ord for BiState {
+    fn cmp(&self, other: &Self) -> Ordering {
+        // Reverse so `BinaryHeap` (a max-heap) yields the lex-smallest pair.
+        other
+            .cost
+            .partial_cmp(&self.cost)
+            .unwrap_or(Ordering::Equal)
+            .then(other.resource.partial_cmp(&self.resource).unwrap_or(Ordering::Equal))
+    }
+}
+
+/// Bicriteria shortest paths from `source` to `target` by label-setting
+/// (Martins' algorithm): every edge carries a `(cost, resource)` pair and the
+/// result is the Pareto front of nondominated `(cost, resource)` path values,
+/// in increasing cost / decreasing resource order. With a finite `budget` the
+/// front is restricted to paths with `resource <= budget`, so its first entry
+/// solves the constrained shortest path problem exactly. `max_routes` caps the
+/// number of routes returned (`usize::MAX` for the whole front).
+///
+/// Labels are popped lexicographically by `(cost, resource)`, which makes the
+/// per-node dominance test a single comparison against the best resource seen
+/// at that node. Reverse-Dijkstra lower bounds on the remaining resource prune
+/// labels that cannot reach the target within budget, and labels whose
+/// projected resource cannot improve on the target's front are dropped early.
+/// Weights must be nonnegative; the search is exact.
+pub fn pareto_paths(
+    from: &[usize],
+    to: &[usize],
+    w_cost: &[f64],
+    w_res: &[f64],
+    n_nodes: usize,
+    source: usize,
+    target: usize,
+    budget: f64,
+    max_routes: usize,
+) -> Vec<ParetoRoute> {
+    if max_routes == 0 {
+        return Vec::new();
+    }
+    if source == target {
+        return vec![ParetoRoute { path: vec![source], cost: 0.0, resource: 0.0 }];
+    }
+    // Two CSR graphs over the same edge order, so slot `e` holds the same
+    // edge in both and `(targets[e], cost.weights[e], res.weights[e])` is one
+    // directed edge with its pair of weights.
+    let g_cost = Graph::from_edges(from, to, w_cost, n_nodes);
+    let g_res = Graph::from_edges(from, to, w_res, n_nodes);
+
+    // Reverse-graph Dijkstra bounds: least possible remaining resource from
+    // each node to the target (also detects nodes that cannot reach it).
+    let rev_res = Graph::from_edges(to, from, w_res, n_nodes);
+    let lb_res = dijkstra(&rev_res, target);
+
+    let mut arena: Vec<Label> = Vec::new();
+    let mut heap: BinaryHeap<BiState> = BinaryHeap::new();
+    // Best (lowest) resource among labels made permanent at each node; pops
+    // arrive in increasing cost, so a new label is dominated iff it cannot
+    // strictly improve this.
+    let mut min_res = vec![f64::INFINITY; n_nodes];
+    let mut routes: Vec<ParetoRoute> = Vec::new();
+
+    if lb_res[source].is_finite() && lb_res[source] <= budget {
+        arena.push(Label { node: source, pred: usize::MAX });
+        heap.push(BiState { cost: 0.0, resource: 0.0, label: 0 });
+    }
+
+    while let Some(BiState { cost, resource, label }) = heap.pop() {
+        let node = arena[label].node;
+        if min_res[node] <= resource {
+            continue; // dominated by (or duplicating) a permanent label
+        }
+        min_res[node] = resource;
+        if node == target {
+            let mut path = Vec::new();
+            let mut cur = label;
+            while cur != usize::MAX {
+                path.push(arena[cur].node);
+                cur = arena[cur].pred;
+            }
+            path.reverse();
+            routes.push(ParetoRoute { path, cost, resource });
+            if routes.len() >= max_routes {
+                break;
+            }
+            continue;
+        }
+        let start = g_cost.offsets[node];
+        let end = g_cost.offsets[node + 1];
+        for e in start..end {
+            let next = g_cost.targets[e];
+            let nc = cost + g_cost.weights[e];
+            let nr = resource + g_res.weights[e];
+            // Within budget even in the best case, able to improve the next
+            // node's front, and able to improve the target's front.
+            if !lb_res[next].is_finite()
+                || nr + lb_res[next] > budget
+                || min_res[next] <= nr
+                || min_res[target] <= nr + lb_res[next]
+            {
+                continue;
+            }
+            arena.push(Label { node: next, pred: label });
+            heap.push(BiState { cost: nc, resource: nr, label: arena.len() - 1 });
+        }
+    }
+    routes
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -658,6 +799,182 @@ mod tests {
         let nn = tsp_tour(&cost, n, 0, None, true, false);
         let ils = tsp_tour(&cost, n, 0, None, true, true);
         assert!(tour_cost(&cost, n, &ils, true) < tour_cost(&cost, n, &nn, true));
+    }
+
+    /// Diamond with a cheap high-resource route, an expensive zero-resource
+    /// route and a dominated direct edge.
+    fn diamond() -> (Vec<usize>, Vec<usize>, Vec<f64>, Vec<f64>) {
+        let from = vec![0, 1, 0, 2, 0];
+        let to = vec![1, 3, 2, 3, 3];
+        let cost = vec![1.0, 1.0, 3.0, 3.0, 10.0];
+        let res = vec![5.0, 5.0, 0.0, 0.0, 2.0];
+        (from, to, cost, res)
+    }
+
+    #[test]
+    fn pareto_front_on_diamond() {
+        let (from, to, cost, res) = diamond();
+        let routes =
+            pareto_paths(&from, &to, &cost, &res, 4, 0, 3, f64::INFINITY, usize::MAX);
+        let vals: Vec<(f64, f64)> = routes.iter().map(|r| (r.cost, r.resource)).collect();
+        assert_eq!(vals, vec![(2.0, 10.0), (6.0, 0.0)]);
+        assert_eq!(routes[0].path, vec![0, 1, 3]);
+        assert_eq!(routes[1].path, vec![0, 2, 3]);
+    }
+
+    #[test]
+    fn budget_picks_the_cheapest_feasible_route() {
+        let (from, to, cost, res) = diamond();
+        // Budget 5 rules out the (2, 10) route; (6, 0) beats (10, 2).
+        let routes = pareto_paths(&from, &to, &cost, &res, 4, 0, 3, 5.0, 1);
+        assert_eq!(routes.len(), 1);
+        assert_eq!(routes[0].path, vec![0, 2, 3]);
+        // Budget 2 admits the dominated-direct edge as the only option left
+        // besides (6, 0); the cheapest feasible is still (6, 0).
+        let routes = pareto_paths(&from, &to, &cost, &res, 4, 0, 3, 2.0, usize::MAX);
+        let vals: Vec<(f64, f64)> = routes.iter().map(|r| (r.cost, r.resource)).collect();
+        assert_eq!(vals, vec![(6.0, 0.0)]);
+    }
+
+    #[test]
+    fn infeasible_budget_and_unreachable_target_are_empty() {
+        let (from, to, cost, res) = diamond();
+        assert!(pareto_paths(&from, &to, &cost, &res, 4, 0, 3, -1.0, usize::MAX).is_empty());
+        // Node 3 has no out-edges, so nothing reaches a 5th isolated node.
+        assert!(pareto_paths(&from, &to, &cost, &res, 5, 0, 4, f64::INFINITY, usize::MAX)
+            .is_empty());
+    }
+
+    #[test]
+    fn pareto_trivial_and_capped() {
+        let (from, to, cost, res) = diamond();
+        let same = pareto_paths(&from, &to, &cost, &res, 4, 2, 2, f64::INFINITY, usize::MAX);
+        assert_eq!(same.len(), 1);
+        assert_eq!(same[0].path, vec![2]);
+        let capped = pareto_paths(&from, &to, &cost, &res, 4, 0, 3, f64::INFINITY, 1);
+        assert_eq!(capped.len(), 1);
+        assert_eq!(capped[0].path, vec![0, 1, 3]);
+    }
+
+    /// All simple paths from `s` to `t` as `(cost, resource)` pairs.
+    fn enumerate_values(
+        from: &[usize],
+        to: &[usize],
+        cost: &[f64],
+        res: &[f64],
+        n: usize,
+        s: usize,
+        t: usize,
+    ) -> Vec<(f64, f64)> {
+        fn go(
+            edges: &[(usize, usize, f64, f64)],
+            t: usize,
+            node: usize,
+            seen: &mut Vec<bool>,
+            c: f64,
+            r: f64,
+            out: &mut Vec<(f64, f64)>,
+        ) {
+            if node == t {
+                out.push((c, r));
+                return;
+            }
+            for &(u, v, wc, wr) in edges {
+                if u == node && !seen[v] {
+                    seen[v] = true;
+                    go(edges, t, v, seen, c + wc, r + wr, out);
+                    seen[v] = false;
+                }
+            }
+        }
+        let edges: Vec<(usize, usize, f64, f64)> = (0..from.len())
+            .map(|i| (from[i], to[i], cost[i], res[i]))
+            .collect();
+        let mut seen = vec![false; n];
+        seen[s] = true;
+        let mut out = Vec::new();
+        go(&edges, t, s, &mut seen, 0.0, 0.0, &mut out);
+        out
+    }
+
+    /// Nondominated subset of `(cost, resource)` values, deduplicated and
+    /// sorted by increasing cost.
+    fn pareto_filter(mut vals: Vec<(f64, f64)>) -> Vec<(f64, f64)> {
+        vals.sort_by(|a, b| {
+            a.0.partial_cmp(&b.0).unwrap().then(a.1.partial_cmp(&b.1).unwrap())
+        });
+        let mut front: Vec<(f64, f64)> = Vec::new();
+        for (c, r) in vals {
+            if front.iter().all(|&(fc, fr)| !(fc <= c && fr <= r)) {
+                front.push((c, r));
+            }
+        }
+        front
+    }
+
+    #[test]
+    fn pareto_matches_brute_force_on_random_graphs() {
+        for seed in 1..=12u64 {
+            let mut rng = Rng(seed);
+            let n = 6usize;
+            let mut from = Vec::new();
+            let mut to = Vec::new();
+            let mut cost = Vec::new();
+            let mut res = Vec::new();
+            for u in 0..n {
+                for v in 0..n {
+                    if u != v && rng.next() % 100 < 45 {
+                        from.push(u);
+                        to.push(v);
+                        cost.push((rng.next() % 20) as f64 + 1.0);
+                        // About half the edges consume no resource at all.
+                        res.push(if rng.next() % 2 == 0 { 0.0 } else { (rng.next() % 10) as f64 });
+                    }
+                }
+            }
+            let all = enumerate_values(&from, &to, &cost, &res, n, 0, n - 1);
+            let want = pareto_filter(all.clone());
+            let got: Vec<(f64, f64)> =
+                pareto_paths(&from, &to, &cost, &res, n, 0, n - 1, f64::INFINITY, usize::MAX)
+                    .iter()
+                    .map(|r| (r.cost, r.resource))
+                    .collect();
+            assert_eq!(got, want, "seed {seed}: front mismatch");
+
+            // Constrained answers agree with brute force for several budgets.
+            for budget in [0.0, 3.0, 7.0, 15.0] {
+                let best = all
+                    .iter()
+                    .filter(|&&(_, r)| r <= budget)
+                    .map(|&(c, _)| c)
+                    .fold(f64::INFINITY, f64::min);
+                let solved =
+                    pareto_paths(&from, &to, &cost, &res, n, 0, n - 1, budget, 1);
+                match solved.first() {
+                    Some(r) => {
+                        assert!(
+                            (r.cost - best).abs() < 1e-9 && r.resource <= budget,
+                            "seed {seed} budget {budget}: got ({}, {}), optimum {best}",
+                            r.cost,
+                            r.resource
+                        );
+                    }
+                    None => assert!(
+                        best.is_infinite(),
+                        "seed {seed} budget {budget}: solver found nothing, optimum {best}"
+                    ),
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn pareto_paths_are_consistent_with_their_values() {
+        let (from, to, cost, res) = diamond();
+        let wc = edge_weight_map(&from, &to, &cost);
+        for r in pareto_paths(&from, &to, &cost, &res, 4, 0, 3, f64::INFINITY, usize::MAX) {
+            assert!((path_cost(&r.path, &wc) - r.cost).abs() < 1e-9);
+        }
     }
 
     #[test]

@@ -188,6 +188,46 @@ fn rs_tsp_tour(cost: Vec<f64>, n: i32, start: i32, end: i32, closed: bool, impro
         .collect()
 }
 
+/// Bicriteria shortest paths (Pareto front) from `source` to `target` by
+/// label-setting with dominance pruning. Each edge carries a cost and a
+/// resource weight; `budget` caps the path resource (`Inf` for none) and
+/// `max_routes <= 0` returns the whole front. Returns a list with `paths`
+/// (0-based node-index vectors), `costs` and `resources`, ordered by
+/// increasing cost.
+/// @keywords internal
+#[extendr]
+fn rs_pareto_paths(
+    from: Vec<i32>,
+    to: Vec<i32>,
+    w_cost: Vec<f64>,
+    w_resource: Vec<f64>,
+    n_nodes: i32,
+    source: i32,
+    target: i32,
+    budget: f64,
+    max_routes: i32,
+) -> List {
+    let cap = if max_routes <= 0 { usize::MAX } else { max_routes as usize };
+    let res = routing::pareto_paths(
+        &as_idx(&from),
+        &as_idx(&to),
+        &w_cost,
+        &w_resource,
+        n_nodes as usize,
+        source as usize,
+        target as usize,
+        budget,
+        cap,
+    );
+    let paths = List::from_values(
+        res.iter()
+            .map(|r| r.path.iter().map(|&x| x as i32).collect::<Vec<i32>>()),
+    );
+    let costs: Vec<f64> = res.iter().map(|r| r.cost).collect();
+    let resources: Vec<f64> = res.iter().map(|r| r.resource).collect();
+    list!(paths = paths, costs = costs, resources = resources)
+}
+
 // Macro to generate exports.
 // This ensures exported functions are registered with R.
 // See corresponding C code in `entrypoint.c`.
@@ -203,6 +243,7 @@ extendr_module! {
     fn rs_k_shortest_paths;
     fn rs_distance_matrix;
     fn rs_tsp_tour;
+    fn rs_pareto_paths;
     fn rs_betweenness;
     fn rs_closeness;
 }

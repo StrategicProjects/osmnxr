@@ -43,6 +43,52 @@ ox_add_edge_speeds <- function(g, speeds = NULL, fallback = 40) {
   g
 }
 
+#' Add edge penalties by road type
+#'
+#' Builds a per-edge penalty column from the edge `highway` class: each edge
+#' gets `factor * weight`, where `factor` comes from the named `penalties`
+#' vector (classes not listed get `0`). The column quantifies how much of a
+#' route runs on penalized road types, in the units of `weight`.
+#'
+#' Two ways to use it:
+#' * **Scalarized routing** — add the penalty onto the routing weight
+#'   (`g$edges$w <- g$edges$length + g$edges$penalty`) and route on `w` with
+#'   [ox_shortest_path()]: an ordinary shortest path that trades length
+#'   against preference at a fixed rate.
+#' * **Constrained / Pareto routing** — pass the column as the `resource` of
+#'   [ox_route_constrained()] or [ox_route_pareto()], e.g. "fastest route with
+#'   at most 500 m on residential streets" (`penalties = c(residential = 1)`,
+#'   `budget = 500`).
+#'
+#' @param g An [osm_graph][new_osm_graph].
+#' @param penalties Named numeric vector of `highway = factor` pairs; each
+#'   edge's penalty is `factor * weight`. Classes not listed (and edges with no
+#'   `highway`) get `0`.
+#' @param weight Edge column the factors multiply. Default `"length"`.
+#' @param name Name of the new edge column. Default `"penalty"`.
+#'
+#' @return The [osm_graph][new_osm_graph] with the penalty edge column added.
+#' @export
+#'
+#' @examples
+#' g <- example_osm_graph()
+#' g <- ox_add_edge_penalties(g, c(residential = 1))
+#' head(g$edges$penalty)
+ox_add_edge_penalties <- function(g, penalties, weight = "length", name = "penalty") {
+  stopifnot(is_osm_graph(g))
+  if (is.null(names(penalties)) || !is.numeric(penalties) || anyNA(penalties)) {
+    cli::cli_abort("{.arg penalties} must be a named numeric vector of {.field highway} = factor pairs.", call = NULL)
+  }
+  if (!weight %in% names(g$edges)) {
+    cli::cli_abort("Edge column {.field {weight}} not found in {.arg g}.", call = NULL)
+  }
+  hw <- if ("highway" %in% names(g$edges)) as.character(g$edges$highway) else rep(NA_character_, nrow(g$edges))
+  f <- unname(penalties[hw])
+  f[is.na(f)] <- 0
+  g$edges[[name]] <- f * as.numeric(g$edges[[weight]])
+  g
+}
+
 #' Add edge travel times
 #'
 #' Adds a `travel_time` edge column (in seconds) from edge `length` (metres) and

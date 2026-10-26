@@ -54,6 +54,15 @@ rs_distance_matrix <- function(from, to, weight, n_nodes, sources, targets) .Cal
 #' @keywords internal
 rs_tsp_tour <- function(cost, n, start, end, closed, improve) .Call(wrap__rs_tsp_tour, cost, n, start, end, closed, improve)
 
+#' Bicriteria shortest paths (Pareto front) from `source` to `target` by
+#' label-setting with dominance pruning. Each edge carries a cost and a
+#' resource weight; `budget` caps the path resource (`Inf` for none) and
+#' `max_routes <= 0` returns the whole front. Returns a list with `paths`
+#' (0-based node-index vectors), `costs` and `resources`, ordered by
+#' increasing cost.
+#' @keywords internal
+rs_pareto_paths <- function(from, to, w_cost, w_resource, n_nodes, source, target, budget, max_routes) .Call(wrap__rs_pareto_paths, from, to, w_cost, w_resource, n_nodes, source, target, budget, max_routes)
+
 #' Betweenness centrality (Brandes) for every node.
 #' @keywords internal
 rs_betweenness <- function(from, to, weight, n_nodes, normalized) .Call(wrap__rs_betweenness, from, to, weight, n_nodes, normalized)

@@ -69,6 +69,7 @@ reference:
       - ox_consolidate_intersections
       - ox_add_edge_speeds
       - ox_add_edge_travel_times
+      - ox_add_edge_penalties
 
   - title: "Routing"
     desc: "Shortest paths, distances and service areas (Rust core)."
@@ -80,6 +81,8 @@ reference:
       - ox_distances
       - ox_distance_matrix
       - ox_route_tsp
+      - ox_route_constrained
+      - ox_route_pareto
       - ox_isochrone
 
   - title: "Metrics"

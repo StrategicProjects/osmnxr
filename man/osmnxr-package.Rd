@@ -34,6 +34,7 @@ Authors:
 
 Other contributors:
 \itemize{
+  \item Srikanth Komala Sheshachala \email{sri.teach@gmail.com} (Issue reports and feature proposals (GitHub: talegari)) [contributor]
   \item StrategicProjects [copyright holder, funder]
   \item The extendr authors (Bundled Rust crates extendr-api, extendr-ffi, extendr-macros) [copyright holder]
   \item David Tolnay (Bundled Rust crates proc-macro2, quote, syn, paste, readonly, unicode-ident) [copyright holder]

@@ -229,6 +229,142 @@ ox_route_tsp <- function(g, nodes, weight = "length",
   sf::st_as_sf(out)
 }
 
+#' Pareto-optimal routes trading cost against a resource
+#'
+#' Enumerates the routes from `from` to `to` that are Pareto-optimal in two
+#' criteria: the routing `weight` (cost) and a second nonnegative edge column
+#' (`resource`), typically a road-type penalty from [ox_add_edge_penalties()].
+#' Each returned route is cheaper than the next and uses more resource than
+#' the next; no other route is better on both criteria. The front is computed
+#' exactly in the Rust core by bicriteria label-setting (Martins' algorithm)
+#' with dominance pruning and reverse-Dijkstra bounds.
+#'
+#' With a finite `budget` the front is restricted to routes whose total
+#' resource is at most `budget`; its first row is then the exact solution of
+#' the constrained shortest path problem (see [ox_route_constrained()]).
+#'
+#' The bicriteria problem is NP-hard in general — the front can be large on
+#' pathological inputs — but on street networks with sparse penalties the
+#' pruned search is fast. Use `max_routes` to cap the enumeration.
+#'
+#' @param g An [osm_graph][new_osm_graph].
+#' @param from,to Node `osmid`s (as returned by [ox_nearest_nodes()]).
+#' @param weight Edge column used as routing cost. Default `"length"`.
+#' @param resource Name of a nonnegative edge column holding the second
+#'   criterion, e.g. the `"penalty"` column of [ox_add_edge_penalties()].
+#' @param budget Keep only routes with total resource at most `budget`.
+#'   Default `Inf` (the unrestricted front).
+#' @param max_routes Return at most this many routes (the cheapest ones).
+#'   Default `Inf`.
+#'
+#' @return An `sf` tibble with one row per Pareto-optimal route, ordered by
+#'   increasing cost (and decreasing resource): `route` (rank), `cost`,
+#'   `resource`, a list-column `path` of the node `osmid`s traversed, and the
+#'   route's merged street geometry.
+#' @export
+#'
+#' @examples
+#' g <- example_osm_graph()
+#' # north-south streets are calm residential, east-west ones primary
+#' g$edges$highway <- ifelse(abs(g$edges$u - g$edges$v) == 1, "residential", "primary")
+#' g <- ox_add_edge_penalties(g, c(residential = 1))
+#' from <- ox_nearest_nodes(g, 0, 0)
+#' to <- ox_nearest_nodes(g, 300, 300)
+#' ox_route_pareto(g, from, to, resource = "penalty")
+ox_route_pareto <- function(g, from, to, weight = "length", resource,
+                            budget = Inf, max_routes = Inf) {
+  stopifnot(is_osm_graph(g))
+  if (missing(resource) || !is.character(resource) || length(resource) != 1) {
+    cli::cli_abort("{.arg resource} must name a single edge column; see {.fn ox_add_edge_penalties}.", call = NULL)
+  }
+  if (!resource %in% names(g$edges)) {
+    cli::cli_abort("Edge column {.field {resource}} not found in {.arg g}; create it with {.fn ox_add_edge_penalties}.", call = NULL)
+  }
+  if (length(budget) != 1 || is.na(budget) || budget < 0) {
+    cli::cli_abort("{.arg budget} must be a single nonnegative number (or {.code Inf}).", call = NULL)
+  }
+  if (length(max_routes) != 1 || is.na(max_routes) || max_routes < 1) {
+    cli::cli_abort("{.arg max_routes} must be a single number >= 1 (or {.code Inf}).", call = NULL)
+  }
+
+  ea <- graph_edge_arrays_bi(g, weight, resource)
+  if (anyNA(ea$weight) || any(ea$weight < 0)) {
+    cli::cli_abort("Edge column {.field {weight}} must be nonnegative with no missing values.", call = NULL)
+  }
+  if (anyNA(ea$resource) || any(ea$resource < 0) || any(is.infinite(ea$resource))) {
+    cli::cli_abort("Edge column {.field {resource}} must be finite, nonnegative and have no missing values.", call = NULL)
+  }
+  s <- match(from, ea$node_ids) - 1L
+  t <- match(to, ea$node_ids) - 1L
+  if (length(s) != 1 || length(t) != 1 || is.na(s) || is.na(t)) {
+    cli::cli_abort("{.arg from}/{.arg to} must be node {.field osmid}s present in the graph.", call = NULL)
+  }
+
+  cap <- if (is.infinite(max_routes)) -1L else as.integer(max_routes)
+  res <- rs_pareto_paths(ea$from, ea$to, ea$weight, ea$resource, ea$n_nodes,
+                         as.integer(s), as.integer(t), as.numeric(budget), cap)
+
+  if (length(res$paths) == 0) {
+    min_r <- rs_dijkstra(ea$from, ea$to, ea$resource, ea$n_nodes, as.integer(s))[t + 1L]
+    if (is.infinite(min_r)) {
+      cli::cli_abort("No route from node {.val {from}} to node {.val {to}} in this network.", call = NULL)
+    }
+    cli::cli_abort(
+      "No route from node {.val {from}} to node {.val {to}} within {.arg budget} = {.val {budget}}: the minimum possible {.field {resource}} is {.val {min_r}}.",
+      call = NULL
+    )
+  }
+
+  paths <- lapply(res$paths, function(idx) ea$node_ids[idx + 1L])
+  geom <- sf::st_sfc(lapply(paths, path_leg_geometry, g = g, weight = weight),
+                     crs = sf::st_crs(g$nodes))
+  out <- tibble::tibble(
+    route = seq_along(paths),
+    cost = as.numeric(res$costs),
+    resource = as.numeric(res$resources),
+    path = unname(paths),
+    geometry = geom
+  )
+  sf::st_as_sf(out)
+}
+
+#' Constrained shortest path
+#'
+#' Finds the minimum-`weight` route from `from` to `to` whose total
+#' consumption of a second edge column (`resource`) does not exceed `budget` —
+#' e.g. "the shortest route using at most 500 m of residential streets", with
+#' the residential metres counted by [ox_add_edge_penalties()]. This is the
+#' classic constrained shortest path problem, solved exactly in the Rust core
+#' (see [ox_route_pareto()] for the machinery and for the full
+#' cost-vs-resource trade-off curve).
+#'
+#' @inheritParams ox_route_pareto
+#' @param budget Maximum total resource the route may consume.
+#'
+#' @return A one-row `sf` tibble: `cost`, `resource`, a list-column `path` of
+#'   the node `osmid`s traversed, and the route's merged street geometry. An
+#'   error is raised when no route fits the budget (the message reports the
+#'   minimum feasible resource).
+#' @export
+#'
+#' @examples
+#' g <- example_osm_graph()
+#' g$edges$highway <- ifelse(abs(g$edges$u - g$edges$v) == 1, "residential", "primary")
+#' g <- ox_add_edge_penalties(g, c(residential = 1))
+#' from <- ox_nearest_nodes(g, 0, 0)
+#' to <- ox_nearest_nodes(g, 300, 300)
+#' # shortest route crossing at most 300 m of residential streets
+#' ox_route_constrained(g, from, to, resource = "penalty", budget = 300)
+ox_route_constrained <- function(g, from, to, weight = "length", resource, budget) {
+  if (missing(budget)) {
+    cli::cli_abort("{.arg budget} is required; use {.fn ox_shortest_path} for unconstrained routing.", call = NULL)
+  }
+  out <- ox_route_pareto(g, from, to, weight = weight, resource = resource,
+                         budget = budget, max_routes = 1)
+  out$route <- NULL
+  out
+}
+
 # Internal: merge the street geometries along a node-osmid path into a single
 # (MULTI)LINESTRING sfg. Parallel edges resolve to the minimum-weight one,
 # matching what Dijkstra traversed.

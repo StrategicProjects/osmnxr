@@ -51,6 +51,25 @@ graph_edge_arrays <- function(g, weight = "length") {
   )
 }
 
+# Internal: graph_edge_arrays() plus a second per-edge vector (`resource`),
+# filtered by the same edge mask so both stay aligned slot by slot.
+graph_edge_arrays_bi <- function(g, weight, resource) {
+  ids <- g$nodes$osmid
+  idx <- match(g$edges$u, ids) - 1L
+  jdx <- match(g$edges$v, ids) - 1L
+  keep <- !is.na(idx) & !is.na(jdx)
+  w <- if (weight %in% names(g$edges)) as.numeric(g$edges[[weight]]) else rep(1, nrow(g$edges))
+  r <- as.numeric(g$edges[[resource]])
+  list(
+    from = idx[keep],
+    to = jdx[keep],
+    weight = w[keep],
+    resource = r[keep],
+    n_nodes = length(ids),
+    node_ids = ids
+  )
+}
+
 #' @export
 print.osm_graph <- function(x, ...) {
   cli::cli_h1("osm_graph")

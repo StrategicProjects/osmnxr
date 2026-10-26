@@ -60,6 +60,56 @@ algorithm) — useful for comparing options or modelling redundancy:
 ox_k_shortest_paths(g, orig, dest, k = 3, weight = "travel_time")
 ```
 
+## Routing with road preferences
+
+Often the best route is not simply the fastest one: a dispatcher may want to
+keep trucks off residential streets, a cyclist may want to stay on them.
+`ox_add_edge_penalties()` turns that preference into a per-edge column — here,
+the metres each edge spends on calm residential road classes:
+
+```{r}
+g <- ox_add_edge_penalties(g, c(residential = 1, living_street = 1))
+head(g$edges[c("highway", "length", "penalty")])
+```
+
+The *soft* version just folds the penalty into the routing weight (an ordinary
+shortest path that trades seconds against residential metres at a fixed rate).
+The interesting questions, though, are *hard*: what is the fastest route using
+**at most** some budget of residential metres, and what does the whole
+trade-off curve look like? `ox_route_pareto()` answers the second — it
+enumerates every Pareto-optimal route exactly (bicriteria label-setting in the
+Rust core; one-way streets respected):
+
+```{r}
+o2 <- ox_nearest_nodes(g, x = -34.85445, y = -8.01503)
+d2 <- ox_nearest_nodes(g, x = -34.84853, y = -8.00431)
+front <- ox_route_pareto(g, o2, d2, weight = "travel_time", resource = "penalty")
+front[c("cost", "resource")]
+```
+
+Each successive route is a little slower and a little calmer; no other route
+beats any of them on both criteria. Plotted, the alternatives fan out between
+the fast arterial option and the quiet residential one:
+
+```{r}
+plot(g, col = "grey85", lwd = 0.6)
+cols <- grDevices::hcl.colors(nrow(front), "Zissou 1")
+plot(sf::st_geometry(front), add = TRUE, col = cols, lwd = 2.5)
+```
+
+`ox_route_constrained()` answers the first question — the exact constrained
+shortest path for one chosen budget:
+
+```{r}
+best <- ox_route_constrained(g, o2, d2, weight = "travel_time",
+                             resource = "penalty",
+                             budget = stats::median(front$resource))
+best[c("cost", "resource")]
+```
+
+(For a road that is temporarily closed, don't penalize it — mask it: drop the
+edge, or set its weight to `Inf`, before routing.)
+
 ## Isochrones (service areas)
 
 An isochrone is the area reachable from an origin within a budget. With

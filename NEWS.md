@@ -1,3 +1,17 @@
+# osmnxr 0.1.5
+
+* New preference-aware routing (#5, requested by @talegari):
+  `ox_route_constrained()` finds the exact minimum-cost route whose
+  consumption of a second edge criterion stays within a budget (e.g. "the
+  shortest route using at most 500 m of residential streets"), and
+  `ox_route_pareto()` enumerates the full Pareto front of cost-vs-preference
+  trade-offs. Both run on a bicriteria label-setting solver (Martins'
+  algorithm) with dominance pruning and reverse-Dijkstra bounds in the Rust
+  core — exact, deterministic, one-way streets respected. The new helper
+  `ox_add_edge_penalties()` builds the penalty/resource edge column from OSM
+  `highway` classes; added onto the routing weight it also covers simple
+  scalarized ("soft preference") routing through `ox_shortest_path()`.
+
 # osmnxr 0.1.4
 
 * New `ox_route_tsp()` solves a travelling-salesman route through a set of
