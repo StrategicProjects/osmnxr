@@ -84,8 +84,9 @@ Overpass API used by [`osmdata`](https://docs.ropensci.org/osmdata/).
 [Nominatim](https://nominatim.openstreetmap.org/) services.
 
 Thanks to everyone who files issues — user reports shape this package.
-[Srikanth K S (\@talegari)](https://github.com/talegari) proposed `ox_union()`
-for multimodal routing (#1), and his careful reports with reproducible
+[Srikanth Komala Sheshachala (\@talegari)](https://github.com/talegari)
+proposed `ox_union()` for multimodal routing (#1) and `ox_route_tsp()` for
+travelling-salesman routes (#4), and his careful reports with reproducible
 benchmarks led to automatic retries on transient Overpass failures (#2) and to
 a ~250× faster graph-building phase on metro-sized extracts (#3).
 

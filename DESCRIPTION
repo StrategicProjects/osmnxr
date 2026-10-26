@@ -14,6 +14,8 @@ Authors@R: c(
            comment = c(ORCID = "0000-0002-1216-8674")),
     person("Júlia", "Nascimento Barreto", email = "juliabarreto@gd.seplag.pe.gov.br", role = "aut",
            comment = c(ORCID = "0009-0004-2851-7770")),
+    person("Srikanth", "Komala Sheshachala", email = "sri.teach@gmail.com", role = "ctb",
+           comment = "Issue reports and feature proposals (GitHub: talegari)"),
     person("StrategicProjects", role = c("cph", "fnd")),
     person("The extendr authors", role = "cph",
            comment = "Bundled Rust crates extendr-api, extendr-ffi, extendr-macros"),
