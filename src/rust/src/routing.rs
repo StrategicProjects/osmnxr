@@ -230,6 +230,244 @@ pub fn distance_matrix(graph: &Graph, sources: &[usize], targets: &[usize]) -> V
     out
 }
 
+/// Cost of the arc `i -> j` in a row-major `n x n` cost matrix.
+#[inline]
+fn arc(cost: &[f64], n: usize, i: usize, j: usize) -> f64 {
+    cost[i * n + j]
+}
+
+/// Total cost of a tour over a row-major `n x n` cost matrix; the closing arc
+/// back to the first stop is included when `closed`.
+fn tour_cost(cost: &[f64], n: usize, tour: &[usize], closed: bool) -> f64 {
+    let mut c = 0.0;
+    for w in tour.windows(2) {
+        c += arc(cost, n, w[0], w[1]);
+    }
+    if closed && tour.len() > 1 {
+        c += arc(cost, n, tour[tour.len() - 1], tour[0]);
+    }
+    c
+}
+
+/// Nearest-neighbour tour construction from `start`. A fixed `end` (for an
+/// open route) is reserved and appended last.
+fn nearest_neighbor_tour(cost: &[f64], n: usize, start: usize, end: Option<usize>) -> Vec<usize> {
+    let mut visited = vec![false; n];
+    let mut tour = Vec::with_capacity(n);
+    tour.push(start);
+    visited[start] = true;
+    let reserved = match end {
+        Some(e) if e != start => {
+            visited[e] = true;
+            1
+        }
+        _ => 0,
+    };
+    while tour.len() < n - reserved {
+        let last = *tour.last().unwrap();
+        let mut best = usize::MAX;
+        let mut best_cost = f64::INFINITY;
+        for j in 0..n {
+            if !visited[j] && (best == usize::MAX || arc(cost, n, last, j) < best_cost) {
+                best = j;
+                best_cost = arc(cost, n, last, j);
+            }
+        }
+        visited[best] = true;
+        tour.push(best);
+    }
+    if let Some(e) = end {
+        if e != start {
+            tour.push(e);
+        }
+    }
+    tour
+}
+
+/// Local search over three move families, each evaluated by recomputing the
+/// candidate's full tour cost, which keeps every move exact on asymmetric
+/// matrices: or-opt (relocate a segment of 1..=3 stops, forward or reversed),
+/// pairwise swaps, and 2-opt segment reversals. The first stop stays fixed
+/// (and the last, when `fix_end`). Repeats until a full pass yields no strict
+/// improvement; returns the final tour cost.
+fn local_search(cost: &[f64], n: usize, tour: &mut Vec<usize>, closed: bool, fix_end: bool) -> f64 {
+    let len = tour.len();
+    let mut best_cost = tour_cost(cost, n, tour, closed);
+    if len < 3 {
+        return best_cost;
+    }
+    let tail = if fix_end { 1 } else { 0 };
+    loop {
+        let mut improved = false;
+        // or-opt: relocate segments of 1..=3 stops, forward or reversed
+        for seg_len in 1..=3usize.min(len - 2) {
+            if 1 + seg_len + tail > len {
+                break;
+            }
+            for i in 1..=(len - seg_len - tail) {
+                let segment: Vec<usize> = tour[i..i + seg_len].to_vec();
+                let mut rest: Vec<usize> = Vec::with_capacity(len - seg_len);
+                rest.extend_from_slice(&tour[..i]);
+                rest.extend_from_slice(&tour[i + seg_len..]);
+                let last_slot = rest.len() - tail;
+                for j in 1..=last_slot {
+                    for reversed in [false, true] {
+                        if reversed && seg_len == 1 {
+                            continue;
+                        }
+                        let mut cand = Vec::with_capacity(len);
+                        cand.extend_from_slice(&rest[..j]);
+                        if reversed {
+                            cand.extend(segment.iter().rev());
+                        } else {
+                            cand.extend_from_slice(&segment);
+                        }
+                        cand.extend_from_slice(&rest[j..]);
+                        let c = tour_cost(cost, n, &cand, closed);
+                        if c < best_cost {
+                            best_cost = c;
+                            *tour = cand;
+                            improved = true;
+                        }
+                    }
+                }
+            }
+        }
+        // swaps and 2-opt reversals over movable positions
+        let hi = len - tail;
+        for i in 1..hi {
+            for j in (i + 1)..hi {
+                let mut cand = tour.clone();
+                cand.swap(i, j);
+                let c = tour_cost(cost, n, &cand, closed);
+                if c < best_cost {
+                    best_cost = c;
+                    *tour = cand;
+                    improved = true;
+                }
+                let mut cand = tour.clone();
+                cand[i..=j].reverse();
+                let c = tour_cost(cost, n, &cand, closed);
+                if c < best_cost {
+                    best_cost = c;
+                    *tour = cand;
+                    improved = true;
+                }
+            }
+        }
+        if !improved {
+            break;
+        }
+    }
+    best_cost
+}
+
+/// Tiny deterministic xorshift64 RNG, so results are reproducible and the R
+/// session's RNG stream is untouched.
+struct Rng(u64);
+
+impl Rng {
+    fn next(&mut self) -> u64 {
+        let mut x = self.0;
+        x ^= x << 13;
+        x ^= x >> 7;
+        x ^= x << 17;
+        self.0 = x;
+        x
+    }
+
+    /// Uniform draw in `lo..hi` (hi exclusive).
+    fn range(&mut self, lo: usize, hi: usize) -> usize {
+        lo + (self.next() % (hi - lo) as u64) as usize
+    }
+}
+
+/// Double-bridge perturbation: cuts the tour after the fixed first stop into
+/// four consecutive parts A B C D and reassembles them as A C B D. Segment
+/// orientation is preserved, so the kick is valid on asymmetric matrices, and
+/// the first and last positions stay put.
+fn double_bridge(rng: &mut Rng, tour: &[usize]) -> Vec<usize> {
+    let len = tour.len();
+    if len < 4 {
+        return tour.to_vec();
+    }
+    let mut cuts = [
+        rng.range(1, len),
+        rng.range(1, len),
+        rng.range(1, len),
+    ];
+    cuts.sort_unstable();
+    let [a, b, c] = cuts;
+    if a == b || b == c {
+        return tour.to_vec();
+    }
+    let mut out = Vec::with_capacity(len);
+    out.extend_from_slice(&tour[..a]);
+    out.extend_from_slice(&tour[b..c]);
+    out.extend_from_slice(&tour[a..b]);
+    out.extend_from_slice(&tour[c..]);
+    out
+}
+
+/// Heuristic travelling-salesman tour over a row-major `n x n` cost matrix.
+/// Builds a nearest-neighbour tour and, when `improve`, polishes it with an
+/// iterated local search: or-opt/swap/2-opt descent restarted from
+/// double-bridge perturbations, keeping the best tour found. The tour starts
+/// at `start`; when `closed` it returns there (and `end` is ignored),
+/// otherwise a fixed `end` pins the final stop and `None` leaves it free.
+/// Returns the visiting order as indices into the matrix.
+pub fn tsp_tour(
+    cost: &[f64],
+    n: usize,
+    start: usize,
+    end: Option<usize>,
+    closed: bool,
+    improve: bool,
+) -> Vec<usize> {
+    if n == 0 {
+        return Vec::new();
+    }
+    if n == 1 {
+        return vec![start];
+    }
+    // Unreachable pairs come in as Inf; use a large finite penalty instead so
+    // cost comparisons stay well-defined (the R layer rejects routes that
+    // still contain such arcs).
+    let cost: Vec<f64> = cost
+        .iter()
+        .map(|&c| if c.is_finite() { c } else { 1e15 })
+        .collect();
+    let end = if closed { None } else { end };
+    let mut tour = nearest_neighbor_tour(&cost, n, start, end);
+    if !improve {
+        return tour;
+    }
+    let fix_end = end.is_some();
+    let mut best_cost = local_search(&cost, n, &mut tour, closed, fix_end);
+
+    // Iterated local search with a work budget that shrinks as the O(n^3)
+    // descent grows, and an early stop after a stretch of fruitless kicks.
+    let kicks = (100_000_000 / (n * n * n).max(1)).clamp(25, 400);
+    let patience = (kicks / 4).max(20);
+    let mut rng = Rng(0x9E3779B97F4A7C15);
+    let mut since_improved = 0usize;
+    for _ in 0..kicks {
+        let mut cand = double_bridge(&mut rng, &tour);
+        let c = local_search(&cost, n, &mut cand, closed, fix_end);
+        if c < best_cost {
+            best_cost = c;
+            tour = cand;
+            since_improved = 0;
+        } else {
+            since_improved += 1;
+            if since_improved >= patience {
+                break;
+            }
+        }
+    }
+    tour
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -288,5 +526,144 @@ mod tests {
         let g = line_graph();
         let dm = distance_matrix(&g, &[0, 1], &[2, 3]);
         assert_eq!(dm, vec![2.0, 3.0, 1.0, 2.0]);
+    }
+
+    /// 4 stops on a line at x = 0, 1, 2, 10 with symmetric |xi - xj| costs.
+    fn line_costs() -> Vec<f64> {
+        let xs: [f64; 4] = [0.0, 1.0, 2.0, 10.0];
+        let mut c = Vec::with_capacity(16);
+        for i in 0..4 {
+            for j in 0..4 {
+                c.push((xs[i] - xs[j]).abs());
+            }
+        }
+        c
+    }
+
+    #[test]
+    fn tsp_closed_tour_is_a_permutation_returning_home() {
+        let c = line_costs();
+        let tour = tsp_tour(&c, 4, 0, None, true, true);
+        let mut sorted = tour.clone();
+        sorted.sort_unstable();
+        assert_eq!(sorted, vec![0, 1, 2, 3]);
+        assert_eq!(tour[0], 0);
+        // Optimal closed tour on a line sweeps out and back: cost 2 * 10.
+        assert!((tour_cost(&c, 4, &tour, true) - 20.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn tsp_open_route_respects_fixed_end() {
+        let c = line_costs();
+        let tour = tsp_tour(&c, 4, 3, Some(0), false, true);
+        assert_eq!(tour[0], 3);
+        assert_eq!(tour[3], 0);
+        // Optimal open route 3 -> 2 -> 1 -> 0 costs 10.
+        assert!((tour_cost(&c, 4, &tour, false) - 10.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn or_opt_fixes_a_greedy_mistake() {
+        // Open free-end route from 0. Greedy takes the cheap bait arc 0 -> 1,
+        // then 1 -> 3, and is forced onto 3 -> 2 (cost 100): 1 + 2 + 100 = 103.
+        // The optimum is 0 -> 2 -> 3 -> 1: 2 + 1 + 3 = 6, which or-opt reaches
+        // by relocating the segment [1, 3] reversed.
+        let c = vec![
+            0.0, 1.0, 2.0, 50.0, //
+            1.0, 0.0, 100.0, 2.0, //
+            2.0, 100.0, 0.0, 1.0, //
+            50.0, 3.0, 100.0, 0.0,
+        ];
+        let nn = tsp_tour(&c, 4, 0, None, false, false);
+        let improved = tsp_tour(&c, 4, 0, None, false, true);
+        assert_eq!(nn, vec![0, 1, 3, 2]);
+        assert!((tour_cost(&c, 4, &nn, false) - 103.0).abs() < 1e-9);
+        assert_eq!(improved, vec![0, 2, 3, 1]);
+        assert!((tour_cost(&c, 4, &improved, false) - 6.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn tsp_handles_asymmetric_costs() {
+        // Cheap arcs only along the directed cycle 0 -> 1 -> 2 -> 0 (cost 1
+        // each); every other arc costs 10. Closed tour 0 -> 1 -> 2 costs 3,
+        // the reverse costs 30, so the solver must respect arc direction.
+        let c = vec![0.0, 1.0, 10.0, 10.0, 0.0, 1.0, 1.0, 10.0, 0.0];
+        let tour = tsp_tour(&c, 3, 0, None, true, true);
+        assert_eq!(tour, vec![0, 1, 2]);
+    }
+
+    /// Minimum tour cost by brute force over all orders of stops 1..n, with
+    /// stop 0 fixed first (and the closing arc added when `closed`).
+    fn brute_force(cost: &[f64], n: usize, closed: bool) -> f64 {
+        fn go(cost: &[f64], n: usize, tour: &mut Vec<usize>, rest: &mut Vec<usize>, closed: bool, best: &mut f64) {
+            if rest.is_empty() {
+                let c = tour_cost(cost, n, tour, closed);
+                if c < *best {
+                    *best = c;
+                }
+                return;
+            }
+            for i in 0..rest.len() {
+                let x = rest.remove(i);
+                tour.push(x);
+                go(cost, n, tour, rest, closed, best);
+                tour.pop();
+                rest.insert(i, x);
+            }
+        }
+        let mut best = f64::INFINITY;
+        let mut tour = vec![0usize];
+        let mut rest: Vec<usize> = (1..n).collect();
+        go(cost, n, &mut tour, &mut rest, closed, &mut best);
+        best
+    }
+
+    #[test]
+    fn ils_matches_brute_force_on_random_asymmetric_instances() {
+        let n = 7;
+        for seed in 1..=8u64 {
+            let mut rng = Rng(seed);
+            let mut cost = vec![0.0; n * n];
+            for i in 0..n {
+                for j in 0..n {
+                    if i != j {
+                        cost[i * n + j] = (rng.next() % 1000) as f64 + 1.0;
+                    }
+                }
+            }
+            for closed in [true, false] {
+                let tour = tsp_tour(&cost, n, 0, None, closed, true);
+                let got = tour_cost(&cost, n, &tour, closed);
+                let best = brute_force(&cost, n, closed);
+                assert!(
+                    (got - best).abs() < 1e-9,
+                    "seed {seed} closed {closed}: got {got}, optimum {best}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn ils_improves_on_nearest_neighbor_at_fifty_stops() {
+        let n = 50;
+        let mut rng = Rng(7);
+        let mut cost = vec![0.0; n * n];
+        for i in 0..n {
+            for j in 0..n {
+                if i != j {
+                    cost[i * n + j] = (rng.next() % 1000) as f64 + 1.0;
+                }
+            }
+        }
+        let nn = tsp_tour(&cost, n, 0, None, true, false);
+        let ils = tsp_tour(&cost, n, 0, None, true, true);
+        assert!(tour_cost(&cost, n, &ils, true) < tour_cost(&cost, n, &nn, true));
+    }
+
+    #[test]
+    fn tsp_trivial_sizes() {
+        assert_eq!(tsp_tour(&[0.0], 1, 0, None, true, true), vec![0]);
+        let c = vec![0.0, 2.0, 3.0, 0.0];
+        assert_eq!(tsp_tour(&c, 2, 1, None, false, true), vec![1, 0]);
     }
 }

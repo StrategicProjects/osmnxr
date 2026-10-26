@@ -46,6 +46,14 @@ rs_k_shortest_paths <- function(from, to, weight, n_nodes, source, target, k) .C
 #' @keywords internal
 rs_distance_matrix <- function(from, to, weight, n_nodes, sources, targets) .Call(wrap__rs_distance_matrix, from, to, weight, n_nodes, sources, targets)
 
+#' Heuristic travelling-salesman visiting order over a row-major `n x n`
+#' cost matrix (nearest-neighbour construction, or-opt improvement when
+#' `improve`). The tour starts at `start` (0-based); `closed = TRUE` returns
+#' there, otherwise `end >= 0` pins the final stop and `end = -1` leaves it
+#' free. Returns 0-based indices into the matrix.
+#' @keywords internal
+rs_tsp_tour <- function(cost, n, start, end, closed, improve) .Call(wrap__rs_tsp_tour, cost, n, start, end, closed, improve)
+
 #' Betweenness centrality (Brandes) for every node.
 #' @keywords internal
 rs_betweenness <- function(from, to, weight, n_nodes, normalized) .Call(wrap__rs_betweenness, from, to, weight, n_nodes, normalized)

@@ -120,6 +120,130 @@ ox_distance_matrix <- function(g, from, to = from, weight = "length") {
   m
 }
 
+#' Travelling-salesman route through a set of nodes
+#'
+#' Finds a short route through `nodes` over the street network, in the spirit
+#' of `sfnetworks::st_network_travel()`. Network distances between all pairs of
+#' stops are computed in the Rust core (one Dijkstra per stop, so one-way
+#' streets are respected via the asymmetric cost matrix), the visiting order is
+#' solved with an iterated local search, and each leg is expanded back into a
+#' shortest path with its street geometry.
+#'
+#' The default solver builds a nearest-neighbour tour and polishes it with an
+#' iterated local search: a descent over or-opt (segment relocation), swap and
+#' 2-opt moves — every move evaluated exactly on the asymmetric cost matrix —
+#' restarted from double-bridge perturbations, keeping the best tour found.
+#' The search is deterministic (an internal fixed-seed RNG drives the
+#' perturbations, leaving R's RNG untouched). It routinely finds the global
+#' optimum for small stop counts, but optimality is not guaranteed (the TSP is
+#' NP-hard). `method = "nn"` skips the improvement and keeps the raw
+#' nearest-neighbour order.
+#'
+#' @param g An [osm_graph][new_osm_graph].
+#' @param nodes Node `osmid`s to visit (at least 2, no duplicates), e.g. from
+#'   [ox_nearest_nodes()].
+#' @param weight Edge column used as weight. Default `"length"`; use
+#'   `"travel_time"` after [ox_add_edge_travel_times()] for fastest routes.
+#' @param start Index into `nodes` of the first stop. Default `1`.
+#' @param end Index into `nodes` of the final stop. The default (`end = start`)
+#'   gives a closed tour that returns to the start; `end = NULL` leaves the
+#'   final stop free (an open route); any other index pins the route's end.
+#' @param method `"ils"` (default, nearest-neighbour + iterated local search)
+#'   or `"nn"` (nearest-neighbour only).
+#'
+#' @return An `sf` tibble with one row per leg of the route: `leg`, `from` and
+#'   `to` (node `osmid`s), `cost` (network distance in `weight` units), a
+#'   list-column `path` of the `osmid`s traversed, and the leg's `LINESTRING`
+#'   geometry. The total route cost is `sum(out$cost)`.
+#' @export
+#'
+#' @examples
+#' g <- example_osm_graph()
+#' stops <- c(1, 4, 13, 16, 6)
+#' route <- ox_route_tsp(g, stops)
+#' route
+#' sum(route$cost)
+ox_route_tsp <- function(g, nodes, weight = "length",
+                         start = 1, end = start,
+                         method = c("ils", "nn")) {
+  stopifnot(is_osm_graph(g))
+  method <- match.arg(method)
+  n <- length(nodes)
+  if (n < 2) {
+    cli::cli_abort("{.arg nodes} must contain at least 2 stops.", call = NULL)
+  }
+  if (anyDuplicated(nodes)) {
+    cli::cli_abort("{.arg nodes} must not contain duplicated {.field osmid}s.", call = NULL)
+  }
+  if (length(start) != 1 || is.na(start) || !start %in% seq_len(n)) {
+    cli::cli_abort("{.arg start} must be a single index into {.arg nodes}.", call = NULL)
+  }
+  if (!is.null(end) && (length(end) != 1 || is.na(end) || !end %in% seq_len(n))) {
+    cli::cli_abort("{.arg end} must be a single index into {.arg nodes}, or {.code NULL} for an open route.", call = NULL)
+  }
+  closed <- !is.null(end) && end == start
+
+  ea <- graph_edge_arrays(g, weight)
+  s <- match(nodes, ea$node_ids) - 1L
+  if (anyNA(s)) {
+    cli::cli_abort("All {.arg nodes} must be node {.field osmid}s present in the graph.", call = NULL)
+  }
+
+  flat <- rs_distance_matrix(ea$from, ea$to, ea$weight, ea$n_nodes,
+                             as.integer(s), as.integer(s))
+  cost_m <- matrix(flat, nrow = n, ncol = n, byrow = TRUE)
+
+  end0 <- if (is.null(end) || closed) -1L else as.integer(end - 1L)
+  ord <- rs_tsp_tour(flat, as.integer(n), as.integer(start - 1L), end0,
+                     closed, method == "ils") + 1L
+
+  seq_idx <- if (closed) c(ord, ord[1]) else ord
+  from_idx <- seq_idx[-length(seq_idx)]
+  to_idx <- seq_idx[-1]
+  costs <- cost_m[cbind(from_idx, to_idx)]
+  if (any(!is.finite(costs))) {
+    bad <- which(!is.finite(costs))[1]
+    cli::cli_abort(
+      "No route from node {.val {nodes[from_idx[bad]]}} to node {.val {nodes[to_idx[bad]]}}: the stops are not mutually reachable in this network.",
+      call = NULL
+    )
+  }
+
+  paths <- Map(function(a, b) {
+    idx <- rs_shortest_path(ea$from, ea$to, ea$weight, ea$n_nodes,
+                            as.integer(s[a]), as.integer(s[b]))
+    ea$node_ids[idx + 1L]
+  }, from_idx, to_idx)
+
+  geom <- sf::st_sfc(lapply(paths, path_leg_geometry, g = g, weight = weight),
+                     crs = sf::st_crs(g$nodes))
+
+  out <- tibble::tibble(
+    leg = seq_along(paths),
+    from = nodes[from_idx],
+    to = nodes[to_idx],
+    cost = as.numeric(costs),
+    path = unname(paths),
+    geometry = geom
+  )
+  sf::st_as_sf(out)
+}
+
+# Internal: merge the street geometries along a node-osmid path into a single
+# (MULTI)LINESTRING sfg. Parallel edges resolve to the minimum-weight one,
+# matching what Dijkstra traversed.
+path_leg_geometry <- function(path, g, weight = "length") {
+  if (length(path) < 2) return(sf::st_linestring())
+  key <- paste(g$edges$u, g$edges$v)
+  w <- if (weight %in% names(g$edges)) as.numeric(g$edges[[weight]]) else rep(1, nrow(g$edges))
+  o <- order(key, w)
+  first <- o[!duplicated(key[o])]
+  lut <- stats::setNames(first, key[first])
+  idx <- lut[paste(path[-length(path)], path[-1])]
+  u <- sf::st_cast(sf::st_union(sf::st_geometry(g$edges)[idx]), "MULTILINESTRING")
+  sf::st_line_merge(u)[[1]]
+}
+
 #' Single-source shortest distances
 #'
 #' Minimum-weight distance from `from` to every node in the graph.

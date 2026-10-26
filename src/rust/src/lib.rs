@@ -173,6 +173,21 @@ fn rs_distance_matrix(
     routing::distance_matrix(&g, &as_idx(&sources), &as_idx(&targets))
 }
 
+/// Heuristic travelling-salesman visiting order over a row-major `n x n`
+/// cost matrix (nearest-neighbour construction, or-opt improvement when
+/// `improve`). The tour starts at `start` (0-based); `closed = TRUE` returns
+/// there, otherwise `end >= 0` pins the final stop and `end = -1` leaves it
+/// free. Returns 0-based indices into the matrix.
+/// @keywords internal
+#[extendr]
+fn rs_tsp_tour(cost: Vec<f64>, n: i32, start: i32, end: i32, closed: bool, improve: bool) -> Vec<i32> {
+    let end = if end < 0 { None } else { Some(end as usize) };
+    routing::tsp_tour(&cost, n as usize, start as usize, end, closed, improve)
+        .into_iter()
+        .map(|x| x as i32)
+        .collect()
+}
+
 // Macro to generate exports.
 // This ensures exported functions are registered with R.
 // See corresponding C code in `entrypoint.c`.
@@ -187,6 +202,7 @@ extendr_module! {
     fn rs_connected_components;
     fn rs_k_shortest_paths;
     fn rs_distance_matrix;
+    fn rs_tsp_tour;
     fn rs_betweenness;
     fn rs_closeness;
 }

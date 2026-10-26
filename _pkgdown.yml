@@ -79,6 +79,7 @@ reference:
       - ox_k_shortest_paths
       - ox_distances
       - ox_distance_matrix
+      - ox_route_tsp
       - ox_isochrone
 
   - title: "Metrics"
