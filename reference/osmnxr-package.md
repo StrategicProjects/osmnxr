@@ -46,6 +46,9 @@ Authors:
 
 Other contributors:
 
+- Srikanth Komala Sheshachala <sri.teach@gmail.com> (Issue reports and
+  feature proposals (GitHub: talegari)) \[contributor\]
+
 - StrategicProjects \[copyright holder, funder\]
 
 - The extendr authors (Bundled Rust crates extendr-api, extendr-ffi,

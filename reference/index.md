@@ -44,6 +44,8 @@ Clean and transform graph topology (Rust core).
   : Add edge speeds
 - [`ox_add_edge_travel_times()`](https://strategicprojects.github.io/osmnxr/reference/ox_add_edge_travel_times.md)
   : Add edge travel times
+- [`ox_add_edge_penalties()`](https://strategicprojects.github.io/osmnxr/reference/ox_add_edge_penalties.md)
+  : Add edge penalties by road type
 
 ## Routing
 
@@ -63,6 +65,10 @@ Shortest paths, distances and service areas (Rust core).
   : Shortest-path distance matrix
 - [`ox_route_tsp()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_tsp.md)
   : Travelling-salesman route through a set of nodes
+- [`ox_route_constrained()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_constrained.md)
+  : Constrained shortest path
+- [`ox_route_pareto()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_pareto.md)
+  : Pareto-optimal routes trading cost against a resource
 - [`ox_isochrone()`](https://strategicprojects.github.io/osmnxr/reference/ox_isochrone.md)
   : Compute isochrones (service areas)
 

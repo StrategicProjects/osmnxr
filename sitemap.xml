@@ -19,6 +19,7 @@
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/is_osm_graph.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/new_osm_graph.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/osmnxr-package.html</loc></url>
+<url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_add_edge_penalties.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_add_edge_speeds.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_add_edge_travel_times.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_as_dodgr.html</loc></url>
@@ -50,6 +51,8 @@
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_orientation_entropy.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_plot_figure_ground.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_plot_orientation.html</loc></url>
+<url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_route_constrained.html</loc></url>
+<url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_route_pareto.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_route_tsp.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_save_graphml.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_settings.html</loc></url>
@@ -68,6 +71,7 @@
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_distance_matrix.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_k_shortest_paths.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_orientation_entropy.html</loc></url>
+<url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_pareto_paths.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_shortest_path.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_simplify_paths.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_tsp_tour.html</loc></url>

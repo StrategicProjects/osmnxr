@@ -78,6 +78,101 @@ ox_k_shortest_paths(g, orig, dest, k = 3, weight = "travel_time")
 #> 3     3 111.  <dbl [16]>
 ```
 
+## Routing with road preferences
+
+Often the best route is not simply the fastest one: a dispatcher may
+want to keep trucks off residential streets, a cyclist may want to stay
+on them.
+[`ox_add_edge_penalties()`](https://strategicprojects.github.io/osmnxr/reference/ox_add_edge_penalties.md)
+turns that preference into a per-edge column — here, the metres each
+edge spends on calm residential road classes:
+
+``` r
+
+g <- ox_add_edge_penalties(g, c(residential = 1, living_street = 1))
+head(g$edges[c("highway", "length", "penalty")])
+#> Simple feature collection with 6 features and 3 fields
+#> Geometry type: LINESTRING
+#> Dimension:     XY
+#> Bounding box:  xmin: -34.85889 ymin: -8.00763 xmax: -34.85675 ymax: -8.006154
+#> Geodetic CRS:  WGS 84
+#>       highway    length  penalty                       geometry
+#> 1       trunk 143.05987   0.0000 LINESTRING (-34.85776 -8.00...
+#> 2       trunk  39.20625   0.0000 LINESTRING (-34.85716 -8.00...
+#> 3 residential 108.81964 108.8196 LINESTRING (-34.85716 -8.00...
+#> 4 residential 108.81964 108.8196 LINESTRING (-34.85675 -8.00...
+#> 5    tertiary  47.55902   0.0000 LINESTRING (-34.85867 -8.00...
+#> 6    tertiary  47.55902   0.0000 LINESTRING (-34.85889 -8.00...
+```
+
+The *soft* version just folds the penalty into the routing weight (an
+ordinary shortest path that trades seconds against residential metres at
+a fixed rate). The interesting questions, though, are *hard*: what is
+the fastest route using **at most** some budget of residential metres,
+and what does the whole trade-off curve look like?
+[`ox_route_pareto()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_pareto.md)
+answers the second — it enumerates every Pareto-optimal route exactly
+(bicriteria label-setting in the Rust core; one-way streets respected):
+
+``` r
+
+o2 <- ox_nearest_nodes(g, x = -34.85445, y = -8.01503)
+d2 <- ox_nearest_nodes(g, x = -34.84853, y = -8.00431)
+front <- ox_route_pareto(g, o2, d2, weight = "travel_time", resource = "penalty")
+front[c("cost", "resource")]
+#> Simple feature collection with 6 features and 2 fields
+#> Geometry type: LINESTRING
+#> Dimension:     XY
+#> Bounding box:  xmin: -34.85706 ymin: -8.01503 xmax: -34.84853 ymax: -8.00431
+#> Geodetic CRS:  WGS 84
+#> # A tibble: 6 × 3
+#>    cost resource                                                        geometry
+#>   <dbl>    <dbl>                                                <LINESTRING [°]>
+#> 1  190.    1328. (-34.85445 -8.01503, -34.85442 -8.014768, -34.85437 -8.014349,…
+#> 2  191.    1296. (-34.85445 -8.01503, -34.85442 -8.014768, -34.85437 -8.014349,…
+#> 3  193.     983. (-34.85445 -8.01503, -34.85538 -8.014993, -34.85548 -8.014706,…
+#> 4  193.     952. (-34.85445 -8.01503, -34.85538 -8.014993, -34.85548 -8.014706,…
+#> 5  197.     747. (-34.85445 -8.01503, -34.85538 -8.014993, -34.85548 -8.014706,…
+#> 6  213.     583. (-34.85445 -8.01503, -34.85538 -8.014993, -34.85548 -8.014706,…
+```
+
+Each successive route is a little slower and a little calmer; no other
+route beats any of them on both criteria. Plotted, the alternatives fan
+out between the fast arterial option and the quiet residential one:
+
+``` r
+
+plot(g, col = "grey85", lwd = 0.6)
+cols <- grDevices::hcl.colors(nrow(front), "Zissou 1")
+plot(sf::st_geometry(front), add = TRUE, col = cols, lwd = 2.5)
+```
+
+![](routing-and-isochrones_files/figure-html/unnamed-chunk-8-1.png)
+
+[`ox_route_constrained()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_constrained.md)
+answers the first question — the exact constrained shortest path for one
+chosen budget:
+
+``` r
+
+best <- ox_route_constrained(g, o2, d2, weight = "travel_time",
+                             resource = "penalty",
+                             budget = stats::median(front$resource))
+best[c("cost", "resource")]
+#> Simple feature collection with 1 feature and 2 fields
+#> Geometry type: LINESTRING
+#> Dimension:     XY
+#> Bounding box:  xmin: -34.85649 ymin: -8.01503 xmax: -34.84853 ymax: -8.00431
+#> Geodetic CRS:  WGS 84
+#> # A tibble: 1 × 3
+#>    cost resource                                                        geometry
+#>   <dbl>    <dbl>                                                <LINESTRING [°]>
+#> 1  193.     952. (-34.85445 -8.01503, -34.85538 -8.014993, -34.85548 -8.014706,…
+```
+
+(For a road that is temporarily closed, don’t penalize it — mask it:
+drop the edge, or set its weight to `Inf`, before routing.)
+
 ## Isochrones (service areas)
 
 An isochrone is the area reachable from an origin within a budget. With
@@ -106,7 +201,7 @@ plot(sf::st_geometry(iso), add = TRUE, border = NA,
      col = grDevices::adjustcolor(c("#0d3b66", "#2a9d8f"), 0.4))
 ```
 
-![](routing-and-isochrones_files/figure-html/unnamed-chunk-7-1.png)
+![](routing-and-isochrones_files/figure-html/unnamed-chunk-11-1.png)
 
 ## Many-to-many distances
 

@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">osmnxr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -138,12 +138,91 @@ modelling redundancy:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     3 111.  <span style="color: #949494;">&lt;dbl [16]&gt;</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="routing-with-road-preferences">Routing with road preferences<a class="anchor" aria-label="anchor" href="#routing-with-road-preferences"></a>
+</h2>
+<p>Often the best route is not simply the fastest one: a dispatcher may
+want to keep trucks off residential streets, a cyclist may want to stay
+on them. <code><a href="../reference/ox_add_edge_penalties.html">ox_add_edge_penalties()</a></code> turns that preference into
+a per-edge column — here, the metres each edge spends on calm
+residential road classes:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_add_edge_penalties.html">ox_add_edge_penalties</a></span><span class="op">(</span><span class="va">g</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>residential <span class="op">=</span> <span class="fl">1</span>, living_street <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">edges</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"highway"</span>, <span class="st">"length"</span>, <span class="st">"penalty"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Simple feature collection with 6 features and 3 fields</span></span>
+<span><span class="co">#&gt; Geometry type: LINESTRING</span></span>
+<span><span class="co">#&gt; Dimension:     XY</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: -34.85889 ymin: -8.00763 xmax: -34.85675 ymax: -8.006154</span></span>
+<span><span class="co">#&gt; Geodetic CRS:  WGS 84</span></span>
+<span><span class="co">#&gt;       highway    length  penalty                       geometry</span></span>
+<span><span class="co">#&gt; 1       trunk 143.05987   0.0000 LINESTRING (-34.85776 -8.00...</span></span>
+<span><span class="co">#&gt; 2       trunk  39.20625   0.0000 LINESTRING (-34.85716 -8.00...</span></span>
+<span><span class="co">#&gt; 3 residential 108.81964 108.8196 LINESTRING (-34.85716 -8.00...</span></span>
+<span><span class="co">#&gt; 4 residential 108.81964 108.8196 LINESTRING (-34.85675 -8.00...</span></span>
+<span><span class="co">#&gt; 5    tertiary  47.55902   0.0000 LINESTRING (-34.85867 -8.00...</span></span>
+<span><span class="co">#&gt; 6    tertiary  47.55902   0.0000 LINESTRING (-34.85889 -8.00...</span></span></code></pre></div>
+<p>The <em>soft</em> version just folds the penalty into the routing
+weight (an ordinary shortest path that trades seconds against
+residential metres at a fixed rate). The interesting questions, though,
+are <em>hard</em>: what is the fastest route using <strong>at
+most</strong> some budget of residential metres, and what does the whole
+trade-off curve look like? <code><a href="../reference/ox_route_pareto.html">ox_route_pareto()</a></code> answers the
+second — it enumerates every Pareto-optimal route exactly (bicriteria
+label-setting in the Rust core; one-way streets respected):</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">o2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, x <span class="op">=</span> <span class="op">-</span><span class="fl">34.85445</span>, y <span class="op">=</span> <span class="op">-</span><span class="fl">8.01503</span><span class="op">)</span></span>
+<span><span class="va">d2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, x <span class="op">=</span> <span class="op">-</span><span class="fl">34.84853</span>, y <span class="op">=</span> <span class="op">-</span><span class="fl">8.00431</span><span class="op">)</span></span>
+<span><span class="va">front</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_route_pareto.html">ox_route_pareto</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">o2</span>, <span class="va">d2</span>, weight <span class="op">=</span> <span class="st">"travel_time"</span>, resource <span class="op">=</span> <span class="st">"penalty"</span><span class="op">)</span></span>
+<span><span class="va">front</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cost"</span>, <span class="st">"resource"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt; Simple feature collection with 6 features and 2 fields</span></span>
+<span><span class="co">#&gt; Geometry type: LINESTRING</span></span>
+<span><span class="co">#&gt; Dimension:     XY</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: -34.85706 ymin: -8.01503 xmax: -34.84853 ymax: -8.00431</span></span>
+<span><span class="co">#&gt; Geodetic CRS:  WGS 84</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 3</span></span></span>
+<span><span class="co">#&gt;    cost resource                                                        geometry</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                                                <span style="color: #949494; font-style: italic;">&lt;LINESTRING [°]&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>  190.    <span style="text-decoration: underline;">1</span>328. (-34.85445 -8.01503, -34.85442 -8.014768, -34.85437 -8.014349,…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>  191.    <span style="text-decoration: underline;">1</span>296. (-34.85445 -8.01503, -34.85442 -8.014768, -34.85437 -8.014349,…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>  193.     983. (-34.85445 -8.01503, -34.85538 -8.014993, -34.85548 -8.014706,…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>  193.     952. (-34.85445 -8.01503, -34.85538 -8.014993, -34.85548 -8.014706,…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>  197.     747. (-34.85445 -8.01503, -34.85538 -8.014993, -34.85548 -8.014706,…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>  213.     583. (-34.85445 -8.01503, -34.85538 -8.014993, -34.85548 -8.014706,…</span></span></code></pre></div>
+<p>Each successive route is a little slower and a little calmer; no
+other route beats any of them on both criteria. Plotted, the
+alternatives fan out between the fast arterial option and the quiet
+residential one:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">g</span>, col <span class="op">=</span> <span class="st">"grey85"</span>, lwd <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span>
+<span><span class="va">cols</span> <span class="op">&lt;-</span> <span class="fu">grDevices</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html" class="external-link">hcl.colors</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">front</span><span class="op">)</span>, <span class="st">"Zissou 1"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">front</span><span class="op">)</span>, add <span class="op">=</span> <span class="cn">TRUE</span>, col <span class="op">=</span> <span class="va">cols</span>, lwd <span class="op">=</span> <span class="fl">2.5</span><span class="op">)</span></span></code></pre></div>
+<p><img src="routing-and-isochrones_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" alt="" width="624"></p>
+<p><code><a href="../reference/ox_route_constrained.html">ox_route_constrained()</a></code> answers the first question — the
+exact constrained shortest path for one chosen budget:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">best</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_route_constrained.html">ox_route_constrained</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">o2</span>, <span class="va">d2</span>, weight <span class="op">=</span> <span class="st">"travel_time"</span>,</span>
+<span>                             resource <span class="op">=</span> <span class="st">"penalty"</span>,</span>
+<span>                             budget <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">front</span><span class="op">$</span><span class="va">resource</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">best</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cost"</span>, <span class="st">"resource"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt; Simple feature collection with 1 feature and 2 fields</span></span>
+<span><span class="co">#&gt; Geometry type: LINESTRING</span></span>
+<span><span class="co">#&gt; Dimension:     XY</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: -34.85649 ymin: -8.01503 xmax: -34.84853 ymax: -8.00431</span></span>
+<span><span class="co">#&gt; Geodetic CRS:  WGS 84</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 3</span></span></span>
+<span><span class="co">#&gt;    cost resource                                                        geometry</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                                                <span style="color: #949494; font-style: italic;">&lt;LINESTRING [°]&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>  193.     952. (-34.85445 -8.01503, -34.85538 -8.014993, -34.85548 -8.014706,…</span></span></code></pre></div>
+<p>(For a road that is temporarily closed, don’t penalize it — mask it:
+drop the edge, or set its weight to <code>Inf</code>, before
+routing.)</p>
+</div>
+<div class="section level2">
 <h2 id="isochrones-service-areas">Isochrones (service areas)<a class="anchor" aria-label="anchor" href="#isochrones-service-areas"></a>
 </h2>
 <p>An isochrone is the area reachable from an origin within a budget.
 With <code>travel_time</code> as the weight, cutoffs are in seconds —
 here, 1- and 2-minute drive-time service areas from a central point:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">centre</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>, x <span class="op">=</span> <span class="op">-</span><span class="fl">34.8553</span>, y <span class="op">=</span> <span class="op">-</span><span class="fl">8.0089</span><span class="op">)</span></span>
 <span><span class="va">iso</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_isochrone.html">ox_isochrone</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">centre</span>, cutoffs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span>, <span class="fl">120</span><span class="op">)</span>, weight <span class="op">=</span> <span class="st">"travel_time"</span><span class="op">)</span></span>
 <span><span class="va">iso</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cutoff"</span>, <span class="st">"n_nodes"</span><span class="op">)</span><span class="op">]</span></span>
@@ -155,18 +234,18 @@ here, 1- and 2-minute drive-time service areas from a central point:</p>
 <span><span class="co">#&gt;   cutoff n_nodes                       geometry</span></span>
 <span><span class="co">#&gt; 1    120     368 POLYGON ((-34.86141 -8.0064...</span></span>
 <span><span class="co">#&gt; 2     60     104 POLYGON ((-34.85679 -8.0048...</span></span></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">g</span>, col <span class="op">=</span> <span class="st">"grey85"</span>, lwd <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">iso</span><span class="op">)</span>, add <span class="op">=</span> <span class="cn">TRUE</span>, border <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>     col <span class="op">=</span> <span class="fu">grDevices</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grDevices/adjustcolor.html" class="external-link">adjustcolor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#0d3b66"</span>, <span class="st">"#2a9d8f"</span><span class="op">)</span>, <span class="fl">0.4</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="routing-and-isochrones_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="624"></p>
+<p><img src="routing-and-isochrones_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="" width="624"></p>
 </div>
 <div class="section level2">
 <h2 id="many-to-many-distances">Many-to-many distances<a class="anchor" aria-label="anchor" href="#many-to-many-distances"></a>
 </h2>
 <p>For accessibility work you often need a full origin–destination
 matrix in one call (see the <a href="accessibility.html">Accessibility</a> article):</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hubs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_nearest_nodes.html">ox_nearest_nodes</a></span><span class="op">(</span><span class="va">g</span>,</span>
 <span>  x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">34.8553</span>, <span class="op">-</span><span class="fl">34.8505</span>, <span class="op">-</span><span class="fl">34.852</span><span class="op">)</span>,</span>
 <span>  y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">8.0089</span>, <span class="op">-</span><span class="fl">8.0125</span>, <span class="op">-</span><span class="fl">8.006</span><span class="op">)</span><span class="op">)</span></span>

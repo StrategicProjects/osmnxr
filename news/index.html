@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">osmnxr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,6 +43,10 @@
       <small>Source: <a href="https://github.com/StrategicProjects/osmnxr/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.5" id="osmnxr-015">osmnxr 0.1.5<a class="anchor" aria-label="anchor" href="#osmnxr-015"></a></h2>
+<ul><li>New preference-aware routing (<a href="https://github.com/StrategicProjects/osmnxr/issues/5" class="external-link">#5</a>, requested by <a href="https://github.com/talegari" class="external-link">@talegari</a>): <code><a href="../reference/ox_route_constrained.html">ox_route_constrained()</a></code> finds the exact minimum-cost route whose consumption of a second edge criterion stays within a budget (e.g. “the shortest route using at most 500 m of residential streets”), and <code><a href="../reference/ox_route_pareto.html">ox_route_pareto()</a></code> enumerates the full Pareto front of cost-vs-preference trade-offs. Both run on a bicriteria label-setting solver (Martins’ algorithm) with dominance pruning and reverse-Dijkstra bounds in the Rust core — exact, deterministic, one-way streets respected. The new helper <code><a href="../reference/ox_add_edge_penalties.html">ox_add_edge_penalties()</a></code> builds the penalty/resource edge column from OSM <code>highway</code> classes; added onto the routing weight it also covers simple scalarized (“soft preference”) routing through <code><a href="../reference/ox_shortest_path.html">ox_shortest_path()</a></code>.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.4" id="osmnxr-014">osmnxr 0.1.4<a class="anchor" aria-label="anchor" href="#osmnxr-014"></a></h2>
 <ul><li>New <code><a href="../reference/ox_route_tsp.html">ox_route_tsp()</a></code> solves a travelling-salesman route through a set of stops over the street network, in the spirit of <code>sfnetworks::st_network_travel()</code>: the asymmetric network-distance matrix (one-way streets respected) is computed in the Rust core, the visiting order is solved there too with an iterated local search (or-opt + swap + 2-opt descent restarted from double-bridge perturbations, deterministic), and each leg is returned as an <code>sf</code> row with its cost, node path and street geometry. Supports closed tours (<code>end = start</code>, the default), open routes (<code>end = NULL</code>) and a pinned final stop. Benchmarked against <code>TSP::solve_TSP()</code> (the backend of <code>sfnetworks::st_network_travel()</code>) on identical cost matrices over the bundled real networks, it matched or beat it in all 80 random instances tried (8–50 stops), by ~1% on average at 8 stops up to ~10% at 50 (<a href="https://github.com/StrategicProjects/osmnxr/issues/4" class="external-link">#4</a>, requested by <a href="https://github.com/talegari" class="external-link">@talegari</a>).</li>
