@@ -21,6 +21,15 @@
   optimality; a message reports any duality gap). The exact method now also
   reports `lower_bound`, always equal to `cost` (#5).
 
+* Rebuilding route geometries is dramatically faster on large graphs: the
+  parallel-edge lookup is now computed once per call instead of once per
+  route/leg (and sorts numerically instead of by string key). On the NCR
+  Delhi drive network (1.0M nodes / 2.1M directed edges) this takes
+  `ox_route_constrained()` from ~16 s to ~3.5 s per query and a 9-route
+  `ox_route_pareto()` front from ~140 s to ~6.5 s; the Rust solvers
+  themselves answer in under a second even at that scale. `ox_route_tsp()`
+  legs benefit equally.
+
 # osmnxr 0.1.4
 
 * New `ox_route_tsp()` solves a travelling-salesman route through a set of

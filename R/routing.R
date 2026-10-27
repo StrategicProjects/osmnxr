@@ -215,7 +215,8 @@ ox_route_tsp <- function(g, nodes, weight = "length",
     ea$node_ids[idx + 1L]
   }, from_idx, to_idx)
 
-  geom <- sf::st_sfc(lapply(paths, path_leg_geometry, g = g, weight = weight),
+  lut <- edge_geometry_lut(g, weight)
+  geom <- sf::st_sfc(lapply(paths, path_leg_geometry, g = g, weight = weight, lut = lut),
                      crs = sf::st_crs(g$nodes))
 
   out <- tibble::tibble(
@@ -294,7 +295,8 @@ ox_route_pareto <- function(g, from, to, weight = "length", resource,
   }
 
   paths <- lapply(res$paths, function(idx) ea$node_ids[idx + 1L])
-  geom <- sf::st_sfc(lapply(paths, path_leg_geometry, g = g, weight = weight),
+  lut <- edge_geometry_lut(g, weight)
+  geom <- sf::st_sfc(lapply(paths, path_leg_geometry, g = g, weight = weight, lut = lut),
                      crs = sf::st_crs(g$nodes))
   out <- tibble::tibble(
     route = seq_along(paths),
@@ -430,16 +432,24 @@ abort_no_bi_route <- function(ea, from, to, s, t, budget, resource) {
   )
 }
 
-# Internal: merge the street geometries along a node-osmid path into a single
-# (MULTI)LINESTRING sfg. Parallel edges resolve to the minimum-weight one,
-# matching what Dijkstra traversed.
-path_leg_geometry <- function(path, g, weight = "length") {
-  if (length(path) < 2) return(sf::st_linestring())
+# Internal: edge-row lookup by "u v" key, resolving parallel edges to the
+# minimum-weight one (matching what Dijkstra traversed). Built once per call
+# and shared across a route's legs: on metro-sized graphs this is the
+# expensive part, not the routing.
+edge_geometry_lut <- function(g, weight = "length") {
   key <- paste(g$edges$u, g$edges$v)
   w <- if (weight %in% names(g$edges)) as.numeric(g$edges[[weight]]) else rep(1, nrow(g$edges))
-  o <- order(key, w)
+  o <- order(w)
   first <- o[!duplicated(key[o])]
-  lut <- stats::setNames(first, key[first])
+  stats::setNames(first, key[first])
+}
+
+# Internal: merge the street geometries along a node-osmid path into a single
+# (MULTI)LINESTRING sfg. `lut` comes from edge_geometry_lut(); pass it when
+# building several legs/routes so it is computed once.
+path_leg_geometry <- function(path, g, weight = "length", lut = NULL) {
+  if (length(path) < 2) return(sf::st_linestring())
+  if (is.null(lut)) lut <- edge_geometry_lut(g, weight)
   idx <- lut[paste(path[-length(path)], path[-1])]
   u <- sf::st_cast(sf::st_union(sf::st_geometry(g$edges)[idx]), "MULTILINESTRING")
   sf::st_line_merge(u)[[1]]
