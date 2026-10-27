@@ -31,17 +31,19 @@
   equal to `cost`
   ([\#5](https://github.com/StrategicProjects/osmnxr/issues/5)).
 
-- Rebuilding route geometries is dramatically faster on large graphs:
-  the parallel-edge lookup is now computed once per call instead of once
-  per route/leg (and sorts numerically instead of by string key). On the
-  NCR Delhi drive network (1.0M nodes / 2.1M directed edges) this takes
+- Route geometry reconstruction is dramatically faster on large graphs.
+  The bicriteria routers now receive the traversed edge indices straight
+  from the Rust solvers, so no parallel-edge lookup is needed at all —
+  and the geometry is exact even across parallel edges that differ in
+  cost or resource (previously the minimum-weight twin was drawn). On
+  the NCR Delhi drive network (1.0M nodes / 2.1M directed edges) an
   [`ox_route_constrained()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_constrained.md)
-  from ~16 s to ~3.5 s per query and a 9-route
+  query runs in ~0.7 s and a 9-route
   [`ox_route_pareto()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_pareto.md)
-  front from ~140 s to ~6.5 s; the Rust solvers themselves answer in
-  under a second even at that scale.
-  [`ox_route_tsp()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_tsp.md)
-  legs benefit equally.
+  front in ~1.5 s, down from ~16 s and ~140 s. For
+  [`ox_route_tsp()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_tsp.md),
+  the parallel-edge lookup is now built once per call instead of once
+  per leg (and sorts numerically instead of by string key).
 
 ## osmnxr 0.1.4
 
