@@ -67,6 +67,7 @@
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_betweenness.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_closeness.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_connected_components.html</loc></url>
+<url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_csp_lagrangian.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_dijkstra.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_distance_matrix.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_k_shortest_paths.html</loc></url>

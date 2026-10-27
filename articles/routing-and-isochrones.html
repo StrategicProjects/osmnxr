@@ -212,6 +212,12 @@ exact constrained shortest path for one chosen budget:</p>
 <span><span class="co">#&gt;    cost resource                                                        geometry</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                                                <span style="color: #949494; font-style: italic;">&lt;LINESTRING [°]&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>  193.     952. (-34.85445 -8.01503, -34.85538 -8.014993, -34.85548 -8.014706,…</span></span></code></pre></div>
+<p>On metro-sized networks where enumerating the exact front gets
+expensive, <code>ox_route_constrained(..., method = "lagrangian")</code>
+solves the same problem by Lagrangian relaxation — a handful of plain
+Dijkstra runs — returning a feasible route together with a proven lower
+bound on the optimal cost (a message reports the duality gap whenever
+optimality is not certified).</p>
 <p>(For a road that is temporarily closed, don’t penalize it — mask it:
 drop the edge, or set its weight to <code>Inf</code>, before
 routing.)</p>

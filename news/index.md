@@ -20,6 +20,17 @@
   preference”) routing through
   [`ox_shortest_path()`](https://strategicprojects.github.io/osmnxr/reference/ox_shortest_path.md).
 
+- `ox_route_constrained(method = "lagrangian")` adds a
+  Lagrangian-relaxation solver (the LARAC algorithm) beside the exact
+  one: the budget constraint is dualized so each iteration is a plain
+  Dijkstra on `weight + lambda * resource`, which scales to networks
+  where the exact front grows too large. The route returned is always
+  feasible and carries a proven `lower_bound` on the optimal cost
+  (`cost == lower_bound` certifies optimality; a message reports any
+  duality gap). The exact method now also reports `lower_bound`, always
+  equal to `cost`
+  ([\#5](https://github.com/StrategicProjects/osmnxr/issues/5)).
+
 ## osmnxr 0.1.4
 
 - New

@@ -170,6 +170,13 @@ best[c("cost", "resource")]
 #> 1  193.     952. (-34.85445 -8.01503, -34.85538 -8.014993, -34.85548 -8.014706,…
 ```
 
+On metro-sized networks where enumerating the exact front gets
+expensive, `ox_route_constrained(..., method = "lagrangian")` solves the
+same problem by Lagrangian relaxation — a handful of plain Dijkstra runs
+— returning a feasible route together with a proven lower bound on the
+optimal cost (a message reports the duality gap whenever optimality is
+not certified).
+
 (For a road that is temporarily closed, don’t penalize it — mask it:
 drop the edge, or set its weight to `Inf`, before routing.)
 
