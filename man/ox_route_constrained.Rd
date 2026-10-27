@@ -4,7 +4,15 @@
 \alias{ox_route_constrained}
 \title{Constrained shortest path}
 \usage{
-ox_route_constrained(g, from, to, weight = "length", resource, budget)
+ox_route_constrained(
+  g,
+  from,
+  to,
+  weight = "length",
+  resource,
+  budget,
+  method = c("exact", "lagrangian")
+)
 }
 \arguments{
 \item{g}{An \link[=new_osm_graph]{osm_graph}.}
@@ -17,21 +25,38 @@ ox_route_constrained(g, from, to, weight = "length", resource, budget)
 criterion, e.g. the \code{"penalty"} column of \code{\link[=ox_add_edge_penalties]{ox_add_edge_penalties()}}.}
 
 \item{budget}{Maximum total resource the route may consume.}
+
+\item{method}{\code{"exact"} (default) or \code{"lagrangian"}; see Details.}
 }
 \value{
-A one-row \code{sf} tibble: \code{cost}, \code{resource}, a list-column \code{path} of
-the node \code{osmid}s traversed, and the route's merged street geometry. An
-error is raised when no route fits the budget (the message reports the
-minimum feasible resource).
+A one-row \code{sf} tibble: \code{cost}, \code{resource}, \code{lower_bound} (a proven
+lower bound on the optimal cost; equals \code{cost} whenever optimality is
+certified, which is always the case for \code{method = "exact"}), a
+list-column \code{path} of the node \code{osmid}s traversed, and the route's merged
+street geometry. An error is raised when no route fits the budget (the
+message reports the minimum feasible resource).
 }
 \description{
 Finds the minimum-\code{weight} route from \code{from} to \code{to} whose total
 consumption of a second edge column (\code{resource}) does not exceed \code{budget} —
 e.g. "the shortest route using at most 500 m of residential streets", with
 the residential metres counted by \code{\link[=ox_add_edge_penalties]{ox_add_edge_penalties()}}. This is the
-classic constrained shortest path problem, solved exactly in the Rust core
-(see \code{\link[=ox_route_pareto]{ox_route_pareto()}} for the machinery and for the full
-cost-vs-resource trade-off curve).
+classic constrained shortest path problem.
+}
+\details{
+Two solvers, both in the Rust core:
+\itemize{
+\item \code{method = "exact"} (default) — bicriteria label-setting; always returns
+the true optimum (see \code{\link[=ox_route_pareto]{ox_route_pareto()}} for the machinery and for the
+full cost-vs-resource trade-off curve).
+\item \code{method = "lagrangian"} — Lagrangian relaxation (the LARAC algorithm):
+the budget constraint is dualized, so each iteration is a plain Dijkstra
+on \code{weight + lambda * resource}, with a binary search driving \code{lambda}
+to the dual optimum. It scales to networks where the exact front grows
+too large, at the price of a possible \emph{duality gap}: the route is always
+feasible, and \code{lower_bound} brackets how far from optimal it can be
+(\code{cost == lower_bound} proves optimality; a message reports any gap).
+}
 }
 \examples{
 g <- example_osm_graph()
@@ -41,4 +66,6 @@ from <- ox_nearest_nodes(g, 0, 0)
 to <- ox_nearest_nodes(g, 300, 300)
 # shortest route crossing at most 300 m of residential streets
 ox_route_constrained(g, from, to, resource = "penalty", budget = 300)
+ox_route_constrained(g, from, to, resource = "penalty", budget = 300,
+                     method = "lagrangian")
 }

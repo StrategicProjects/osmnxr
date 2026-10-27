@@ -107,6 +107,12 @@ best <- ox_route_constrained(g, o2, d2, weight = "travel_time",
 best[c("cost", "resource")]
 ```
 
+On metro-sized networks where enumerating the exact front gets expensive,
+`ox_route_constrained(..., method = "lagrangian")` solves the same problem by
+Lagrangian relaxation — a handful of plain Dijkstra runs — returning a
+feasible route together with a proven lower bound on the optimal cost (a
+message reports the duality gap whenever optimality is not certified).
+
 (For a road that is temporarily closed, don't penalize it — mask it: drop the
 edge, or set its weight to `Inf`, before routing.)
 

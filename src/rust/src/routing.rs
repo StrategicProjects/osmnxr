@@ -609,6 +609,180 @@ pub fn pareto_paths(
     routes
 }
 
+/// Outcome of the Lagrangian constrained-shortest-path solver: a feasible
+/// path, its true cost/resource, the best dual lower bound on the optimal
+/// cost (`cost == lower_bound` proves optimality), the multiplier that
+/// produced it and the number of Dijkstra runs spent.
+pub struct LagrangianRoute {
+    pub path: Vec<usize>,
+    pub cost: f64,
+    pub resource: f64,
+    pub lower_bound: f64,
+    pub lambda: f64,
+    pub iterations: usize,
+}
+
+/// Dijkstra on the combined weight `w1 + lambda * w2` over two CSR graphs
+/// that share the same edge slots, tracking predecessors so the path's two
+/// weight components can be summed exactly (parallel edges included).
+/// Returns `(path, sum_w1, sum_w2)`, or `None` when `target` is unreachable.
+fn dijkstra_combined(
+    g1: &Graph,
+    g2: &Graph,
+    lambda: f64,
+    source: usize,
+    target: usize,
+) -> Option<(Vec<usize>, f64, f64)> {
+    let n = g1.n_nodes;
+    let mut dist = vec![f64::INFINITY; n];
+    let mut pred_node = vec![usize::MAX; n];
+    let mut pred_edge = vec![usize::MAX; n];
+    dist[source] = 0.0;
+    let mut heap = BinaryHeap::new();
+    heap.push(State { dist: 0.0, node: source });
+    while let Some(State { dist: d, node }) = heap.pop() {
+        if node == target {
+            break;
+        }
+        if d > dist[node] {
+            continue;
+        }
+        for e in g1.offsets[node]..g1.offsets[node + 1] {
+            let next = g1.targets[e];
+            let nd = d + g1.weights[e] + lambda * g2.weights[e];
+            if nd < dist[next] {
+                dist[next] = nd;
+                pred_node[next] = node;
+                pred_edge[next] = e;
+                heap.push(State { dist: nd, node: next });
+            }
+        }
+    }
+    if dist[target].is_infinite() {
+        return None;
+    }
+    let mut path = vec![target];
+    let (mut w1, mut w2) = (0.0, 0.0);
+    let mut cur = target;
+    while cur != source {
+        let e = pred_edge[cur];
+        w1 += g1.weights[e];
+        w2 += g2.weights[e];
+        cur = pred_node[cur];
+        path.push(cur);
+    }
+    path.reverse();
+    Some((path, w1, w2))
+}
+
+/// Constrained shortest path by Lagrangian relaxation (the LARAC algorithm):
+/// minimize cost subject to `resource <= budget`, dualizing the constraint so
+/// each iteration is a plain Dijkstra on `cost + lambda * resource`. A binary
+/// search on the two support paths (cheapest-infeasible and
+/// feasible-so-far) drives `lambda` to the maximizer of the dual, which takes
+/// few iterations and scales to graphs where exact label-setting is slow.
+///
+/// Returns the best feasible path found with the best dual lower bound on
+/// the optimal cost: when `cost == lower_bound` the path is provably
+/// optimal; otherwise it is feasible and within `cost - lower_bound` of the
+/// optimum (the duality gap — close it with [`pareto_paths`], which is
+/// exact). Returns `None` when the target is unreachable or no path fits the
+/// budget.
+pub fn csp_lagrangian(
+    from: &[usize],
+    to: &[usize],
+    w_cost: &[f64],
+    w_res: &[f64],
+    n_nodes: usize,
+    source: usize,
+    target: usize,
+    budget: f64,
+    max_iter: usize,
+) -> Option<LagrangianRoute> {
+    if budget < 0.0 {
+        return None;
+    }
+    if source == target {
+        return Some(LagrangianRoute {
+            path: vec![source],
+            cost: 0.0,
+            resource: 0.0,
+            lower_bound: 0.0,
+            lambda: 0.0,
+            iterations: 0,
+        });
+    }
+    let g_cost = Graph::from_edges(from, to, w_cost, n_nodes);
+    let g_res = Graph::from_edges(from, to, w_res, n_nodes);
+
+    // lambda = 0: the unconstrained shortest path. Feasible means done.
+    let (p0, c0, r0) = dijkstra_combined(&g_cost, &g_res, 0.0, source, target)?;
+    if r0 <= budget {
+        return Some(LagrangianRoute {
+            path: p0,
+            cost: c0,
+            resource: r0,
+            lower_bound: c0,
+            lambda: 0.0,
+            iterations: 1,
+        });
+    }
+    // lambda -> infinity: the minimum-resource path. Infeasible means no
+    // path fits the budget at all.
+    let (pr, rmin, c_of_rmin) = dijkstra_combined(&g_res, &g_cost, 0.0, source, target)?;
+    if rmin > budget {
+        return None;
+    }
+
+    let mut inf = (p0, c0, r0); // infeasible support: cheap, over budget
+    let mut feas = (pr, c_of_rmin, rmin); // feasible support: within budget
+    let mut best = feas.clone(); // cheapest feasible path seen so far
+    let mut best_lb = c0; // L(0)
+    let mut best_lambda = 0.0;
+    let mut iterations = 2usize;
+
+    for _ in 0..max_iter {
+        // The multiplier where the two supports' combined costs tie.
+        let lam = (feas.1 - inf.1) / (inf.2 - feas.2);
+        if !lam.is_finite() || lam <= 0.0 {
+            break;
+        }
+        let (p, c, r) = match dijkstra_combined(&g_cost, &g_res, lam, source, target) {
+            Some(x) => x,
+            None => break,
+        };
+        iterations += 1;
+        let lb = c + lam * (r - budget); // L(lam), a valid lower bound
+        if lb > best_lb {
+            best_lb = lb;
+            best_lambda = lam;
+        }
+        // Dual optimum: the new path cannot beat the supports' tied value.
+        let tie = inf.1 + lam * inf.2;
+        if (c + lam * r) >= tie - 1e-9 * (1.0 + tie.abs()) {
+            break;
+        }
+        if r <= budget {
+            feas = (p, c, r);
+            if feas.1 < best.1 {
+                best = feas.clone();
+            }
+        } else {
+            inf = (p, c, r);
+        }
+    }
+
+    let lower_bound = best_lb.min(best.1); // guard against float noise
+    Some(LagrangianRoute {
+        path: best.0,
+        cost: best.1,
+        resource: best.2,
+        lower_bound,
+        lambda: best_lambda,
+        iterations,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -962,6 +1136,83 @@ mod tests {
                     None => assert!(
                         best.is_infinite(),
                         "seed {seed} budget {budget}: solver found nothing, optimum {best}"
+                    ),
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn lagrangian_shortcuts_when_unconstrained_is_feasible() {
+        let (from, to, cost, res) = diamond();
+        let r = csp_lagrangian(&from, &to, &cost, &res, 4, 0, 3, 100.0, 50).unwrap();
+        assert_eq!(r.path, vec![0, 1, 3]);
+        assert_eq!((r.cost, r.resource, r.lower_bound), (2.0, 10.0, 2.0));
+        assert_eq!(r.iterations, 1);
+    }
+
+    #[test]
+    fn lagrangian_finds_the_optimum_with_a_duality_gap() {
+        let (from, to, cost, res) = diamond();
+        // Budget 5: optimum is (6, 0); the dual peaks at L(0.4) = 4, so the
+        // path is right but the certificate has a gap of 2.
+        let r = csp_lagrangian(&from, &to, &cost, &res, 4, 0, 3, 5.0, 50).unwrap();
+        assert_eq!(r.path, vec![0, 2, 3]);
+        assert_eq!((r.cost, r.resource), (6.0, 0.0));
+        assert!(r.lower_bound <= 6.0 && r.lower_bound >= 2.0);
+        assert!((r.lambda - 0.4).abs() < 1e-9);
+    }
+
+    #[test]
+    fn lagrangian_infeasible_and_unreachable_are_none() {
+        let (from, to, cost, res) = diamond();
+        // Node 1 is only reachable over 5 resource units.
+        assert!(csp_lagrangian(&from, &to, &cost, &res, 4, 0, 1, 1.0, 50).is_none());
+        assert!(csp_lagrangian(&from, &to, &cost, &res, 5, 0, 4, 100.0, 50).is_none());
+        assert!(csp_lagrangian(&from, &to, &cost, &res, 4, 0, 3, -1.0, 50).is_none());
+    }
+
+    #[test]
+    fn lagrangian_is_sandwiched_by_the_exact_solver_on_random_graphs() {
+        for seed in 1..=12u64 {
+            let mut rng = Rng(seed * 7 + 1);
+            let n = 7usize;
+            let mut from = Vec::new();
+            let mut to = Vec::new();
+            let mut cost = Vec::new();
+            let mut res = Vec::new();
+            for u in 0..n {
+                for v in 0..n {
+                    if u != v && rng.next() % 100 < 40 {
+                        from.push(u);
+                        to.push(v);
+                        cost.push((rng.next() % 20) as f64 + 1.0);
+                        res.push(if rng.next() % 2 == 0 { 0.0 } else { (rng.next() % 10) as f64 });
+                    }
+                }
+            }
+            for budget in [0.0, 2.0, 5.0, 9.0, 20.0] {
+                let exact = pareto_paths(&from, &to, &cost, &res, n, 0, n - 1, budget, 1);
+                let lagr = csp_lagrangian(&from, &to, &cost, &res, n, 0, n - 1, budget, 50);
+                match (exact.first(), lagr) {
+                    (Some(e), Some(l)) => {
+                        assert!(
+                            l.resource <= budget,
+                            "seed {seed} budget {budget}: infeasible Lagrangian answer"
+                        );
+                        assert!(
+                            l.lower_bound <= e.cost + 1e-9 && e.cost <= l.cost + 1e-9,
+                            "seed {seed} budget {budget}: lb {} / exact {} / lagr {}",
+                            l.lower_bound,
+                            e.cost,
+                            l.cost
+                        );
+                    }
+                    (None, None) => {}
+                    (e, l) => panic!(
+                        "seed {seed} budget {budget}: feasibility disagreement (exact {:?}, lagr {:?})",
+                        e.map(|x| x.cost),
+                        l.map(|x| x.cost)
                     ),
                 }
             }

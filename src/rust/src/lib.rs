@@ -228,6 +228,49 @@ fn rs_pareto_paths(
     list!(paths = paths, costs = costs, resources = resources)
 }
 
+/// Constrained shortest path by Lagrangian relaxation (LARAC): each
+/// iteration is a plain Dijkstra on `cost + lambda * resource`, with a
+/// binary search driving `lambda` to the dual optimum. Returns a list with
+/// `found`; when `TRUE` also `path` (0-based nodes), `cost`, `resource`,
+/// `lower_bound` (dual bound on the optimal cost; equal to `cost` proves
+/// optimality), `lambda` and `iterations` (Dijkstra runs).
+/// @keywords internal
+#[extendr]
+fn rs_csp_lagrangian(
+    from: Vec<i32>,
+    to: Vec<i32>,
+    w_cost: Vec<f64>,
+    w_resource: Vec<f64>,
+    n_nodes: i32,
+    source: i32,
+    target: i32,
+    budget: f64,
+    max_iter: i32,
+) -> List {
+    match routing::csp_lagrangian(
+        &as_idx(&from),
+        &as_idx(&to),
+        &w_cost,
+        &w_resource,
+        n_nodes as usize,
+        source as usize,
+        target as usize,
+        budget,
+        max_iter as usize,
+    ) {
+        Some(r) => list!(
+            found = true,
+            path = r.path.iter().map(|&x| x as i32).collect::<Vec<i32>>(),
+            cost = r.cost,
+            resource = r.resource,
+            lower_bound = r.lower_bound,
+            lambda = r.lambda,
+            iterations = r.iterations as i32
+        ),
+        None => list!(found = false),
+    }
+}
+
 // Macro to generate exports.
 // This ensures exported functions are registered with R.
 // See corresponding C code in `entrypoint.c`.
@@ -244,6 +287,7 @@ extendr_module! {
     fn rs_distance_matrix;
     fn rs_tsp_tour;
     fn rs_pareto_paths;
+    fn rs_csp_lagrangian;
     fn rs_betweenness;
     fn rs_closeness;
 }

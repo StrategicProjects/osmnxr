@@ -66,6 +66,7 @@ test_that("ox_route_constrained solves the budgeted problem exactly", {
   expect_s3_class(r, "sf")
   expect_false("route" %in% names(r))
   expect_equal(r$cost, 6)
+  expect_equal(r$lower_bound, r$cost) # exact answers are certified
   expect_equal(r$path[[1]], c(1, 3, 4))
   # a loose budget recovers the unconstrained shortest path
   loose <- ox_route_constrained(g, 1, 4, resource = "penalty", budget = Inf)
@@ -112,6 +113,54 @@ test_that("constrained routing works on the example grid", {
     ox_route_constrained(g, from, to, resource = "penalty", budget = 299),
     "minimum possible"
   )
+})
+
+test_that("the Lagrangian method returns a feasible route with a bound", {
+  g <- diamond_graph()
+  # budget 5 on the diamond has a known duality gap (optimum 6, dual peak 4)
+  expect_message(
+    r <- ox_route_constrained(g, 1, 4, resource = "penalty", budget = 5,
+                              method = "lagrangian"),
+    "lower bound"
+  )
+  expect_equal(r$cost, 6)
+  expect_equal(r$resource, 0)
+  expect_equal(r$path[[1]], c(1, 3, 4))
+  expect_true(r$lower_bound <= r$cost)
+  # a loose budget takes the unconstrained shortcut: certified, no message
+  expect_no_message(
+    r2 <- ox_route_constrained(g, 1, 4, resource = "penalty", budget = 100,
+                               method = "lagrangian")
+  )
+  expect_equal(r2$cost, 2)
+  expect_equal(r2$lower_bound, 2)
+  # same error paths as the exact method
+  expect_error(
+    ox_route_constrained(g, 1, 2, resource = "penalty", budget = 1,
+                         method = "lagrangian"),
+    "minimum possible"
+  )
+  expect_error(
+    ox_route_constrained(g, 4, 1, resource = "penalty", budget = 10,
+                         method = "lagrangian"),
+    "No route"
+  )
+})
+
+test_that("both methods agree on the example grid", {
+  g <- example_osm_graph()
+  g$edges$highway <- ifelse(abs(g$edges$u - g$edges$v) == 1, "residential", "primary")
+  g <- ox_add_edge_penalties(g, c(residential = 1))
+  from <- ox_nearest_nodes(g, 0, 0)
+  to <- ox_nearest_nodes(g, 300, 300)
+  exact <- ox_route_constrained(g, from, to, resource = "penalty", budget = 300)
+  lagr <- suppressMessages(
+    ox_route_constrained(g, from, to, resource = "penalty", budget = 300,
+                         method = "lagrangian")
+  )
+  expect_equal(lagr$cost, exact$cost)
+  expect_true(lagr$resource <= 300)
+  expect_true(lagr$lower_bound <= exact$cost)
 })
 
 test_that("a trivial route from a node to itself works", {

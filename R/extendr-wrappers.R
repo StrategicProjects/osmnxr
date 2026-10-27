@@ -63,6 +63,15 @@ rs_tsp_tour <- function(cost, n, start, end, closed, improve) .Call(wrap__rs_tsp
 #' @keywords internal
 rs_pareto_paths <- function(from, to, w_cost, w_resource, n_nodes, source, target, budget, max_routes) .Call(wrap__rs_pareto_paths, from, to, w_cost, w_resource, n_nodes, source, target, budget, max_routes)
 
+#' Constrained shortest path by Lagrangian relaxation (LARAC): each
+#' iteration is a plain Dijkstra on `cost + lambda * resource`, with a
+#' binary search driving `lambda` to the dual optimum. Returns a list with
+#' `found`; when `TRUE` also `path` (0-based nodes), `cost`, `resource`,
+#' `lower_bound` (dual bound on the optimal cost; equal to `cost` proves
+#' optimality), `lambda` and `iterations` (Dijkstra runs).
+#' @keywords internal
+rs_csp_lagrangian <- function(from, to, w_cost, w_resource, n_nodes, source, target, budget, max_iter) .Call(wrap__rs_csp_lagrangian, from, to, w_cost, w_resource, n_nodes, source, target, budget, max_iter)
+
 #' Betweenness centrality (Brandes) for every node.
 #' @keywords internal
 rs_betweenness <- function(from, to, weight, n_nodes, normalized) .Call(wrap__rs_betweenness, from, to, weight, n_nodes, normalized)

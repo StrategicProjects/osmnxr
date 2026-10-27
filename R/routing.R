@@ -273,13 +273,6 @@ ox_route_tsp <- function(g, nodes, weight = "length",
 #' ox_route_pareto(g, from, to, resource = "penalty")
 ox_route_pareto <- function(g, from, to, weight = "length", resource,
                             budget = Inf, max_routes = Inf) {
-  stopifnot(is_osm_graph(g))
-  if (missing(resource) || !is.character(resource) || length(resource) != 1) {
-    cli::cli_abort("{.arg resource} must name a single edge column; see {.fn ox_add_edge_penalties}.", call = NULL)
-  }
-  if (!resource %in% names(g$edges)) {
-    cli::cli_abort("Edge column {.field {resource}} not found in {.arg g}; create it with {.fn ox_add_edge_penalties}.", call = NULL)
-  }
   if (length(budget) != 1 || is.na(budget) || budget < 0) {
     cli::cli_abort("{.arg budget} must be a single nonnegative number (or {.code Inf}).", call = NULL)
   }
@@ -287,32 +280,17 @@ ox_route_pareto <- function(g, from, to, weight = "length", resource,
     cli::cli_abort("{.arg max_routes} must be a single number >= 1 (or {.code Inf}).", call = NULL)
   }
 
-  ea <- graph_edge_arrays_bi(g, weight, resource)
-  if (anyNA(ea$weight) || any(ea$weight < 0)) {
-    cli::cli_abort("Edge column {.field {weight}} must be nonnegative with no missing values.", call = NULL)
-  }
-  if (anyNA(ea$resource) || any(ea$resource < 0) || any(is.infinite(ea$resource))) {
-    cli::cli_abort("Edge column {.field {resource}} must be finite, nonnegative and have no missing values.", call = NULL)
-  }
-  s <- match(from, ea$node_ids) - 1L
-  t <- match(to, ea$node_ids) - 1L
-  if (length(s) != 1 || length(t) != 1 || is.na(s) || is.na(t)) {
-    cli::cli_abort("{.arg from}/{.arg to} must be node {.field osmid}s present in the graph.", call = NULL)
-  }
+  bi <- bi_route_inputs(g, from, to, weight, if (missing(resource)) NULL else resource)
+  ea <- bi$ea
+  s <- bi$s
+  t <- bi$t
 
   cap <- if (is.infinite(max_routes)) -1L else as.integer(max_routes)
   res <- rs_pareto_paths(ea$from, ea$to, ea$weight, ea$resource, ea$n_nodes,
                          as.integer(s), as.integer(t), as.numeric(budget), cap)
 
   if (length(res$paths) == 0) {
-    min_r <- rs_dijkstra(ea$from, ea$to, ea$resource, ea$n_nodes, as.integer(s))[t + 1L]
-    if (is.infinite(min_r)) {
-      cli::cli_abort("No route from node {.val {from}} to node {.val {to}} in this network.", call = NULL)
-    }
-    cli::cli_abort(
-      "No route from node {.val {from}} to node {.val {to}} within {.arg budget} = {.val {budget}}: the minimum possible {.field {resource}} is {.val {min_r}}.",
-      call = NULL
-    )
+    abort_no_bi_route(ea, from, to, s, t, budget, resource)
   }
 
   paths <- lapply(res$paths, function(idx) ea$node_ids[idx + 1L])
@@ -334,17 +312,30 @@ ox_route_pareto <- function(g, from, to, weight = "length", resource,
 #' consumption of a second edge column (`resource`) does not exceed `budget` —
 #' e.g. "the shortest route using at most 500 m of residential streets", with
 #' the residential metres counted by [ox_add_edge_penalties()]. This is the
-#' classic constrained shortest path problem, solved exactly in the Rust core
-#' (see [ox_route_pareto()] for the machinery and for the full
-#' cost-vs-resource trade-off curve).
+#' classic constrained shortest path problem.
+#'
+#' Two solvers, both in the Rust core:
+#' * `method = "exact"` (default) — bicriteria label-setting; always returns
+#'   the true optimum (see [ox_route_pareto()] for the machinery and for the
+#'   full cost-vs-resource trade-off curve).
+#' * `method = "lagrangian"` — Lagrangian relaxation (the LARAC algorithm):
+#'   the budget constraint is dualized, so each iteration is a plain Dijkstra
+#'   on `weight + lambda * resource`, with a binary search driving `lambda`
+#'   to the dual optimum. It scales to networks where the exact front grows
+#'   too large, at the price of a possible *duality gap*: the route is always
+#'   feasible, and `lower_bound` brackets how far from optimal it can be
+#'   (`cost == lower_bound` proves optimality; a message reports any gap).
 #'
 #' @inheritParams ox_route_pareto
 #' @param budget Maximum total resource the route may consume.
+#' @param method `"exact"` (default) or `"lagrangian"`; see Details.
 #'
-#' @return A one-row `sf` tibble: `cost`, `resource`, a list-column `path` of
-#'   the node `osmid`s traversed, and the route's merged street geometry. An
-#'   error is raised when no route fits the budget (the message reports the
-#'   minimum feasible resource).
+#' @return A one-row `sf` tibble: `cost`, `resource`, `lower_bound` (a proven
+#'   lower bound on the optimal cost; equals `cost` whenever optimality is
+#'   certified, which is always the case for `method = "exact"`), a
+#'   list-column `path` of the node `osmid`s traversed, and the route's merged
+#'   street geometry. An error is raised when no route fits the budget (the
+#'   message reports the minimum feasible resource).
 #' @export
 #'
 #' @examples
@@ -355,14 +346,88 @@ ox_route_pareto <- function(g, from, to, weight = "length", resource,
 #' to <- ox_nearest_nodes(g, 300, 300)
 #' # shortest route crossing at most 300 m of residential streets
 #' ox_route_constrained(g, from, to, resource = "penalty", budget = 300)
-ox_route_constrained <- function(g, from, to, weight = "length", resource, budget) {
+#' ox_route_constrained(g, from, to, resource = "penalty", budget = 300,
+#'                      method = "lagrangian")
+ox_route_constrained <- function(g, from, to, weight = "length", resource, budget,
+                                 method = c("exact", "lagrangian")) {
+  method <- match.arg(method)
   if (missing(budget)) {
     cli::cli_abort("{.arg budget} is required; use {.fn ox_shortest_path} for unconstrained routing.", call = NULL)
   }
-  out <- ox_route_pareto(g, from, to, weight = weight, resource = resource,
-                         budget = budget, max_routes = 1)
-  out$route <- NULL
-  out
+  if (method == "exact") {
+    out <- ox_route_pareto(g, from, to, weight = weight, resource = resource,
+                           budget = budget, max_routes = 1)
+    out$route <- NULL
+    out$lower_bound <- out$cost
+    return(out[c("cost", "resource", "lower_bound", "path", "geometry")])
+  }
+
+  if (length(budget) != 1 || is.na(budget) || budget < 0) {
+    cli::cli_abort("{.arg budget} must be a single nonnegative number (or {.code Inf}).", call = NULL)
+  }
+  bi <- bi_route_inputs(g, from, to, weight, if (missing(resource)) NULL else resource)
+  ea <- bi$ea
+  res <- rs_csp_lagrangian(ea$from, ea$to, ea$weight, ea$resource, ea$n_nodes,
+                           as.integer(bi$s), as.integer(bi$t),
+                           as.numeric(budget), 50L)
+  if (!isTRUE(res$found)) {
+    abort_no_bi_route(ea, from, to, bi$s, bi$t, budget, resource)
+  }
+  gap <- res$cost - res$lower_bound
+  if (gap > 1e-9 * (1 + abs(res$cost))) {
+    cli::cli_inform(
+      "Feasible route found; cost {.val {round(res$cost, 2)}} is within {.val {round(gap, 2)}} ({round(100 * gap / res$cost, 1)}%) of the proven lower bound. Use {.code method = \"exact\"} for a certified optimum."
+    )
+  }
+  path <- ea$node_ids[res$path + 1L]
+  geom <- sf::st_sfc(list(path_leg_geometry(path, g, weight)),
+                     crs = sf::st_crs(g$nodes))
+  out <- tibble::tibble(
+    cost = as.numeric(res$cost),
+    resource = as.numeric(res$resource),
+    lower_bound = as.numeric(res$lower_bound),
+    path = list(path),
+    geometry = geom
+  )
+  sf::st_as_sf(out)
+}
+
+# Internal: shared input validation for the bicriteria routers. Returns the
+# aligned edge arrays plus 0-based source/target indices.
+bi_route_inputs <- function(g, from, to, weight, resource) {
+  stopifnot(is_osm_graph(g))
+  if (is.null(resource) || !is.character(resource) || length(resource) != 1) {
+    cli::cli_abort("{.arg resource} must name a single edge column; see {.fn ox_add_edge_penalties}.", call = NULL)
+  }
+  if (!resource %in% names(g$edges)) {
+    cli::cli_abort("Edge column {.field {resource}} not found in {.arg g}; create it with {.fn ox_add_edge_penalties}.", call = NULL)
+  }
+  ea <- graph_edge_arrays_bi(g, weight, resource)
+  if (anyNA(ea$weight) || any(ea$weight < 0)) {
+    cli::cli_abort("Edge column {.field {weight}} must be nonnegative with no missing values.", call = NULL)
+  }
+  if (anyNA(ea$resource) || any(ea$resource < 0) || any(is.infinite(ea$resource))) {
+    cli::cli_abort("Edge column {.field {resource}} must be finite, nonnegative and have no missing values.", call = NULL)
+  }
+  s <- match(from, ea$node_ids) - 1L
+  t <- match(to, ea$node_ids) - 1L
+  if (length(s) != 1 || length(t) != 1 || is.na(s) || is.na(t)) {
+    cli::cli_abort("{.arg from}/{.arg to} must be node {.field osmid}s present in the graph.", call = NULL)
+  }
+  list(ea = ea, s = s, t = t)
+}
+
+# Internal: the shared "no feasible route" error, distinguishing an
+# unreachable target from a budget that is too tight.
+abort_no_bi_route <- function(ea, from, to, s, t, budget, resource) {
+  min_r <- rs_dijkstra(ea$from, ea$to, ea$resource, ea$n_nodes, as.integer(s))[t + 1L]
+  if (is.infinite(min_r)) {
+    cli::cli_abort("No route from node {.val {from}} to node {.val {to}} in this network.", call = NULL)
+  }
+  cli::cli_abort(
+    "No route from node {.val {from}} to node {.val {to}} within {.arg budget} = {.val {budget}}: the minimum possible {.field {resource}} is {.val {min_r}}.",
+    call = NULL
+  )
 }
 
 # Internal: merge the street geometries along a node-osmid path into a single
