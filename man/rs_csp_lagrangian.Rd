@@ -5,7 +5,8 @@
 \title{Constrained shortest path by Lagrangian relaxation (LARAC): each
 iteration is a plain Dijkstra on \code{cost + lambda * resource}, with a
 binary search driving \code{lambda} to the dual optimum. Returns a list with
-\code{found}; when \code{TRUE} also \code{path} (0-based nodes), \code{cost}, \code{resource},
+\code{found}; when \code{TRUE} also \code{path} (0-based nodes), \code{edges} (0-based
+input-order indices of the traversed edges), \code{cost}, \code{resource},
 \code{lower_bound} (dual bound on the optimal cost; equal to \code{cost} proves
 optimality), \code{lambda} and \code{iterations} (Dijkstra runs).}
 \usage{
@@ -25,7 +26,8 @@ rs_csp_lagrangian(
 Constrained shortest path by Lagrangian relaxation (LARAC): each
 iteration is a plain Dijkstra on \code{cost + lambda * resource}, with a
 binary search driving \code{lambda} to the dual optimum. Returns a list with
-\code{found}; when \code{TRUE} also \code{path} (0-based nodes), \code{cost}, \code{resource},
+\code{found}; when \code{TRUE} also \code{path} (0-based nodes), \code{edges} (0-based
+input-order indices of the traversed edges), \code{cost}, \code{resource},
 \code{lower_bound} (dual bound on the optimal cost; equal to \code{cost} proves
 optimality), \code{lambda} and \code{iterations} (Dijkstra runs).
 }

@@ -295,9 +295,10 @@ ox_route_pareto <- function(g, from, to, weight = "length", resource,
   }
 
   paths <- lapply(res$paths, function(idx) ea$node_ids[idx + 1L])
-  lut <- edge_geometry_lut(g, weight)
-  geom <- sf::st_sfc(lapply(paths, path_leg_geometry, g = g, weight = weight, lut = lut),
-                     crs = sf::st_crs(g$nodes))
+  geom <- sf::st_sfc(
+    lapply(res$edge_paths, function(ei) edge_path_geometry(ea$edge_rows[ei + 1L], g)),
+    crs = sf::st_crs(g$nodes)
+  )
   out <- tibble::tibble(
     route = seq_along(paths),
     cost = as.numeric(res$costs),
@@ -382,7 +383,7 @@ ox_route_constrained <- function(g, from, to, weight = "length", resource, budge
     )
   }
   path <- ea$node_ids[res$path + 1L]
-  geom <- sf::st_sfc(list(path_leg_geometry(path, g, weight)),
+  geom <- sf::st_sfc(list(edge_path_geometry(ea$edge_rows[res$edges + 1L], g)),
                      crs = sf::st_crs(g$nodes))
   out <- tibble::tibble(
     cost = as.numeric(res$cost),
@@ -430,6 +431,14 @@ abort_no_bi_route <- function(ea, from, to, s, t, budget, resource) {
     "No route from node {.val {from}} to node {.val {to}} within {.arg budget} = {.val {budget}}: the minimum possible {.field {resource}} is {.val {min_r}}.",
     call = NULL
   )
+}
+
+# Internal: merge the street geometries of the given g$edges rows (as
+# traversed, so parallel edges are exact) into a single (MULTI)LINESTRING sfg.
+edge_path_geometry <- function(rows, g) {
+  if (length(rows) == 0) return(sf::st_linestring())
+  u <- sf::st_cast(sf::st_union(sf::st_geometry(g$edges)[rows]), "MULTILINESTRING")
+  sf::st_line_merge(u)[[1]]
 }
 
 # Internal: edge-row lookup by "u v" key, resolving parallel edges to the

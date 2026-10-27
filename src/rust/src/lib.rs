@@ -192,7 +192,8 @@ fn rs_tsp_tour(cost: Vec<f64>, n: i32, start: i32, end: i32, closed: bool, impro
 /// label-setting with dominance pruning. Each edge carries a cost and a
 /// resource weight; `budget` caps the path resource (`Inf` for none) and
 /// `max_routes <= 0` returns the whole front. Returns a list with `paths`
-/// (0-based node-index vectors), `costs` and `resources`, ordered by
+/// (0-based node-index vectors), `edge_paths` (0-based indices of the edges
+/// actually traversed, in input order), `costs` and `resources`, ordered by
 /// increasing cost.
 /// @keywords internal
 #[extendr]
@@ -223,15 +224,20 @@ fn rs_pareto_paths(
         res.iter()
             .map(|r| r.path.iter().map(|&x| x as i32).collect::<Vec<i32>>()),
     );
+    let edge_paths = List::from_values(
+        res.iter()
+            .map(|r| r.edges.iter().map(|&x| x as i32).collect::<Vec<i32>>()),
+    );
     let costs: Vec<f64> = res.iter().map(|r| r.cost).collect();
     let resources: Vec<f64> = res.iter().map(|r| r.resource).collect();
-    list!(paths = paths, costs = costs, resources = resources)
+    list!(paths = paths, edge_paths = edge_paths, costs = costs, resources = resources)
 }
 
 /// Constrained shortest path by Lagrangian relaxation (LARAC): each
 /// iteration is a plain Dijkstra on `cost + lambda * resource`, with a
 /// binary search driving `lambda` to the dual optimum. Returns a list with
-/// `found`; when `TRUE` also `path` (0-based nodes), `cost`, `resource`,
+/// `found`; when `TRUE` also `path` (0-based nodes), `edges` (0-based
+/// input-order indices of the traversed edges), `cost`, `resource`,
 /// `lower_bound` (dual bound on the optimal cost; equal to `cost` proves
 /// optimality), `lambda` and `iterations` (Dijkstra runs).
 /// @keywords internal
@@ -261,6 +267,7 @@ fn rs_csp_lagrangian(
         Some(r) => list!(
             found = true,
             path = r.path.iter().map(|&x| x as i32).collect::<Vec<i32>>(),
+            edges = r.edges.iter().map(|&x| x as i32).collect::<Vec<i32>>(),
             cost = r.cost,
             resource = r.resource,
             lower_bound = r.lower_bound,

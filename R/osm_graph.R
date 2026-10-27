@@ -66,7 +66,10 @@ graph_edge_arrays_bi <- function(g, weight, resource) {
     weight = w[keep],
     resource = r[keep],
     n_nodes = length(ids),
-    node_ids = ids
+    node_ids = ids,
+    # original g$edges row behind each filtered edge, so 0-based edge indices
+    # coming back from Rust map straight onto edge attributes/geometry
+    edge_rows = which(keep)
   )
 }
 

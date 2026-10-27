@@ -6,7 +6,8 @@
 label-setting with dominance pruning. Each edge carries a cost and a
 resource weight; \code{budget} caps the path resource (\code{Inf} for none) and
 \code{max_routes <= 0} returns the whole front. Returns a list with \code{paths}
-(0-based node-index vectors), \code{costs} and \code{resources}, ordered by
+(0-based node-index vectors), \code{edge_paths} (0-based indices of the edges
+actually traversed, in input order), \code{costs} and \code{resources}, ordered by
 increasing cost.}
 \usage{
 rs_pareto_paths(
@@ -26,7 +27,8 @@ Bicriteria shortest paths (Pareto front) from \code{source} to \code{target} by
 label-setting with dominance pruning. Each edge carries a cost and a
 resource weight; \code{budget} caps the path resource (\code{Inf} for none) and
 \code{max_routes <= 0} returns the whole front. Returns a list with \code{paths}
-(0-based node-index vectors), \code{costs} and \code{resources}, ordered by
+(0-based node-index vectors), \code{edge_paths} (0-based indices of the edges
+actually traversed, in input order), \code{costs} and \code{resources}, ordered by
 increasing cost.
 }
 \keyword{internal}

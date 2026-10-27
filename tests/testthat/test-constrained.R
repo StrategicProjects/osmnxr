@@ -163,6 +163,39 @@ test_that("both methods agree on the example grid", {
   expect_true(lagr$lower_bound <= exact$cost)
 })
 
+test_that("route geometry follows the traversed parallel edge", {
+  pts <- rbind(c(0, 0), c(1, 0), c(2, 0))
+  nodes <- sf::st_as_sf(data.frame(osmid = 1:3, x = pts[, 1], y = pts[, 2]),
+                        coords = c("x", "y"), crs = 3857, remove = FALSE)
+  # two parallel 1 -> 2 edges with distinct geometries: a straight residential
+  # one (cheap, penalized) and a bowed primary one (expensive, clean)
+  geoms <- sf::st_sfc(
+    sf::st_linestring(rbind(c(0, 0), c(1, 0))),
+    sf::st_linestring(rbind(c(0, 0), c(0.5, 1), c(1, 0))),
+    sf::st_linestring(rbind(c(1, 0), c(2, 0))),
+    crs = 3857
+  )
+  edges <- sf::st_sf(
+    u = c(1, 1, 2), v = c(2, 2, 3), osmid = 1:3,
+    highway = c("residential", "primary", "primary"),
+    length = c(1, 5, 1), geometry = geoms
+  )
+  g <- new_osm_graph(nodes, edges, meta = list(simplified = TRUE))
+  g <- ox_add_edge_penalties(g, c(residential = 1))
+  front <- ox_route_pareto(g, 1, 3, resource = "penalty")
+  expect_equal(front$cost, c(2, 6))
+  # the clean route must carry the bowed primary geometry, not the straight
+  # residential twin it runs parallel to
+  len <- as.numeric(sf::st_length(front))
+  expect_gt(len[2], len[1])
+  r <- ox_route_constrained(g, 1, 3, resource = "penalty", budget = 0)
+  expect_equal(as.numeric(sf::st_length(r)), len[2])
+  rl <- suppressMessages(ox_route_constrained(g, 1, 3, resource = "penalty",
+                                              budget = 0, method = "lagrangian"))
+  expect_equal(rl$cost, 6)
+  expect_equal(as.numeric(sf::st_length(rl)), len[2])
+})
+
 test_that("a trivial route from a node to itself works", {
   g <- diamond_graph()
   r <- ox_route_pareto(g, 2, 2, resource = "penalty")

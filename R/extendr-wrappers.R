@@ -58,7 +58,8 @@ rs_tsp_tour <- function(cost, n, start, end, closed, improve) .Call(wrap__rs_tsp
 #' label-setting with dominance pruning. Each edge carries a cost and a
 #' resource weight; `budget` caps the path resource (`Inf` for none) and
 #' `max_routes <= 0` returns the whole front. Returns a list with `paths`
-#' (0-based node-index vectors), `costs` and `resources`, ordered by
+#' (0-based node-index vectors), `edge_paths` (0-based indices of the edges
+#' actually traversed, in input order), `costs` and `resources`, ordered by
 #' increasing cost.
 #' @keywords internal
 rs_pareto_paths <- function(from, to, w_cost, w_resource, n_nodes, source, target, budget, max_routes) .Call(wrap__rs_pareto_paths, from, to, w_cost, w_resource, n_nodes, source, target, budget, max_routes)
@@ -66,7 +67,8 @@ rs_pareto_paths <- function(from, to, w_cost, w_resource, n_nodes, source, targe
 #' Constrained shortest path by Lagrangian relaxation (LARAC): each
 #' iteration is a plain Dijkstra on `cost + lambda * resource`, with a
 #' binary search driving `lambda` to the dual optimum. Returns a list with
-#' `found`; when `TRUE` also `path` (0-based nodes), `cost`, `resource`,
+#' `found`; when `TRUE` also `path` (0-based nodes), `edges` (0-based
+#' input-order indices of the traversed edges), `cost`, `resource`,
 #' `lower_bound` (dual bound on the optimal cost; equal to `cost` proves
 #' optimality), `lambda` and `iterations` (Dijkstra runs).
 #' @keywords internal

@@ -468,19 +468,46 @@ pub fn tsp_tour(
     tour
 }
 
-/// A Pareto-optimal route found by [`pareto_paths`].
+/// A Pareto-optimal route found by [`pareto_paths`]. `edges` holds the
+/// input-order indices of the edges actually traversed, so callers can
+/// recover attributes/geometry exactly even across parallel edges.
 pub struct ParetoRoute {
     pub path: Vec<usize>,
+    pub edges: Vec<usize>,
     pub cost: f64,
     pub resource: f64,
 }
 
-/// A label in the bicriteria search: the node reached, and the arena index of
+/// A label in the bicriteria search: the node reached, the CSR slot of the
+/// edge that reached it (`usize::MAX` for the source) and the arena index of
 /// the predecessor label (`usize::MAX` for the source). The accumulated
 /// cost/resource pair travels in the heap entry instead.
 struct Label {
     node: usize,
+    edge: usize,
     pred: usize,
+}
+
+/// Input-edge index occupying each CSR slot of the graph that
+/// [`Graph::from_edges`] builds from `from` (it replays the same
+/// construction order).
+fn csr_edge_order(from: &[usize], n_nodes: usize) -> Vec<usize> {
+    let m = from.len();
+    let mut degree = vec![0usize; n_nodes + 1];
+    for &u in from {
+        degree[u + 1] += 1;
+    }
+    for i in 0..n_nodes {
+        degree[i + 1] += degree[i];
+    }
+    let mut cursor = degree;
+    let mut order = vec![0usize; m];
+    for e in 0..m {
+        let pos = cursor[from[e]];
+        order[pos] = e;
+        cursor[from[e]] += 1;
+    }
+    order
 }
 
 /// Heap entry ordered lexicographically by ascending `(cost, resource)`.
@@ -541,7 +568,12 @@ pub fn pareto_paths(
         return Vec::new();
     }
     if source == target {
-        return vec![ParetoRoute { path: vec![source], cost: 0.0, resource: 0.0 }];
+        return vec![ParetoRoute {
+            path: vec![source],
+            edges: Vec::new(),
+            cost: 0.0,
+            resource: 0.0,
+        }];
     }
     // Two CSR graphs over the same edge order, so slot `e` holds the same
     // edge in both and `(targets[e], cost.weights[e], res.weights[e])` is one
@@ -553,6 +585,7 @@ pub fn pareto_paths(
     // each node to the target (also detects nodes that cannot reach it).
     let rev_res = Graph::from_edges(to, from, w_res, n_nodes);
     let lb_res = dijkstra(&rev_res, target);
+    let edge_order = csr_edge_order(from, n_nodes);
 
     let mut arena: Vec<Label> = Vec::new();
     let mut heap: BinaryHeap<BiState> = BinaryHeap::new();
@@ -563,7 +596,7 @@ pub fn pareto_paths(
     let mut routes: Vec<ParetoRoute> = Vec::new();
 
     if lb_res[source].is_finite() && lb_res[source] <= budget {
-        arena.push(Label { node: source, pred: usize::MAX });
+        arena.push(Label { node: source, edge: usize::MAX, pred: usize::MAX });
         heap.push(BiState { cost: 0.0, resource: 0.0, label: 0 });
     }
 
@@ -575,13 +608,18 @@ pub fn pareto_paths(
         min_res[node] = resource;
         if node == target {
             let mut path = Vec::new();
+            let mut edges = Vec::new();
             let mut cur = label;
             while cur != usize::MAX {
                 path.push(arena[cur].node);
+                if arena[cur].edge != usize::MAX {
+                    edges.push(edge_order[arena[cur].edge]);
+                }
                 cur = arena[cur].pred;
             }
             path.reverse();
-            routes.push(ParetoRoute { path, cost, resource });
+            edges.reverse();
+            routes.push(ParetoRoute { path, edges, cost, resource });
             if routes.len() >= max_routes {
                 break;
             }
@@ -602,7 +640,7 @@ pub fn pareto_paths(
             {
                 continue;
             }
-            arena.push(Label { node: next, pred: label });
+            arena.push(Label { node: next, edge: e, pred: label });
             heap.push(BiState { cost: nc, resource: nr, label: arena.len() - 1 });
         }
     }
@@ -615,6 +653,7 @@ pub fn pareto_paths(
 /// produced it and the number of Dijkstra runs spent.
 pub struct LagrangianRoute {
     pub path: Vec<usize>,
+    pub edges: Vec<usize>,
     pub cost: f64,
     pub resource: f64,
     pub lower_bound: f64,
@@ -625,14 +664,15 @@ pub struct LagrangianRoute {
 /// Dijkstra on the combined weight `w1 + lambda * w2` over two CSR graphs
 /// that share the same edge slots, tracking predecessors so the path's two
 /// weight components can be summed exactly (parallel edges included).
-/// Returns `(path, sum_w1, sum_w2)`, or `None` when `target` is unreachable.
+/// Returns `(path, edge_slots, sum_w1, sum_w2)`, or `None` when `target` is
+/// unreachable.
 fn dijkstra_combined(
     g1: &Graph,
     g2: &Graph,
     lambda: f64,
     source: usize,
     target: usize,
-) -> Option<(Vec<usize>, f64, f64)> {
+) -> Option<(Vec<usize>, Vec<usize>, f64, f64)> {
     let n = g1.n_nodes;
     let mut dist = vec![f64::INFINITY; n];
     let mut pred_node = vec![usize::MAX; n];
@@ -662,17 +702,20 @@ fn dijkstra_combined(
         return None;
     }
     let mut path = vec![target];
+    let mut edges = Vec::new();
     let (mut w1, mut w2) = (0.0, 0.0);
     let mut cur = target;
     while cur != source {
         let e = pred_edge[cur];
+        edges.push(e);
         w1 += g1.weights[e];
         w2 += g2.weights[e];
         cur = pred_node[cur];
         path.push(cur);
     }
     path.reverse();
-    Some((path, w1, w2))
+    edges.reverse();
+    Some((path, edges, w1, w2))
 }
 
 /// Constrained shortest path by Lagrangian relaxation (the LARAC algorithm):
@@ -705,6 +748,7 @@ pub fn csp_lagrangian(
     if source == target {
         return Some(LagrangianRoute {
             path: vec![source],
+            edges: Vec::new(),
             cost: 0.0,
             resource: 0.0,
             lower_bound: 0.0,
@@ -714,12 +758,17 @@ pub fn csp_lagrangian(
     }
     let g_cost = Graph::from_edges(from, to, w_cost, n_nodes);
     let g_res = Graph::from_edges(from, to, w_res, n_nodes);
+    let edge_order = csr_edge_order(from, n_nodes);
+    let to_input = |slots: Vec<usize>| -> Vec<usize> {
+        slots.into_iter().map(|s| edge_order[s]).collect()
+    };
 
     // lambda = 0: the unconstrained shortest path. Feasible means done.
-    let (p0, c0, r0) = dijkstra_combined(&g_cost, &g_res, 0.0, source, target)?;
+    let (p0, e0, c0, r0) = dijkstra_combined(&g_cost, &g_res, 0.0, source, target)?;
     if r0 <= budget {
         return Some(LagrangianRoute {
             path: p0,
+            edges: to_input(e0),
             cost: c0,
             resource: r0,
             lower_bound: c0,
@@ -729,13 +778,13 @@ pub fn csp_lagrangian(
     }
     // lambda -> infinity: the minimum-resource path. Infeasible means no
     // path fits the budget at all.
-    let (pr, rmin, c_of_rmin) = dijkstra_combined(&g_res, &g_cost, 0.0, source, target)?;
+    let (pr, er, rmin, c_of_rmin) = dijkstra_combined(&g_res, &g_cost, 0.0, source, target)?;
     if rmin > budget {
         return None;
     }
 
-    let mut inf = (p0, c0, r0); // infeasible support: cheap, over budget
-    let mut feas = (pr, c_of_rmin, rmin); // feasible support: within budget
+    let mut inf = (p0, e0, c0, r0); // infeasible support: cheap, over budget
+    let mut feas = (pr, er, c_of_rmin, rmin); // feasible support: within budget
     let mut best = feas.clone(); // cheapest feasible path seen so far
     let mut best_lb = c0; // L(0)
     let mut best_lambda = 0.0;
@@ -743,11 +792,11 @@ pub fn csp_lagrangian(
 
     for _ in 0..max_iter {
         // The multiplier where the two supports' combined costs tie.
-        let lam = (feas.1 - inf.1) / (inf.2 - feas.2);
+        let lam = (feas.2 - inf.2) / (inf.3 - feas.3);
         if !lam.is_finite() || lam <= 0.0 {
             break;
         }
-        let (p, c, r) = match dijkstra_combined(&g_cost, &g_res, lam, source, target) {
+        let (p, e, c, r) = match dijkstra_combined(&g_cost, &g_res, lam, source, target) {
             Some(x) => x,
             None => break,
         };
@@ -758,25 +807,26 @@ pub fn csp_lagrangian(
             best_lambda = lam;
         }
         // Dual optimum: the new path cannot beat the supports' tied value.
-        let tie = inf.1 + lam * inf.2;
+        let tie = inf.2 + lam * inf.3;
         if (c + lam * r) >= tie - 1e-9 * (1.0 + tie.abs()) {
             break;
         }
         if r <= budget {
-            feas = (p, c, r);
-            if feas.1 < best.1 {
+            feas = (p, e, c, r);
+            if feas.2 < best.2 {
                 best = feas.clone();
             }
         } else {
-            inf = (p, c, r);
+            inf = (p, e, c, r);
         }
     }
 
-    let lower_bound = best_lb.min(best.1); // guard against float noise
+    let lower_bound = best_lb.min(best.2); // guard against float noise
     Some(LagrangianRoute {
         path: best.0,
-        cost: best.1,
-        resource: best.2,
+        edges: to_input(best.1),
+        cost: best.2,
+        resource: best.3,
         lower_bound,
         lambda: best_lambda,
         iterations,
@@ -1226,6 +1276,47 @@ mod tests {
         for r in pareto_paths(&from, &to, &cost, &res, 4, 0, 3, f64::INFINITY, usize::MAX) {
             assert!((path_cost(&r.path, &wc) - r.cost).abs() < 1e-9);
         }
+    }
+
+    #[test]
+    fn returned_edges_are_the_traversed_ones() {
+        // Two parallel edges 0 -> 1: cheap-cost/high-resource (index 0) and
+        // expensive-cost/zero-resource (index 1), then 1 -> 2. The edge list
+        // must name the parallel edge each route actually used.
+        let from = vec![0, 0, 1];
+        let to = vec![1, 1, 2];
+        let cost = vec![1.0, 5.0, 1.0];
+        let res = vec![5.0, 0.0, 0.0];
+        let routes =
+            pareto_paths(&from, &to, &cost, &res, 3, 0, 2, f64::INFINITY, usize::MAX);
+        let vals: Vec<(f64, f64)> = routes.iter().map(|r| (r.cost, r.resource)).collect();
+        assert_eq!(vals, vec![(2.0, 5.0), (6.0, 0.0)]);
+        assert_eq!(routes[0].edges, vec![0, 2]);
+        assert_eq!(routes[1].edges, vec![1, 2]);
+        let l = csp_lagrangian(&from, &to, &cost, &res, 3, 0, 2, 0.0, 50).unwrap();
+        assert_eq!(l.edges, vec![1, 2]);
+        assert_eq!((l.cost, l.resource), (6.0, 0.0));
+    }
+
+    #[test]
+    fn returned_edges_align_with_paths_and_values() {
+        let (from, to, cost, res) = diamond();
+        let check = |path: &[usize], edges: &[usize], want_c: f64, want_r: f64| {
+            assert_eq!(edges.len() + 1, path.len());
+            let (mut c, mut r) = (0.0, 0.0);
+            for (i, &e) in edges.iter().enumerate() {
+                assert_eq!(from[e], path[i]);
+                assert_eq!(to[e], path[i + 1]);
+                c += cost[e];
+                r += res[e];
+            }
+            assert!((c - want_c).abs() < 1e-9 && (r - want_r).abs() < 1e-9);
+        };
+        for rt in pareto_paths(&from, &to, &cost, &res, 4, 0, 3, f64::INFINITY, usize::MAX) {
+            check(&rt.path, &rt.edges, rt.cost, rt.resource);
+        }
+        let l = csp_lagrangian(&from, &to, &cost, &res, 4, 0, 3, 5.0, 50).unwrap();
+        check(&l.path, &l.edges, l.cost, l.resource);
     }
 
     #[test]
