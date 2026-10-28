@@ -117,7 +117,9 @@ blended into <code>g</code> as above; (2) the two graphs are stacked with
 directed <em>connector</em> edges is added between each <code>y</code> node and the node it
 snapped to, which is the connectivity a plain blend + union would miss.
 Node <code>osmid</code>s shared by both graphs are merged by the union directly (no
-connector needed).</p>
+connector needed). The union here does not deduplicate edges (the two
+layers are assumed to be distinct networks); combine overlapping downloads
+with <code><a href="ox_union.html">ox_union()</a></code> first when that matters.</p>
 <p>Distances are planar, in the units of the graph's CRS (reproject
 geographic networks first — <code><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">sf::st_transform()</a></code> on <code>nodes</code> and <code>edges</code> —
 when a metric <code>tolerance</code> matters). Split edges keep their attributes;

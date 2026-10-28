@@ -70,7 +70,11 @@ so `y`'s own nodes and edges are kept intact; (3) a pair of directed
 *connector* edges is added between each `y` node and the node it snapped
 to, which is the connectivity a plain blend + union would miss. Node
 `osmid`s shared by both graphs are merged by the union directly (no
-connector needed).
+connector needed). The union here does not deduplicate edges (the two
+layers are assumed to be distinct networks); combine overlapping
+downloads with
+[`ox_union()`](https://strategicprojects.github.io/osmnxr/reference/ox_union.md)
+first when that matters.
 
 Distances are planar, in the units of the graph's CRS (reproject
 geographic networks first —
