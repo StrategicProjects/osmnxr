@@ -23,7 +23,9 @@
 #' directed *connector* edges is added between each `y` node and the node it
 #' snapped to, which is the connectivity a plain blend + union would miss.
 #' Node `osmid`s shared by both graphs are merged by the union directly (no
-#' connector needed).
+#' connector needed). The union here does not deduplicate edges (the two
+#' layers are assumed to be distinct networks); combine overlapping downloads
+#' with [ox_union()] first when that matters.
 #'
 #' Distances are planar, in the units of the graph's CRS (reproject
 #' geographic networks first — [sf::st_transform()] on `nodes` and `edges` —
@@ -129,7 +131,10 @@ blend_graph <- function(g, y, tolerance, connector_attrs) {
     tolerance, node_attrs = NULL, avoid_ids = y$nodes$osmid
   )
 
-  out <- ox_union(core$graph, y)
+  # dedupe_edges compares WKT across all edges — minutes on metro-sized
+  # graphs, and pointless here: the blended layers are distinct networks.
+  # Union overlapping downloads with ox_union() itself before blending.
+  out <- ox_union(core$graph, y, dedupe_edges = FALSE)
 
   # connector edges, both directions, between each y node and its snap node
   with_conn <- which(!is.na(core$map$node) & core$map$node != pts$osmid)

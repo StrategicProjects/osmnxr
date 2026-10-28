@@ -53,7 +53,9 @@ blended into \code{g} as above; (2) the two graphs are stacked with
 directed \emph{connector} edges is added between each \code{y} node and the node it
 snapped to, which is the connectivity a plain blend + union would miss.
 Node \code{osmid}s shared by both graphs are merged by the union directly (no
-connector needed).
+connector needed). The union here does not deduplicate edges (the two
+layers are assumed to be distinct networks); combine overlapping downloads
+with \code{\link[=ox_union]{ox_union()}} first when that matters.
 
 Distances are planar, in the units of the graph's CRS (reproject
 geographic networks first — \code{\link[sf:st_transform]{sf::st_transform()}} on \code{nodes} and \code{edges} —
