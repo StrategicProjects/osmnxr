@@ -28,6 +28,7 @@
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_as_tidygraph.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_basic_stats.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_bearings.html</loc></url>
+<url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_blend.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_centrality.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_circuity.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_clear_cache.html</loc></url>
@@ -53,6 +54,7 @@
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_plot_orientation.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_route_constrained.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_route_pareto.html</loc></url>
+<url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_route_shortest.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_route_tsp.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_save_graphml.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/ox_settings.html</loc></url>
@@ -75,6 +77,7 @@
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_pareto_paths.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_shortest_path.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_simplify_paths.html</loc></url>
+<url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_snap_points.html</loc></url>
 <url><loc>https://strategicprojects.github.io/osmnxr/reference/rs_tsp_tour.html</loc></url>
 </urlset>
 

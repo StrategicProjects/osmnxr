@@ -2,6 +2,63 @@
 
 ## osmnxr 0.1.5
 
+- New
+  [`ox_blend()`](https://strategicprojects.github.io/osmnxr/reference/ox_blend.md)
+  blends point locations — or a whole second graph — into a street
+  network ([\#6](https://github.com/StrategicProjects/osmnxr/issues/6),
+  requested by [@talegari](https://github.com/talegari)), the `osmnxr`
+  counterpart of
+  [`sfnetworks::st_network_blend()`](https://luukvdmeer.github.io/sfnetworks/reference/st_network_blend.html):
+  each point is snapped onto its nearest edge (grid-indexed planar
+  search in the Rust core) and the edge is split there, in both
+  directions of a two-way street, turning the location into a routable
+  node. Attributes are preserved (`length` recomputed; `travel_time` /
+  `penalty` rescaled proportionally), points beyond `tolerance` are
+  skipped with a warning, and `meta$blend` maps every input to its node.
+  Given a second `osm_graph`, the three-step recipe from the issue is
+  applied: blend its nodes in, stack the graphs with
+  [`ox_union()`](https://strategicprojects.github.io/osmnxr/reference/ox_union.md),
+  and add connector edges between each snapped pair — one routable
+  multimodal network.
+
+- New
+  [`ox_route_shortest()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_shortest.md)
+  rounds out the `ox_route_*` family
+  ([\#5](https://github.com/StrategicProjects/osmnxr/issues/5) feedback,
+  [@talegari](https://github.com/talegari)): the `sf` interface to
+  shortest-path routing, returning cost, node path and merged street
+  geometry per route, with `k > 1` enumerating loopless alternatives
+  (Yen) — one naming scheme and one return shape across
+  [`ox_route_shortest()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_shortest.md),
+  [`ox_route_constrained()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_constrained.md),
+  [`ox_route_pareto()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_pareto.md)
+  and
+  [`ox_route_tsp()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_tsp.md).
+  [`ox_shortest_path()`](https://strategicprojects.github.io/osmnxr/reference/ox_shortest_path.md)
+  and
+  [`ox_k_shortest_paths()`](https://strategicprojects.github.io/osmnxr/reference/ox_k_shortest_paths.md)
+  remain as the lighter node-sequence variants.
+
+- Repeated routing calls on the same graph are much faster
+  ([\#5](https://github.com/StrategicProjects/osmnxr/issues/5) feedback,
+  [@talegari](https://github.com/talegari)): the structural edge index
+  that every router marshals for the Rust core (the dominant per-call
+  cost on metro-sized graphs) is now cached for the session,
+  content-addressed by the graph’s node ids and edge endpoints — so
+  copies hit, edits miss, and nothing goes stale. On the NCR Delhi
+  network (2.1M directed edges) a warm
+  [`ox_route_constrained()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_constrained.md)
+  call drops from ~0.7 s to the Rust solve time itself.
+  [`ox_clear_cache()`](https://strategicprojects.github.io/osmnxr/reference/ox_clear_cache.md)
+  also clears this cache. The Dijkstra/Yen solvers additionally return
+  the edges they traversed, so
+  [`ox_route_shortest()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_shortest.md)
+  and
+  [`ox_route_tsp()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_tsp.md)
+  draw exact geometry across parallel edges (previously
+  [`ox_route_tsp()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_tsp.md)
+  drew the minimum-weight twin).
+
 - New preference-aware routing
   ([\#5](https://github.com/StrategicProjects/osmnxr/issues/5),
   requested by [@talegari](https://github.com/talegari)):

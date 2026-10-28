@@ -42,13 +42,14 @@ ox_load_graphml(f)
 #> MEMBER[\"World Geodetic System 1984 (G873)\"], MEMBER[\"World Geodetic System
 #> 1984 (G1150)\"], MEMBER[\"World Geodetic System 1984 (G1674)\"], MEMBER[\"World
 #> Geodetic System 1984 (G1762)\"], MEMBER[\"World Geodetic System 1984
-#> (G2139)\"], ELLIPSOID[\"WGS 84\",6378137,298.257223563,
-#> LENGTHUNIT[\"metre\",1]], ENSEMBLEACCURACY[2.0]], PRIMEM[\"Greenwich\",0,
-#> ANGLEUNIT[\"degree\",0.0174532925199433]], ID[\"EPSG\",4326]],
-#> CONVERSION[\"Popular Visualisation Pseudo-Mercator\", METHOD[\"Popular
-#> Visualisation Pseudo Mercator\", ID[\"EPSG\",1024]], PARAMETER[\"Latitude of
-#> natural origin\",0, ANGLEUNIT[\"degree\",0.0174532925199433],
-#> ID[\"EPSG\",8801]], PARAMETER[\"Longitude of natural origin\",0,
+#> (G2139)\"], MEMBER[\"World Geodetic System 1984 (G2296)\"], ELLIPSOID[\"WGS
+#> 84\",6378137,298.257223563, LENGTHUNIT[\"metre\",1]], ENSEMBLEACCURACY[2.0]],
+#> PRIMEM[\"Greenwich\",0, ANGLEUNIT[\"degree\",0.0174532925199433]],
+#> ID[\"EPSG\",4326]], CONVERSION[\"Popular Visualisation Pseudo-Mercator\",
+#> METHOD[\"Popular Visualisation Pseudo Mercator\", ID[\"EPSG\",1024]],
+#> PARAMETER[\"Latitude of natural origin\",0,
+#> ANGLEUNIT[\"degree\",0.0174532925199433], ID[\"EPSG\",8801]],
+#> PARAMETER[\"Longitude of natural origin\",0,
 #> ANGLEUNIT[\"degree\",0.0174532925199433], ID[\"EPSG\",8802]], PARAMETER[\"False
 #> easting\",0, LENGTHUNIT[\"metre\",1], ID[\"EPSG\",8806]], PARAMETER[\"False
 #> northing\",0, LENGTHUNIT[\"metre\",1], ID[\"EPSG\",8807]]], CS[Cartesian,2],

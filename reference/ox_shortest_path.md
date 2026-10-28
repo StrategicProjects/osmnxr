@@ -1,7 +1,10 @@
 # Shortest path between two nodes
 
 Computes the minimum-weight path from `from` to `to` using Dijkstra's
-algorithm in the Rust core.
+algorithm in the Rust core, returning just the node sequence. See
+[`ox_route_shortest()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_shortest.md)
+for the richer `sf` interface that also returns the route's cost and
+street geometry (and alternatives via `k`).
 
 ## Usage
 

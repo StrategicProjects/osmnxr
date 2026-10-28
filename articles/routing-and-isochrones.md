@@ -18,16 +18,29 @@ Snap two coordinates to the nearest nodes, then route between them:
 
 orig <- ox_nearest_nodes(g, x = -34.8553, y = -8.0089)
 dest <- ox_nearest_nodes(g, x = -34.8505, y = -8.0125)
-route <- ox_shortest_path(g, orig, dest, weight = "length")
-length(route) # nodes along the route
-#> [1] 8
+route <- ox_route_shortest(g, orig, dest, weight = "length")
+route
+#> Simple feature collection with 1 feature and 3 fields
+#> Geometry type: LINESTRING
+#> Dimension:     XY
+#> Bounding box:  xmin: -34.85537 ymin: -8.013207 xmax: -34.85157 ymax: -8.009047
+#> Geodetic CRS:  WGS 84
+#> # A tibble: 1 × 4
+#>   route  cost path                                                      geometry
+#>   <int> <dbl> <list>                                            <LINESTRING [°]>
+#> 1     1  680. <dbl [8]> (-34.85537 -8.009047, -34.85526 -8.009268, -34.85499 -8…
 ```
+
+The result is an `sf` tibble: the route’s cost, the node `osmid`s
+traversed and its merged street geometry, ready to map.
+([`ox_shortest_path()`](https://strategicprojects.github.io/osmnxr/reference/ox_shortest_path.md)
+returns just the vector of node ids, when that is all you need.)
 
 ``` r
 
-route_xy <- sf::st_coordinates(g$nodes)[match(route, g$nodes$osmid), ]
 plot(g, col = "grey80", lwd = 0.6)
-lines(route_xy, col = "#b7410e", lwd = 3)
+plot(sf::st_geometry(route), col = "#b7410e", lwd = 3, add = TRUE)
+route_xy <- sf::st_coordinates(g$nodes)[match(route$path[[1]], g$nodes$osmid), ]
 points(route_xy[c(1, nrow(route_xy)), ], pch = 19, col = "#0d3b66", cex = 1.2)
 ```
 
@@ -57,25 +70,31 @@ head(g$edges[c("highway", "length", "speed_kph", "travel_time")])
 #> 6    tertiary  47.55902        40    4.280311 LINESTRING (-34.85889 -8.00...
 
 route_t <- ox_shortest_path(g, orig, dest, weight = "travel_time")
-identical(route_t, route) # may differ: the fastest route is not always shortest
+# may differ: the fastest route is not always the shortest
+identical(route_t, route$path[[1]])
 #> [1] TRUE
 ```
 
 ## Route alternatives
 
-[`ox_k_shortest_paths()`](https://strategicprojects.github.io/osmnxr/reference/ox_k_shortest_paths.md)
-returns the *k* shortest loopless routes (Yen’s algorithm) — useful for
-comparing options or modelling redundancy:
+`ox_route_shortest(k = ...)` returns the *k* shortest loopless routes
+(Yen’s algorithm) — useful for comparing options or modelling
+redundancy:
 
 ``` r
 
-ox_k_shortest_paths(g, orig, dest, k = 3, weight = "travel_time")
-#> # A tibble: 3 × 3
-#>    rank  cost path      
-#>   <int> <dbl> <list>    
-#> 1     1  72.1 <dbl [8]> 
-#> 2     2  90.7 <dbl [11]>
-#> 3     3 111.  <dbl [16]>
+ox_route_shortest(g, orig, dest, k = 3, weight = "travel_time")
+#> Simple feature collection with 3 features and 3 fields
+#> Geometry type: LINESTRING
+#> Dimension:     XY
+#> Bounding box:  xmin: -34.8567 ymin: -8.013207 xmax: -34.85157 ymax: -8.009047
+#> Geodetic CRS:  WGS 84
+#> # A tibble: 3 × 4
+#>   route  cost path                                                      geometry
+#>   <int> <dbl> <list>                                            <LINESTRING [°]>
+#> 1     1  72.1 <dbl [8]>  (-34.85537 -8.009047, -34.85526 -8.009268, -34.85499 -…
+#> 2     2  90.7 <dbl [11]> (-34.85537 -8.009047, -34.85526 -8.009268, -34.85499 -…
+#> 3     3 111.  <dbl [16]> (-34.85537 -8.009047, -34.85526 -8.009268, -34.85499 -…
 ```
 
 ## Routing with road preferences
@@ -228,6 +247,57 @@ round(ox_distance_matrix(g, hubs, hubs, weight = "travel_time"))
 #> 1206764895         76          0        134
 #> 1499391454         73        129          0
 ```
+
+## Blending new stops into the network
+
+Routing starts and ends at nodes, but real origins and destinations
+rarely sit on one —
+[`ox_nearest_nodes()`](https://strategicprojects.github.io/osmnxr/reference/ox_nearest_nodes.md)
+above quietly moved them to the closest intersection.
+[`ox_blend()`](https://strategicprojects.github.io/osmnxr/reference/ox_blend.md)
+does better: it snaps each point onto its nearest *edge* and splits the
+edge there (in both directions of a two-way street), turning the exact
+location into a routable node — the `osmnxr` counterpart of
+[`sfnetworks::st_network_blend()`](https://luukvdmeer.github.io/sfnetworks/reference/st_network_blend.html),
+computed in the Rust core:
+
+``` r
+
+stops <- sf::st_sfc(
+  sf::st_point(c(-34.8540, -8.0095)),
+  sf::st_point(c(-34.8512, -8.0118)),
+  crs = sf::st_crs(g$nodes)
+)
+gb <- ox_blend(g, stops)
+gb$meta$blend # which node each stop became, and how far it was snapped
+#> # A tibble: 2 × 3
+#>   point       node     dist
+#>   <int>      <dbl>    <dbl>
+#> 1     1 9016535993 0.000206
+#> 2     2 9016535994 0.000575
+
+ox_route_shortest(gb, gb$meta$blend$node[1], gb$meta$blend$node[2],
+                  weight = "travel_time")
+#> Simple feature collection with 1 feature and 3 fields
+#> Geometry type: LINESTRING
+#> Dimension:     XY
+#> Bounding box:  xmin: -34.85411 ymin: -8.013207 xmax: -34.85153 ymax: -8.009675
+#> Geodetic CRS:  WGS 84
+#> # A tibble: 1 × 4
+#>   route  cost path                                                      geometry
+#>   <int> <dbl> <list>                                            <LINESTRING [°]>
+#> 1     1  82.4 <dbl [8]> (-34.85411 -8.009675, -34.8541 -8.00968, -34.85398 -8.0…
+```
+
+[`ox_blend()`](https://strategicprojects.github.io/osmnxr/reference/ox_blend.md)
+also accepts a whole second `osm_graph` (say, a metro layer over a
+street network): every node of the second graph is snapped into the
+first, the two graphs are stacked with
+[`ox_union()`](https://strategicprojects.github.io/osmnxr/reference/ox_union.md),
+and *connector* edges are added between each snapped pair — producing
+one routable multimodal graph. See
+[`?ox_blend`](https://strategicprojects.github.io/osmnxr/reference/ox_blend.md)
+for the details.
 
 ## References
 

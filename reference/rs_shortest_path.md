@@ -1,7 +1,9 @@
-# Shortest path (0-based node indices) between `source` and `target`. Returns an empty vector when the target is unreachable.
+# Shortest path between `source` and `target`. Returns a list with `path` (0-based node indices), `edges` (0-based input-order indices of the edges actually traversed, parallel edges included) and `cost`; `path` is empty and `cost` is `Inf` when the target is unreachable.
 
-Shortest path (0-based node indices) between `source` and `target`.
-Returns an empty vector when the target is unreachable.
+Shortest path between `source` and `target`. Returns a list with `path`
+(0-based node indices), `edges` (0-based input-order indices of the
+edges actually traversed, parallel edges included) and `cost`; `path` is
+empty and `cost` is `Inf` when the target is unreachable.
 
 ## Usage
 

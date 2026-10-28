@@ -1,7 +1,10 @@
 # k shortest paths between two nodes
 
 Computes up to `k` loopless shortest paths from `from` to `to` using
-Yen's algorithm in the Rust core. Useful for route alternatives.
+Yen's algorithm in the Rust core, returning node sequences. See
+[`ox_route_shortest()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_shortest.md)
+for the richer `sf` interface that also returns each route's street
+geometry.
 
 ## Usage
 

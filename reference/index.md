@@ -55,6 +55,8 @@ Shortest paths, distances and service areas (Rust core).
   : Find the nearest node to a point
 - [`ox_nearest_edges()`](https://strategicprojects.github.io/osmnxr/reference/ox_nearest_edges.md)
   : Find the nearest edge to a point
+- [`ox_route_shortest()`](https://strategicprojects.github.io/osmnxr/reference/ox_route_shortest.md)
+  : Shortest route(s) between two nodes, with geometry
 - [`ox_shortest_path()`](https://strategicprojects.github.io/osmnxr/reference/ox_shortest_path.md)
   : Shortest path between two nodes
 - [`ox_k_shortest_paths()`](https://strategicprojects.github.io/osmnxr/reference/ox_k_shortest_paths.md)
@@ -142,6 +144,9 @@ Hand graphs to the wider R network ecosystem.
   :
 
   Union of `osm_graph` objects
+
+- [`ox_blend()`](https://strategicprojects.github.io/osmnxr/reference/ox_blend.md)
+  : Blend points or another graph into a street network
 
 - [`plot(`*`<osm_graph>`*`)`](https://strategicprojects.github.io/osmnxr/reference/plot.osm_graph.md)
   :
