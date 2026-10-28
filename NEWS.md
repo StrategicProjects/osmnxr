@@ -1,5 +1,18 @@
 # osmnxr 0.1.5
 
+* New `ox_blend()` blends point locations — or a whole second graph — into a
+  street network (#6, requested by @talegari), the `osmnxr` counterpart of
+  `sfnetworks::st_network_blend()`: each point is snapped onto its nearest
+  edge (grid-indexed planar search in the Rust core) and the edge is split
+  there, in both directions of a two-way street, turning the location into a
+  routable node. Attributes are preserved (`length` recomputed;
+  `travel_time` / `penalty` rescaled proportionally), points beyond
+  `tolerance` are skipped with a warning, and `meta$blend` maps every input
+  to its node. Given a second `osm_graph`, the three-step recipe from the
+  issue is applied: blend its nodes in, stack the graphs with `ox_union()`,
+  and add connector edges between each snapped pair — one routable
+  multimodal network.
+
 * New `ox_route_shortest()` rounds out the `ox_route_*` family (#5 feedback,
   @talegari): the `sf` interface to shortest-path routing, returning cost,
   node path and merged street geometry per route, with `k > 1` enumerating

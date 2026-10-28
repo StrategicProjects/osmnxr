@@ -9,8 +9,10 @@ NULL
 #' @keywords internal
 rs_basic_stats <- function(from, to, weight, n_nodes) .Call(wrap__rs_basic_stats, from, to, weight, n_nodes)
 
-#' Shortest path (0-based node indices) between `source` and `target`.
-#' Returns an empty vector when the target is unreachable.
+#' Shortest path between `source` and `target`. Returns a list with `path`
+#' (0-based node indices), `edges` (0-based input-order indices of the edges
+#' actually traversed, parallel edges included) and `cost`; `path` is empty
+#' and `cost` is `Inf` when the target is unreachable.
 #' @keywords internal
 rs_shortest_path <- function(from, to, weight, n_nodes, source, target) .Call(wrap__rs_shortest_path, from, to, weight, n_nodes, source, target)
 
@@ -37,7 +39,9 @@ rs_simplify_paths <- function(from, to, n_nodes) .Call(wrap__rs_simplify_paths, 
 rs_connected_components <- function(a, b, n_nodes) .Call(wrap__rs_connected_components, a, b, n_nodes)
 
 #' Yen's k loopless shortest paths. Returns a list with `paths` (a list of
-#' 0-based node-index vectors) and `costs` (numeric).
+#' 0-based node-index vectors), `edge_paths` (0-based input-order indices of
+#' the edges traversed — the minimum-weight edge of each consecutive node
+#' pair, matching Yen's simple-graph abstraction) and `costs` (numeric).
 #' @keywords internal
 rs_k_shortest_paths <- function(from, to, weight, n_nodes, source, target, k) .Call(wrap__rs_k_shortest_paths, from, to, weight, n_nodes, source, target, k)
 
@@ -81,5 +85,14 @@ rs_betweenness <- function(from, to, weight, n_nodes, normalized) .Call(wrap__rs
 #' Closeness centrality for every node.
 #' @keywords internal
 rs_closeness <- function(from, to, weight, n_nodes, normalized) .Call(wrap__rs_closeness, from, to, weight, n_nodes, normalized)
+
+#' Snap points to the nearest edge polyline (planar distance, grid-indexed).
+#' Edges arrive as flattened vertex coordinates (`vx`/`vy`) plus 0-based
+#' per-edge `offsets` (length `n_edges + 1`). Returns a list with, per point:
+#' `edge` (0-based nearest edge, `-1` when none within `tolerance`), `dist`,
+#' the snapped coordinates `x`/`y`, and `pos` (planar distance along the
+#' edge's polyline from its first vertex).
+#' @keywords internal
+rs_snap_points <- function(vx, vy, offsets, px, py, tolerance) .Call(wrap__rs_snap_points, vx, vy, offsets, px, py, tolerance)
 
 # nolint end

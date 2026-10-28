@@ -151,6 +151,34 @@ hubs <- ox_nearest_nodes(g,
 round(ox_distance_matrix(g, hubs, hubs, weight = "travel_time"))
 ```
 
+## Blending new stops into the network
+
+Routing starts and ends at nodes, but real origins and destinations rarely
+sit on one — `ox_nearest_nodes()` above quietly moved them to the closest
+intersection. `ox_blend()` does better: it snaps each point onto its nearest
+*edge* and splits the edge there (in both directions of a two-way street),
+turning the exact location into a routable node — the `osmnxr` counterpart of
+`sfnetworks::st_network_blend()`, computed in the Rust core:
+
+```{r}
+stops <- sf::st_sfc(
+  sf::st_point(c(-34.8540, -8.0095)),
+  sf::st_point(c(-34.8512, -8.0118)),
+  crs = sf::st_crs(g$nodes)
+)
+gb <- ox_blend(g, stops)
+gb$meta$blend # which node each stop became, and how far it was snapped
+
+ox_route_shortest(gb, gb$meta$blend$node[1], gb$meta$blend$node[2],
+                  weight = "travel_time")
+```
+
+`ox_blend()` also accepts a whole second `osm_graph` (say, a metro layer over
+a street network): every node of the second graph is snapped into the first,
+the two graphs are stacked with `ox_union()`, and *connector* edges are added
+between each snapped pair — producing one routable multimodal graph. See
+`?ox_blend` for the details.
+
 ## References
 
 Boeing, G. (2025). Modeling and analyzing urban networks and amenities with

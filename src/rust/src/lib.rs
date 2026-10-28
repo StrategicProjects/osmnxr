@@ -5,6 +5,7 @@ mod graph;
 mod metrics;
 mod routing;
 mod simplify;
+mod spatial;
 
 use graph::Graph;
 
@@ -294,6 +295,42 @@ fn rs_csp_lagrangian(
     }
 }
 
+/// Snap points to the nearest edge polyline (planar distance, grid-indexed).
+/// Edges arrive as flattened vertex coordinates (`vx`/`vy`) plus 0-based
+/// per-edge `offsets` (length `n_edges + 1`). Returns a list with, per point:
+/// `edge` (0-based nearest edge, `-1` when none within `tolerance`), `dist`,
+/// the snapped coordinates `x`/`y`, and `pos` (planar distance along the
+/// edge's polyline from its first vertex).
+/// @keywords internal
+#[extendr]
+fn rs_snap_points(
+    vx: Vec<f64>,
+    vy: Vec<f64>,
+    offsets: Vec<i32>,
+    px: Vec<f64>,
+    py: Vec<f64>,
+    tolerance: f64,
+) -> List {
+    let offs: Vec<usize> = offsets.iter().map(|&x| x as usize).collect();
+    let index = spatial::SegmentIndex::build(&vx, &vy, &offs);
+    let n = px.len();
+    let mut edge = vec![-1i32; n];
+    let mut dist = vec![f64::NAN; n];
+    let mut sx = vec![f64::NAN; n];
+    let mut sy = vec![f64::NAN; n];
+    let mut pos = vec![f64::NAN; n];
+    for i in 0..n {
+        if let Some(s) = index.nearest(px[i], py[i], tolerance) {
+            edge[i] = s.edge as i32;
+            dist[i] = s.dist;
+            sx[i] = s.x;
+            sy[i] = s.y;
+            pos[i] = s.pos;
+        }
+    }
+    list!(edge = edge, dist = dist, x = sx, y = sy, pos = pos)
+}
+
 // Macro to generate exports.
 // This ensures exported functions are registered with R.
 // See corresponding C code in `entrypoint.c`.
@@ -313,4 +350,5 @@ extendr_module! {
     fn rs_csp_lagrangian;
     fn rs_betweenness;
     fn rs_closeness;
+    fn rs_snap_points;
 }
