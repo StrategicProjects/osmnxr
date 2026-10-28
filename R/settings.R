@@ -6,6 +6,10 @@
 # Session cache for downloaded responses, keyed with rlang::hash().
 .osmnxr_cache <- new.env(parent = emptyenv())
 
+# Session cache of structural edge indexes (see graph_edge_index() in
+# osm_graph.R), keyed by a hash of the graph's node ids and edge endpoints.
+.osmnxr_edge_index <- new.env(parent = emptyenv())
+
 default_settings <- function() {
   list(
     overpass_url   = "https://overpass-api.de/api/interpreter",
@@ -61,7 +65,10 @@ ox_settings <- function(...) {
 
 #' Clear the session cache
 #'
-#' Empties the in-memory cache of downloaded OpenStreetMap responses.
+#' Empties the in-memory cache of downloaded OpenStreetMap responses, and the
+#' cache of routing edge indexes that makes repeated `ox_route_*()` /
+#' `ox_shortest_path()` calls on the same graph fast. Both caches are rebuilt
+#' transparently on demand; clearing them only frees memory.
 #'
 #' @return Invisibly `NULL`.
 #' @export
@@ -70,5 +77,6 @@ ox_settings <- function(...) {
 #' ox_clear_cache()
 ox_clear_cache <- function() {
   rm(list = ls(.osmnxr_cache), envir = .osmnxr_cache)
+  rm(list = ls(.osmnxr_edge_index, all.names = TRUE), envir = .osmnxr_edge_index)
   invisible(NULL)
 }

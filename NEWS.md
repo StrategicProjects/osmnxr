@@ -1,5 +1,25 @@
 # osmnxr 0.1.5
 
+* New `ox_route_shortest()` rounds out the `ox_route_*` family (#5 feedback,
+  @talegari): the `sf` interface to shortest-path routing, returning cost,
+  node path and merged street geometry per route, with `k > 1` enumerating
+  loopless alternatives (Yen) — one naming scheme and one return shape across
+  `ox_route_shortest()`, `ox_route_constrained()`, `ox_route_pareto()` and
+  `ox_route_tsp()`. `ox_shortest_path()` and `ox_k_shortest_paths()` remain
+  as the lighter node-sequence variants.
+
+* Repeated routing calls on the same graph are much faster (#5 feedback,
+  @talegari): the structural edge index that every router marshals for the
+  Rust core (the dominant per-call cost on metro-sized graphs) is now cached
+  for the session, content-addressed by the graph's node ids and edge
+  endpoints — so copies hit, edits miss, and nothing goes stale. On the NCR
+  Delhi network (2.1M directed edges) a warm `ox_route_constrained()` call
+  drops from ~0.7 s to the Rust solve time itself. `ox_clear_cache()` also
+  clears this cache. The Dijkstra/Yen solvers additionally return the edges
+  they traversed, so `ox_route_shortest()` and `ox_route_tsp()` draw exact
+  geometry across parallel edges (previously `ox_route_tsp()` drew the
+  minimum-weight twin).
+
 * New preference-aware routing (#5, requested by @talegari):
   `ox_route_constrained()` finds the exact minimum-cost route whose
   consumption of a second edge criterion stays within a budget (e.g. "the

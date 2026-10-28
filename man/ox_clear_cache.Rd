@@ -10,7 +10,10 @@ ox_clear_cache()
 Invisibly \code{NULL}.
 }
 \description{
-Empties the in-memory cache of downloaded OpenStreetMap responses.
+Empties the in-memory cache of downloaded OpenStreetMap responses, and the
+cache of routing edge indexes that makes repeated \verb{ox_route_*()} /
+\code{ox_shortest_path()} calls on the same graph fast. Both caches are rebuilt
+transparently on demand; clearing them only frees memory.
 }
 \examples{
 ox_clear_cache()

@@ -3,12 +3,16 @@
 \name{rs_k_shortest_paths}
 \alias{rs_k_shortest_paths}
 \title{Yen's k loopless shortest paths. Returns a list with \code{paths} (a list of
-0-based node-index vectors) and \code{costs} (numeric).}
+0-based node-index vectors), \code{edge_paths} (0-based input-order indices of
+the edges traversed — the minimum-weight edge of each consecutive node
+pair, matching Yen's simple-graph abstraction) and \code{costs} (numeric).}
 \usage{
 rs_k_shortest_paths(from, to, weight, n_nodes, source, target, k)
 }
 \description{
 Yen's k loopless shortest paths. Returns a list with \code{paths} (a list of
-0-based node-index vectors) and \code{costs} (numeric).
+0-based node-index vectors), \code{edge_paths} (0-based input-order indices of
+the edges traversed — the minimum-weight edge of each consecutive node
+pair, matching Yen's simple-graph abstraction) and \code{costs} (numeric).
 }
 \keyword{internal}

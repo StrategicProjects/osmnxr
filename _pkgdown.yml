@@ -76,6 +76,7 @@ reference:
     contents:
       - ox_nearest_nodes
       - ox_nearest_edges
+      - ox_route_shortest
       - ox_shortest_path
       - ox_k_shortest_paths
       - ox_distances

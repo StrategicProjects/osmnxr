@@ -22,7 +22,9 @@ than \code{k} rows are returned when fewer distinct paths exist.
 }
 \description{
 Computes up to \code{k} loopless shortest paths from \code{from} to \code{to} using Yen's
-algorithm in the Rust core. Useful for route alternatives.
+algorithm in the Rust core, returning node sequences. See
+\code{\link[=ox_route_shortest]{ox_route_shortest()}} for the richer \code{sf} interface that also returns each
+route's street geometry.
 }
 \examples{
 g <- example_osm_graph()

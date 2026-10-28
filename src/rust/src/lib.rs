@@ -28,8 +28,10 @@ fn rs_basic_stats(from: Vec<i32>, to: Vec<i32>, weight: Vec<f64>, n_nodes: i32) 
     )
 }
 
-/// Shortest path (0-based node indices) between `source` and `target`.
-/// Returns an empty vector when the target is unreachable.
+/// Shortest path between `source` and `target`. Returns a list with `path`
+/// (0-based node indices), `edges` (0-based input-order indices of the edges
+/// actually traversed, parallel edges included) and `cost`; `path` is empty
+/// and `cost` is `Inf` when the target is unreachable.
 /// @keywords internal
 #[extendr]
 fn rs_shortest_path(
@@ -39,12 +41,20 @@ fn rs_shortest_path(
     n_nodes: i32,
     source: i32,
     target: i32,
-) -> Vec<i32> {
-    let g = Graph::from_edges(&as_idx(&from), &as_idx(&to), &weight, n_nodes as usize);
-    routing::shortest_path(&g, source as usize, target as usize)
-        .into_iter()
-        .map(|x| x as i32)
-        .collect()
+) -> List {
+    let from = as_idx(&from);
+    let g = Graph::from_edges(&from, &as_idx(&to), &weight, n_nodes as usize);
+    match routing::shortest_path_route(&g, source as usize, target as usize) {
+        Some((path, slots, cost)) => {
+            let order = routing::csr_edge_order(&from, n_nodes as usize);
+            list!(
+                path = path.iter().map(|&x| x as i32).collect::<Vec<i32>>(),
+                edges = slots.iter().map(|&s| order[s] as i32).collect::<Vec<i32>>(),
+                cost = cost
+            )
+        }
+        None => list!(path = Vec::<i32>::new(), edges = Vec::<i32>::new(), cost = f64::INFINITY),
+    }
 }
 
 /// Single-source shortest distances (length `n_nodes`); `Inf` if unreachable.
@@ -99,7 +109,9 @@ fn rs_connected_components(a: Vec<i32>, b: Vec<i32>, n_nodes: i32) -> Vec<i32> {
 }
 
 /// Yen's k loopless shortest paths. Returns a list with `paths` (a list of
-/// 0-based node-index vectors) and `costs` (numeric).
+/// 0-based node-index vectors), `edge_paths` (0-based input-order indices of
+/// the edges traversed — the minimum-weight edge of each consecutive node
+/// pair, matching Yen's simple-graph abstraction) and `costs` (numeric).
 /// @keywords internal
 #[extendr]
 fn rs_k_shortest_paths(
@@ -123,10 +135,14 @@ fn rs_k_shortest_paths(
     );
     let paths = List::from_values(
         res.iter()
-            .map(|(p, _)| p.iter().map(|&x| x as i32).collect::<Vec<i32>>()),
+            .map(|r| r.path.iter().map(|&x| x as i32).collect::<Vec<i32>>()),
     );
-    let costs: Vec<f64> = res.iter().map(|(_, c)| *c).collect();
-    list!(paths = paths, costs = costs)
+    let edge_paths = List::from_values(
+        res.iter()
+            .map(|r| r.edges.iter().map(|&x| x as i32).collect::<Vec<i32>>()),
+    );
+    let costs: Vec<f64> = res.iter().map(|r| r.cost).collect();
+    list!(paths = paths, edge_paths = edge_paths, costs = costs)
 }
 
 /// Betweenness centrality (Brandes) for every node.

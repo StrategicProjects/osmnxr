@@ -19,7 +19,9 @@ target is unreachable).
 }
 \description{
 Computes the minimum-weight path from \code{from} to \code{to} using Dijkstra's
-algorithm in the Rust core.
+algorithm in the Rust core, returning just the node sequence. See
+\code{\link[=ox_route_shortest]{ox_route_shortest()}} for the richer \code{sf} interface that also returns the
+route's cost and street geometry (and alternatives via \code{k}).
 }
 \examples{
 g <- example_osm_graph()

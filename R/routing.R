@@ -25,7 +25,9 @@ ox_nearest_nodes <- function(g, x, y) {
 #' Shortest path between two nodes
 #'
 #' Computes the minimum-weight path from `from` to `to` using Dijkstra's
-#' algorithm in the Rust core.
+#' algorithm in the Rust core, returning just the node sequence. See
+#' [ox_route_shortest()] for the richer `sf` interface that also returns the
+#' route's cost and street geometry (and alternatives via `k`).
 #'
 #' @param g An [osm_graph][new_osm_graph].
 #' @param from,to Node `osmid`s (as returned by [ox_nearest_nodes()]).
@@ -48,15 +50,17 @@ ox_shortest_path <- function(g, from, to, weight = "length") {
   if (is.na(s) || is.na(t)) {
     cli::cli_abort("{.arg from}/{.arg to} must be node {.field osmid}s present in the graph.", call = NULL)
   }
-  path_idx <- rs_shortest_path(ea$from, ea$to, ea$weight, ea$n_nodes,
-                               as.integer(s), as.integer(t))
-  ea$node_ids[path_idx + 1L]
+  res <- rs_shortest_path(ea$from, ea$to, ea$weight, ea$n_nodes,
+                          as.integer(s), as.integer(t))
+  ea$node_ids[res$path + 1L]
 }
 
 #' k shortest paths between two nodes
 #'
 #' Computes up to `k` loopless shortest paths from `from` to `to` using Yen's
-#' algorithm in the Rust core. Useful for route alternatives.
+#' algorithm in the Rust core, returning node sequences. See
+#' [ox_route_shortest()] for the richer `sf` interface that also returns each
+#' route's street geometry.
 #'
 #' @param g An [osm_graph][new_osm_graph].
 #' @param from,to Node `osmid`s.
@@ -85,6 +89,81 @@ ox_k_shortest_paths <- function(g, from, to, k = 3, weight = "length") {
                              as.integer(s), as.integer(t), as.integer(k))
   paths <- lapply(res$paths, function(idx) ea$node_ids[idx + 1L])
   tibble::tibble(rank = seq_along(paths), cost = as.numeric(res$costs), path = paths)
+}
+
+#' Shortest route(s) between two nodes, with geometry
+#'
+#' The `sf` routing interface, uniform with the rest of the `ox_route_*`
+#' family: computes the minimum-`weight` route from `from` to `to` (Dijkstra,
+#' in the Rust core) and returns it with its cost and merged street geometry.
+#' With `k > 1` it returns up to `k` loopless route alternatives (Yen's
+#' algorithm), one per row, ordered by increasing cost.
+#'
+#' The geometry is built from the edges the solver actually traversed, so it
+#' is exact across parallel edges. [ox_shortest_path()] and
+#' [ox_k_shortest_paths()] remain as the lighter variants returning only node
+#' sequences.
+#'
+#' @param g An [osm_graph][new_osm_graph].
+#' @param from,to Node `osmid`s (as returned by [ox_nearest_nodes()]).
+#' @param weight Edge column used as weight. Default `"length"`; use
+#'   `"travel_time"` after [ox_add_edge_travel_times()] for fastest routes.
+#' @param k Number of route alternatives to return. Default `1` (the shortest
+#'   route); larger values enumerate loopless alternatives by increasing cost
+#'   (fewer than `k` rows are returned when fewer distinct routes exist).
+#'
+#' @return An `sf` tibble with one row per route: `route` (rank), `cost`, a
+#'   list-column `path` of the node `osmid`s traversed, and the route's merged
+#'   street geometry. An error is raised when `to` is unreachable from `from`.
+#' @export
+#'
+#' @examples
+#' g <- example_osm_graph()
+#' from <- ox_nearest_nodes(g, 0, 0)
+#' to <- ox_nearest_nodes(g, 300, 300)
+#' ox_route_shortest(g, from, to)
+#' ox_route_shortest(g, from, to, k = 3)
+ox_route_shortest <- function(g, from, to, weight = "length", k = 1) {
+  stopifnot(is_osm_graph(g))
+  if (length(k) != 1 || is.na(k) || k < 1) {
+    cli::cli_abort("{.arg k} must be a single number >= 1.", call = NULL)
+  }
+  ea <- graph_edge_arrays(g, weight)
+  s <- match(from, ea$node_ids) - 1L
+  t <- match(to, ea$node_ids) - 1L
+  if (length(s) != 1 || length(t) != 1 || is.na(s) || is.na(t)) {
+    cli::cli_abort("{.arg from}/{.arg to} must be node {.field osmid}s present in the graph.", call = NULL)
+  }
+  if (k == 1) {
+    res <- rs_shortest_path(ea$from, ea$to, ea$weight, ea$n_nodes,
+                            as.integer(s), as.integer(t))
+    if (length(res$path) == 0) {
+      cli::cli_abort("No route from node {.val {from}} to node {.val {to}} in this network.", call = NULL)
+    }
+    paths <- list(ea$node_ids[res$path + 1L])
+    edge_paths <- list(res$edges)
+    costs <- res$cost
+  } else {
+    res <- rs_k_shortest_paths(ea$from, ea$to, ea$weight, ea$n_nodes,
+                               as.integer(s), as.integer(t), as.integer(k))
+    if (length(res$paths) == 0) {
+      cli::cli_abort("No route from node {.val {from}} to node {.val {to}} in this network.", call = NULL)
+    }
+    paths <- lapply(res$paths, function(idx) ea$node_ids[idx + 1L])
+    edge_paths <- res$edge_paths
+    costs <- as.numeric(res$costs)
+  }
+  geom <- sf::st_sfc(
+    lapply(edge_paths, function(ei) edge_path_geometry(ea$edge_rows[ei + 1L], g)),
+    crs = sf::st_crs(g$nodes)
+  )
+  out <- tibble::tibble(
+    route = seq_along(paths),
+    cost = costs,
+    path = unname(paths),
+    geometry = geom
+  )
+  sf::st_as_sf(out)
 }
 
 #' Shortest-path distance matrix
@@ -209,15 +288,15 @@ ox_route_tsp <- function(g, nodes, weight = "length",
     )
   }
 
-  paths <- Map(function(a, b) {
-    idx <- rs_shortest_path(ea$from, ea$to, ea$weight, ea$n_nodes,
-                            as.integer(s[a]), as.integer(s[b]))
-    ea$node_ids[idx + 1L]
+  legs <- Map(function(a, b) {
+    rs_shortest_path(ea$from, ea$to, ea$weight, ea$n_nodes,
+                     as.integer(s[a]), as.integer(s[b]))
   }, from_idx, to_idx)
-
-  lut <- edge_geometry_lut(g, weight)
-  geom <- sf::st_sfc(lapply(paths, path_leg_geometry, g = g, weight = weight, lut = lut),
-                     crs = sf::st_crs(g$nodes))
+  paths <- lapply(legs, function(l) ea$node_ids[l$path + 1L])
+  geom <- sf::st_sfc(
+    lapply(legs, function(l) edge_path_geometry(ea$edge_rows[l$edges + 1L], g)),
+    crs = sf::st_crs(g$nodes)
+  )
 
   out <- tibble::tibble(
     leg = seq_along(paths),
@@ -438,29 +517,6 @@ abort_no_bi_route <- function(ea, from, to, s, t, budget, resource) {
 edge_path_geometry <- function(rows, g) {
   if (length(rows) == 0) return(sf::st_linestring())
   u <- sf::st_cast(sf::st_union(sf::st_geometry(g$edges)[rows]), "MULTILINESTRING")
-  sf::st_line_merge(u)[[1]]
-}
-
-# Internal: edge-row lookup by "u v" key, resolving parallel edges to the
-# minimum-weight one (matching what Dijkstra traversed). Built once per call
-# and shared across a route's legs: on metro-sized graphs this is the
-# expensive part, not the routing.
-edge_geometry_lut <- function(g, weight = "length") {
-  key <- paste(g$edges$u, g$edges$v)
-  w <- if (weight %in% names(g$edges)) as.numeric(g$edges[[weight]]) else rep(1, nrow(g$edges))
-  o <- order(w)
-  first <- o[!duplicated(key[o])]
-  stats::setNames(first, key[first])
-}
-
-# Internal: merge the street geometries along a node-osmid path into a single
-# (MULTI)LINESTRING sfg. `lut` comes from edge_geometry_lut(); pass it when
-# building several legs/routes so it is computed once.
-path_leg_geometry <- function(path, g, weight = "length", lut = NULL) {
-  if (length(path) < 2) return(sf::st_linestring())
-  if (is.null(lut)) lut <- edge_geometry_lut(g, weight)
-  idx <- lut[paste(path[-length(path)], path[-1])]
-  u <- sf::st_cast(sf::st_union(sf::st_geometry(g$edges)[idx]), "MULTILINESTRING")
   sf::st_line_merge(u)[[1]]
 }
 

@@ -2,13 +2,17 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{rs_shortest_path}
 \alias{rs_shortest_path}
-\title{Shortest path (0-based node indices) between \code{source} and \code{target}.
-Returns an empty vector when the target is unreachable.}
+\title{Shortest path between \code{source} and \code{target}. Returns a list with \code{path}
+(0-based node indices), \code{edges} (0-based input-order indices of the edges
+actually traversed, parallel edges included) and \code{cost}; \code{path} is empty
+and \code{cost} is \code{Inf} when the target is unreachable.}
 \usage{
 rs_shortest_path(from, to, weight, n_nodes, source, target)
 }
 \description{
-Shortest path (0-based node indices) between \code{source} and \code{target}.
-Returns an empty vector when the target is unreachable.
+Shortest path between \code{source} and \code{target}. Returns a list with \code{path}
+(0-based node indices), \code{edges} (0-based input-order indices of the edges
+actually traversed, parallel edges included) and \code{cost}; \code{path} is empty
+and \code{cost} is \code{Inf} when the target is unreachable.
 }
 \keyword{internal}

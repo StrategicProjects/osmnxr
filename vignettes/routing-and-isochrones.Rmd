@@ -26,14 +26,18 @@ Snap two coordinates to the nearest nodes, then route between them:
 ```{r}
 orig <- ox_nearest_nodes(g, x = -34.8553, y = -8.0089)
 dest <- ox_nearest_nodes(g, x = -34.8505, y = -8.0125)
-route <- ox_shortest_path(g, orig, dest, weight = "length")
-length(route) # nodes along the route
+route <- ox_route_shortest(g, orig, dest, weight = "length")
+route
 ```
 
+The result is an `sf` tibble: the route's cost, the node `osmid`s traversed
+and its merged street geometry, ready to map. (`ox_shortest_path()` returns
+just the vector of node ids, when that is all you need.)
+
 ```{r}
-route_xy <- sf::st_coordinates(g$nodes)[match(route, g$nodes$osmid), ]
 plot(g, col = "grey80", lwd = 0.6)
-lines(route_xy, col = "#b7410e", lwd = 3)
+plot(sf::st_geometry(route), col = "#b7410e", lwd = 3, add = TRUE)
+route_xy <- sf::st_coordinates(g$nodes)[match(route$path[[1]], g$nodes$osmid), ]
 points(route_xy[c(1, nrow(route_xy)), ], pch = 19, col = "#0d3b66", cex = 1.2)
 ```
 
@@ -48,16 +52,17 @@ g <- ox_add_edge_travel_times(g)
 head(g$edges[c("highway", "length", "speed_kph", "travel_time")])
 
 route_t <- ox_shortest_path(g, orig, dest, weight = "travel_time")
-identical(route_t, route) # may differ: the fastest route is not always shortest
+# may differ: the fastest route is not always the shortest
+identical(route_t, route$path[[1]])
 ```
 
 ## Route alternatives
 
-`ox_k_shortest_paths()` returns the *k* shortest loopless routes (Yen's
+`ox_route_shortest(k = ...)` returns the *k* shortest loopless routes (Yen's
 algorithm) — useful for comparing options or modelling redundancy:
 
 ```{r}
-ox_k_shortest_paths(g, orig, dest, k = 3, weight = "travel_time")
+ox_route_shortest(g, orig, dest, k = 3, weight = "travel_time")
 ```
 
 ## Routing with road preferences

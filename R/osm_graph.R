@@ -33,44 +33,69 @@ new_osm_graph <- function(nodes, edges, meta = list()) {
 #' @export
 is_osm_graph <- function(x) inherits(x, "osm_graph")
 
+# Internal: the structural part of the edge arrays — endpoint node indexes
+# and the mask of edges whose endpoints exist. On metro-sized graphs the
+# match() below dominates the cost of a routing call (seconds on millions of
+# edges), and it only depends on node ids and edge endpoints, so it is cached
+# for the session. The cache is content-addressed (rlang::hash of the id
+# vectors, milliseconds even on millions of edges), which keeps it correct
+# under copies and in-place column edits: a graph whose structure changed
+# simply misses. The last few distinct graphs are kept (LRU).
+graph_edge_index <- function(g) {
+  key <- rlang::hash(list(g$nodes$osmid, g$edges$u, g$edges$v))
+  entry <- get0(key, envir = .osmnxr_edge_index, inherits = FALSE)
+  if (is.null(entry)) {
+    ids <- g$nodes$osmid
+    idx <- match(g$edges$u, ids) - 1L
+    jdx <- match(g$edges$v, ids) - 1L
+    keep <- !is.na(idx) & !is.na(jdx)
+    entry <- list(
+      from = idx[keep],
+      to = jdx[keep],
+      n_nodes = length(ids),
+      node_ids = ids,
+      # original g$edges row behind each filtered edge, so 0-based edge
+      # indices coming back from Rust map straight onto attributes/geometry
+      edge_rows = which(keep)
+    )
+    keys <- ls(.osmnxr_edge_index) # dot-names (the LRU tick) stay hidden
+    if (length(keys) >= 4L) {
+      stamps <- vapply(
+        keys, function(k) attr(.osmnxr_edge_index[[k]], "stamp"), numeric(1)
+      )
+      rm(list = keys[which.min(stamps)], envir = .osmnxr_edge_index)
+    }
+  }
+  tick <- (get0(".tick", envir = .osmnxr_edge_index, inherits = FALSE) %||% 0) + 1
+  assign(".tick", tick, envir = .osmnxr_edge_index)
+  attr(entry, "stamp") <- tick
+  assign(key, entry, envir = .osmnxr_edge_index)
+  entry
+}
+
 # Internal: build the 0-based directed edge arrays the Rust core expects.
-# Returns from/to (0-based integer node indices), weight, n_nodes and the
-# ordered vector of node osmids (so results can be mapped back).
+# Returns from/to (0-based integer node indices), weight, n_nodes, the
+# ordered vector of node osmids (so results can be mapped back) and
+# edge_rows (the g$edges row behind each array slot).
 graph_edge_arrays <- function(g, weight = "length") {
-  ids <- g$nodes$osmid
-  idx <- match(g$edges$u, ids) - 1L
-  jdx <- match(g$edges$v, ids) - 1L
-  keep <- !is.na(idx) & !is.na(jdx)
+  ix <- graph_edge_index(g)
   w <- if (weight %in% names(g$edges)) as.numeric(g$edges[[weight]]) else rep(1, nrow(g$edges))
   list(
-    from = idx[keep],
-    to = jdx[keep],
-    weight = w[keep],
-    n_nodes = length(ids),
-    node_ids = ids
+    from = ix$from,
+    to = ix$to,
+    weight = w[ix$edge_rows],
+    n_nodes = ix$n_nodes,
+    node_ids = ix$node_ids,
+    edge_rows = ix$edge_rows
   )
 }
 
 # Internal: graph_edge_arrays() plus a second per-edge vector (`resource`),
 # filtered by the same edge mask so both stay aligned slot by slot.
 graph_edge_arrays_bi <- function(g, weight, resource) {
-  ids <- g$nodes$osmid
-  idx <- match(g$edges$u, ids) - 1L
-  jdx <- match(g$edges$v, ids) - 1L
-  keep <- !is.na(idx) & !is.na(jdx)
-  w <- if (weight %in% names(g$edges)) as.numeric(g$edges[[weight]]) else rep(1, nrow(g$edges))
-  r <- as.numeric(g$edges[[resource]])
-  list(
-    from = idx[keep],
-    to = jdx[keep],
-    weight = w[keep],
-    resource = r[keep],
-    n_nodes = length(ids),
-    node_ids = ids,
-    # original g$edges row behind each filtered edge, so 0-based edge indices
-    # coming back from Rust map straight onto edge attributes/geometry
-    edge_rows = which(keep)
-  )
+  ea <- graph_edge_arrays(g, weight)
+  ea$resource <- as.numeric(g$edges[[resource]])[ea$edge_rows]
+  ea
 }
 
 #' @export
