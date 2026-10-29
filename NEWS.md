@@ -13,6 +13,16 @@
   and add connector edges between each snapped pair — one routable
   multimodal network.
 
+* `ox_blend()` gained finer control from @talegari's field test on the Delhi
+  road + metro networks (#6): `meta$blend` now also records `u` / `v`, the
+  endpoints of the edge each point snapped onto; `snap_nodes` flags which
+  points (or `y` nodes) may snap (station gates yes, platforms no);
+  `snap_edges` flags which edges of `g` may receive them (keep off
+  limited-access flyovers); `connector_node_attrs` copies `y` node attributes
+  — say, a per-station access time — onto the connector edges; and reusing a
+  `g` osmid in `y` at different coordinates is now an error with a
+  renumbering hint, instead of a silently corrupting first-wins merge.
+
 * New `ox_route_shortest()` rounds out the `ox_route_*` family (#5 feedback,
   @talegari): the `sf` interface to shortest-path routing, returning cost,
   node path and merged street geometry per route, with `k > 1` enumerating

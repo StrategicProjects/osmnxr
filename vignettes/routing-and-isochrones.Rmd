@@ -176,8 +176,12 @@ ox_route_shortest(gb, gb$meta$blend$node[1], gb$meta$blend$node[2],
 `ox_blend()` also accepts a whole second `osm_graph` (say, a metro layer over
 a street network): every node of the second graph is snapped into the first,
 the two graphs are stacked with `ox_union()`, and *connector* edges are added
-between each snapped pair — producing one routable multimodal graph. See
-`?ox_blend` for the details.
+between each snapped pair — producing one routable multimodal graph. The
+blend is steerable on both sides — `snap_nodes` flags which points (or `y`
+nodes) may snap, `snap_edges` which edges of the network may receive them —
+and `connector_node_attrs` copies node attributes of the second graph (a
+per-station access time, say) onto its connector edges. See `?ox_blend` for
+the details.
 
 ## References
 

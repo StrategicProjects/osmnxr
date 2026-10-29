@@ -13,19 +13,23 @@
 #' same location into the same new node, so routability is preserved in both
 #' directions. Points that project onto an existing node are attached to that
 #' node instead of splitting. Points farther than `tolerance` from every edge
-#' are left out with a warning.
+#' are left out with a warning. New nodes get consecutive `osmid`s starting
+#' just above the largest id in sight (`g`'s — and `y`'s too in graph mode),
+#' so existing ids keep their meaning.
 #'
 #' When `y` is another [osm_graph][new_osm_graph], the result is a combined
 #' multimodal network, built in three steps (as proposed in the issue that
-#' motivated this feature): (1) every node of `y` (within `tolerance`) is
-#' blended into `g` as above; (2) the two graphs are stacked with
-#' [ox_union()], so `y`'s own nodes and edges are kept intact; (3) a pair of
-#' directed *connector* edges is added between each `y` node and the node it
-#' snapped to, which is the connectivity a plain blend + union would miss.
-#' Node `osmid`s shared by both graphs are merged by the union directly (no
-#' connector needed). The union here does not deduplicate edges (the two
-#' layers are assumed to be distinct networks); combine overlapping downloads
-#' with [ox_union()] first when that matters.
+#' motivated this feature): (1) every node of `y` (within `tolerance`, and
+#' flagged by `snap_nodes`) is blended into `g` as above; (2) the two graphs
+#' are stacked with [ox_union()], so `y`'s own nodes and edges are kept
+#' intact; (3) a pair of directed *connector* edges is added between each `y`
+#' node and the node it snapped to, which is the connectivity a plain blend +
+#' union would miss. Node `osmid`s shared by both graphs are merged by the
+#' union directly (no connector needed) — but only when they sit at the same
+#' coordinates: reusing an id of `g` for a genuinely different location in
+#' `y` is an error (renumber `y`'s ids first). The union here does not
+#' deduplicate edges (the two layers are assumed to be distinct networks);
+#' combine overlapping downloads with [ox_union()] first when that matters.
 #'
 #' Distances are planar, in the units of the graph's CRS (reproject
 #' geographic networks first — [sf::st_transform()] on `nodes` and `edges` —
@@ -48,11 +52,33 @@
 #'   do not set are `NA`-filled — in particular, set `travel_time` here (or
 #'   fix it afterwards) before routing the blended graph on travel time.
 #'   Ignored when `y` is a set of points.
+#' @param snap_nodes Which points (or `y` nodes) may be snapped: `TRUE` (the
+#'   default, all of them) or a logical vector with one flag per point / `y`
+#'   node. Flagged-off points get an `NA` row in `meta$blend`; in graph mode,
+#'   flagged-off `y` nodes still enter the union with `y`'s own edges — they
+#'   just get no connector (e.g. a station's street-level gates snap, its
+#'   platforms don't and are reached through the gates).
+#' @param snap_edges Which edges of `g` may receive snapped points: `TRUE`
+#'   (the default, all of them) or a logical vector with one flag per row of
+#'   `g$edges` (e.g. rule out limited-access flyovers that pass close by).
+#'   Note the flag governs where points may *land*, not split propagation:
+#'   when a snapped edge is split, edges sharing its geometry (the reversed
+#'   twin of a two-way street) are split with it regardless of their own
+#'   flag, to keep both directions routable.
+#' @param connector_node_attrs Character vector of `y` node attribute columns
+#'   to copy onto the two connector edges of each snapped `y` node in graph
+#'   mode (e.g. a per-station access time that should weight the connector).
+#'   Errors when a column is absent from `y`'s nodes or clashes with
+#'   `connector_attrs` or a connector-reserved column (`u`, `v`, `length`).
+#'   Ignored when `y` is a set of points.
 #'
 #' @return An [osm_graph][new_osm_graph]. `meta$blend` records the mapping as
-#'   a [tibble][tibble::tibble]: one row per input point (or `y` node), with
-#'   the node `osmid` it became or attached to (`NA` when beyond `tolerance`)
-#'   and the snapping distance.
+#'   a [tibble][tibble::tibble]: one row per input point (or `y` node not
+#'   shared with `g`), with the node `osmid` it became or attached to (`NA`
+#'   when beyond `tolerance` or flagged off by `snap_nodes`), the snapping
+#'   distance, and `u` / `v` — the endpoints of the `g` edge it snapped onto,
+#'   as that edge was *before* the blend (splitting replaces it with pieces
+#'   chained through the new nodes).
 #' @export
 #'
 #' @examples
@@ -67,7 +93,7 @@
 #'
 #' # blend a tiny second network (e.g. a metro line) into the grid
 #' metro <- new_osm_graph(
-#'   sf::st_sf(osmid = c(1001, 1002),
+#'   sf::st_sf(osmid = c(1001, 1002), access_time = c(30, 45),
 #'             geometry = sf::st_sfc(sf::st_point(c(40, 150)),
 #'                                   sf::st_point(c(260, 150)), crs = 3857)),
 #'   sf::st_sf(u = 1001, v = 1002, length = 220,
@@ -75,9 +101,12 @@
 #'               rbind(c(40, 150), c(260, 150))), crs = 3857)),
 #'   meta = list(network_type = "metro")
 #' )
-#' mm <- ox_blend(g, metro, connector_attrs = list(highway = "connector"))
+#' mm <- ox_blend(g, metro, connector_attrs = list(highway = "connector"),
+#'                connector_node_attrs = "access_time")
 #' mm
-ox_blend <- function(g, y, tolerance = Inf, connector_attrs = list()) {
+ox_blend <- function(g, y, tolerance = Inf, connector_attrs = list(),
+                     snap_nodes = TRUE, snap_edges = TRUE,
+                     connector_node_attrs = character()) {
   stopifnot(is_osm_graph(g))
   if (nrow(g$edges) == 0) {
     cli::cli_abort("{.arg g} has no edges to blend into.", call = NULL)
@@ -85,15 +114,20 @@ ox_blend <- function(g, y, tolerance = Inf, connector_attrs = list()) {
   if (length(tolerance) != 1 || is.na(tolerance) || tolerance < 0) {
     cli::cli_abort("{.arg tolerance} must be a single nonnegative number (or {.code Inf}).", call = NULL)
   }
+  snap_edges <- blend_flag(snap_edges, nrow(g$edges), "snap_edges")
+  if (!any(snap_edges)) {
+    cli::cli_abort("{.arg snap_edges} rules out every edge of {.arg g}.", call = NULL)
+  }
   if (is_osm_graph(y)) {
-    blend_graph(g, y, tolerance, connector_attrs)
+    blend_graph(g, y, tolerance, connector_attrs, snap_nodes, snap_edges,
+                connector_node_attrs)
   } else {
-    blend_points(g, y, tolerance)
+    blend_points(g, y, tolerance, snap_nodes, snap_edges)
   }
 }
 
 # Internal: blend an sf/sfc of points into g.
-blend_points <- function(g, y, tolerance) {
+blend_points <- function(g, y, tolerance, snap_nodes, snap_edges) {
   pts <- if (inherits(y, "sf")) sf::st_geometry(y) else y
   if (!inherits(pts, "sfc")) {
     cli::cli_abort("{.arg y} must be an {.cls sf}/{.cls sfc} of points or an {.cls osm_graph}.", call = NULL)
@@ -102,33 +136,59 @@ blend_points <- function(g, y, tolerance) {
     cli::cli_abort("{.arg y} must contain only {.val POINT} geometries.", call = NULL)
   }
   check_blend_crs(g, pts)
+  snap_nodes <- blend_flag(snap_nodes, length(pts), "snap_nodes")
   attrs <- if (inherits(y, "sf")) sf::st_drop_geometry(y) else NULL
-  core <- blend_core(g, sf::st_coordinates(pts)[, 1:2, drop = FALSE],
-                     tolerance, node_attrs = attrs)
-  out <- core$graph
-  out$meta$blend <- tibble::tibble(
-    point = seq_len(nrow(core$map)),
-    node = core$map$node,
-    dist = core$map$dist
+  core <- blend_core(
+    g, sf::st_coordinates(pts)[snap_nodes, 1:2, drop = FALSE], tolerance,
+    node_attrs = if (!is.null(attrs)) attrs[snap_nodes, , drop = FALSE],
+    snap_edges = snap_edges
   )
+  out <- core$graph
+  blend <- tibble::tibble(
+    point = seq_along(pts),
+    node = NA_real_, dist = NA_real_, u = NA_real_, v = NA_real_
+  )
+  blend[snap_nodes, c("node", "dist", "u", "v")] <- core$map
+  out$meta$blend <- blend
   out
 }
 
 # Internal: blend the nodes of graph y into g, union the two graphs, and add
 # connector edges between each blended node pair.
-blend_graph <- function(g, y, tolerance, connector_attrs) {
+blend_graph <- function(g, y, tolerance, connector_attrs, snap_nodes,
+                        snap_edges, connector_node_attrs) {
   check_blend_crs(g, sf::st_geometry(y$nodes))
   if (length(connector_attrs) && (is.null(names(connector_attrs)) ||
       any(!nzchar(names(connector_attrs))))) {
     cli::cli_abort("{.arg connector_attrs} must be a fully named list.", call = NULL)
   }
+  snap_nodes <- blend_flag(snap_nodes, nrow(y$nodes), "snap_nodes")
+  check_connector_node_attrs(connector_node_attrs, y, connector_attrs)
+
+  # an osmid in both graphs means "same node" to the union; catch ids reused
+  # for genuinely different locations before they merge silently
+  shared <- intersect(g$nodes$osmid, y$nodes$osmid)
+  if (length(shared)) {
+    g_wkt <- sf::st_as_text(sf::st_geometry(g$nodes)[match(shared, g$nodes$osmid)])
+    y_wkt <- sf::st_as_text(sf::st_geometry(y$nodes)[match(shared, y$nodes$osmid)])
+    conflict <- shared[g_wkt != y_wkt]
+    if (length(conflict)) {
+      cli::cli_abort(c(
+        "{.arg y} reuses {length(conflict)} {.field osmid}{?s} of {.arg g} at different coordinates (e.g. {.val {conflict[[1]]}}).",
+        "i" = "Shared osmids merge into one node in the union. Renumber {.arg y}'s node ids (and the matching {.field u}/{.field v} in its edges) before blending."
+      ), call = NULL)
+    }
+  }
 
   # nodes already shared by osmid stitch through ox_union(); blend the rest
   new_in_y <- !(y$nodes$osmid %in% g$nodes$osmid)
-  pts <- y$nodes[new_in_y, ]
+  pts_all <- y$nodes[new_in_y, ]
+  do_snap <- snap_nodes[new_in_y]
+  pts <- pts_all[do_snap, ]
   core <- blend_core(
     g, sf::st_coordinates(sf::st_geometry(pts))[, 1:2, drop = FALSE],
-    tolerance, node_attrs = NULL, avoid_ids = y$nodes$osmid
+    tolerance, node_attrs = NULL, avoid_ids = y$nodes$osmid,
+    snap_edges = snap_edges
   )
 
   # dedupe_edges compares WKT across all edges — minutes on metro-sized
@@ -155,17 +215,22 @@ blend_graph <- function(g, y, tolerance, connector_attrs) {
     )
     conn$length <- as.numeric(sf::st_length(conn))
     for (nm in names(connector_attrs)) conn[[nm]] <- connector_attrs[[nm]]
+    for (nm in connector_node_attrs) {
+      vals <- pts[[nm]][with_conn]
+      conn[[nm]] <- c(vals, vals)
+    }
     edges <- bind_sf_rows(
       list(out$edges, conn), attr(out$edges, "sf_column")
     )
     out <- new_osm_graph(out$nodes, edges, out$meta)
   }
 
-  out$meta$blend <- tibble::tibble(
-    osmid = pts$osmid,
-    node = core$map$node,
-    dist = core$map$dist
+  blend <- tibble::tibble(
+    osmid = pts_all$osmid,
+    node = NA_real_, dist = NA_real_, u = NA_real_, v = NA_real_
   )
+  blend[do_snap, c("node", "dist", "u", "v")] <- core$map
+  out$meta$blend <- blend
   out
 }
 
@@ -179,23 +244,76 @@ check_blend_crs <- function(g, pts) {
   }
 }
 
-# Internal: snap pts_xy (a 2-column matrix) onto g's edges and split those
-# edges (and their geometry twins) at the snapped locations. Returns the new
-# graph plus a map: per point, the node osmid it became/attached to (NA when
-# beyond tolerance) and the snapping distance.
+# Internal: a snap_nodes / snap_edges flag, validated and recycled to n.
+blend_flag <- function(x, n, what) {
+  if (!is.logical(x) || anyNA(x) || !length(x) %in% c(1L, n)) {
+    cli::cli_abort(
+      "{.arg {what}} must be {.code TRUE}/{.code FALSE} or a logical vector of length {n} with no missing values.",
+      call = NULL
+    )
+  }
+  rep_len(x, n)
+}
+
+# Internal: connector_node_attrs must name y node columns that no other
+# connector column source already claims.
+check_connector_node_attrs <- function(attrs, y, connector_attrs) {
+  if (!length(attrs)) return(invisible())
+  if (!is.character(attrs) || anyNA(attrs)) {
+    cli::cli_abort(
+      "{.arg connector_node_attrs} must be a character vector of {.code y} node column names.",
+      call = NULL
+    )
+  }
+  cols <- setdiff(names(y$nodes), attr(y$nodes, "sf_column"))
+  absent <- setdiff(attrs, cols)
+  if (length(absent)) {
+    cli::cli_abort(
+      "{.arg connector_node_attrs} name{?s} column{?s} absent from {.code y}'s nodes: {.val {absent}}.",
+      call = NULL
+    )
+  }
+  clash <- intersect(attrs, c(names(connector_attrs), "u", "v", "length"))
+  if (length(clash)) {
+    cli::cli_abort(
+      "{.arg connector_node_attrs} clashes with column{?s} the connectors already set: {.val {clash}}.",
+      call = NULL
+    )
+  }
+}
+
+# Internal: snap pts_xy (a 2-column matrix) onto g's edges (those flagged by
+# snap_edges) and split those edges (and their geometry twins) at the snapped
+# locations. Returns the new graph plus a map: per point, the node osmid it
+# became/attached to (NA when beyond tolerance), the snapping distance, and
+# the endpoints of the edge it snapped onto.
 blend_core <- function(g, pts_xy, tolerance, node_attrs = NULL,
-                       avoid_ids = numeric()) {
+                       avoid_ids = numeric(), snap_edges = NULL) {
   n_pts <- nrow(pts_xy)
   node_of <- rep(NA_real_, n_pts)
+  u_of <- rep(NA_real_, n_pts)
+  v_of <- rep(NA_real_, n_pts)
   empty <- function() {
-    list(graph = g, map = tibble::tibble(node = node_of, dist = rep(NA_real_, n_pts)))
+    list(graph = g, map = tibble::tibble(
+      node = node_of, dist = rep(NA_real_, n_pts), u = u_of, v = v_of
+    ))
   }
   if (n_pts == 0) return(empty())
 
-  m <- sf::st_coordinates(g$edges)
-  offsets <- c(0L, cumsum(tabulate(m[, "L1"], nbins = nrow(g$edges))))
+  allowed <- if (!is.null(snap_edges) && !all(snap_edges)) which(snap_edges)
+  if (is.null(allowed)) {
+    m <- sf::st_coordinates(g$edges)
+    offsets <- c(0L, cumsum(tabulate(m[, "L1"], nbins = nrow(g$edges))))
+  } else {
+    m <- sf::st_coordinates(sf::st_geometry(g$edges)[allowed])
+    offsets <- c(0L, cumsum(tabulate(m[, "L1"], nbins = length(allowed))))
+  }
   snap <- rs_snap_points(m[, "X"], m[, "Y"], as.integer(offsets),
                          pts_xy[, 1], pts_xy[, 2], as.numeric(tolerance))
+  if (!is.null(allowed)) {
+    ok <- snap$edge >= 0
+    snap$edge[ok] <- allowed[snap$edge[ok] + 1L] - 1L
+  }
   snap$dist[snap$edge < 0] <- NA_real_
   hit <- which(snap$edge >= 0)
   if (length(hit) < n_pts) {
@@ -247,6 +365,8 @@ blend_core <- function(g, pts_xy, tolerance, node_attrs = NULL,
   key_of_pt <- rep(NA_character_, n_pts)
   for (i in hit) {
     e <- snap$edge[i] + 1L
+    u_of[i] <- edges$u[e]
+    v_of[i] <- edges$v[e]
     p <- pool_pos[e]
     len <- elen[p]
     pos <- snap$pos[i]
@@ -273,7 +393,9 @@ blend_core <- function(g, pts_xy, tolerance, node_attrs = NULL,
 
   if (!length(split_key)) {
     out <- empty()
-    out$map <- tibble::tibble(node = node_of, dist = as.numeric(snap$dist))
+    out$map <- tibble::tibble(
+      node = node_of, dist = as.numeric(snap$dist), u = u_of, v = v_of
+    )
     return(out)
   }
 
@@ -339,7 +461,9 @@ blend_core <- function(g, pts_xy, tolerance, node_attrs = NULL,
 
   list(
     graph = new_osm_graph(nodes_out, edges_out, g$meta),
-    map = tibble::tibble(node = node_of, dist = as.numeric(snap$dist))
+    map = tibble::tibble(
+      node = node_of, dist = as.numeric(snap$dist), u = u_of, v = v_of
+    )
   )
 }
 

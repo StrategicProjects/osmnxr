@@ -169,6 +169,116 @@ test_that("shared osmids merge through the union without connectors", {
   expect_equal(p[length(p)], 2001)
 })
 
+test_that("meta$blend records the endpoints of the snapped edge", {
+  g <- example_osm_graph()
+  # interior snap: the point lands on the (1, 5) bottom edge
+  b <- ox_blend(g, sf::st_sfc(sf::st_point(c(40, 3)), crs = 3857))
+  expect_setequal(c(b$meta$blend$u, b$meta$blend$v), c(1, 5))
+  # endpoint snap (attaches to node 1) still reports the edge it landed on
+  b2 <- ox_blend(g, sf::st_sfc(sf::st_point(c(-30, -40)), crs = 3857))
+  expect_true(1 %in% c(b2$meta$blend$u, b2$meta$blend$v))
+  # beyond tolerance: u/v are NA like the node
+  suppressWarnings(
+    b3 <- ox_blend(g, sf::st_sfc(sf::st_point(c(50, 500)), crs = 3857),
+                   tolerance = 10)
+  )
+  expect_true(is.na(b3$meta$blend$u) && is.na(b3$meta$blend$v))
+})
+
+test_that("snap_nodes skips flagged-off points", {
+  g <- example_osm_graph()
+  pts <- sf::st_sfc(sf::st_point(c(40, 3)), sf::st_point(c(70, 2)), crs = 3857)
+  b <- ox_blend(g, pts, snap_nodes = c(TRUE, FALSE))
+  expect_equal(nrow(b$nodes), nrow(g$nodes) + 1)
+  expect_equal(b$meta$blend$point, 1:2)
+  expect_false(is.na(b$meta$blend$node[1]))
+  expect_true(all(is.na(unlist(b$meta$blend[2, c("node", "dist", "u", "v")]))))
+})
+
+test_that("snap_nodes in graph mode keeps flagged-off y nodes connectorless", {
+  g <- example_osm_graph()
+  metro <- new_osm_graph(
+    sf::st_sf(osmid = c(1001, 1002),
+              geometry = sf::st_sfc(sf::st_point(c(40, 150)),
+                                    sf::st_point(c(260, 150)), crs = 3857)),
+    sf::st_sf(u = c(1001, 1002), v = c(1002, 1001), length = 220,
+              geometry = sf::st_sfc(
+                sf::st_linestring(rbind(c(40, 150), c(260, 150))),
+                sf::st_linestring(rbind(c(260, 150), c(40, 150))),
+                crs = 3857)),
+    meta = list(network_type = "metro")
+  )
+  b <- ox_blend(g, metro, connector_attrs = list(highway = "connector"),
+                snap_nodes = c(TRUE, FALSE))
+  conn <- !is.na(b$edges$highway) & b$edges$highway == "connector"
+  expect_equal(sum(conn), 2) # one pair, for node 1001 only
+  expect_true(is.na(b$meta$blend$node[2]))
+  # 1002 is still in the union, reachable through the metro from 1001's side
+  expect_true(1002 %in% b$nodes$osmid)
+  p <- ox_shortest_path(b, 1, 1002)
+  expect_equal(p[length(p)], 1002)
+})
+
+test_that("snap_edges rules edges out of the snap", {
+  g <- example_osm_graph()
+  # keep the point off the (1, 5) bottom edge it would otherwise land on
+  off <- (g$edges$u == 1 & g$edges$v == 5) | (g$edges$u == 5 & g$edges$v == 1)
+  b <- ox_blend(g, sf::st_sfc(sf::st_point(c(40, 3)), crs = 3857),
+                snap_edges = !off)
+  # next-nearest allowed edge is the vertical (1, 2) edge at x = 0
+  expect_equal(b$meta$blend$dist, 40)
+  expect_setequal(c(b$meta$blend$u, b$meta$blend$v), c(1, 2))
+  xy <- sf::st_coordinates(b$nodes[b$nodes$osmid == b$meta$blend$node, ])
+  expect_equal(as.numeric(xy), c(0, 3))
+})
+
+test_that("connector_node_attrs copies y node attributes onto connectors", {
+  g <- example_osm_graph()
+  metro <- new_osm_graph(
+    sf::st_sf(osmid = c(1001, 1002), access_time = c(30, 45),
+              geometry = sf::st_sfc(sf::st_point(c(40, 150)),
+                                    sf::st_point(c(260, 150)), crs = 3857)),
+    sf::st_sf(u = c(1001, 1002), v = c(1002, 1001), length = 220,
+              geometry = sf::st_sfc(
+                sf::st_linestring(rbind(c(40, 150), c(260, 150))),
+                sf::st_linestring(rbind(c(260, 150), c(40, 150))),
+                crs = 3857)),
+    meta = list(network_type = "metro")
+  )
+  b <- ox_blend(g, metro, connector_attrs = list(highway = "connector"),
+                connector_node_attrs = "access_time")
+  conn <- !is.na(b$edges$highway) & b$edges$highway == "connector"
+  expect_equal(sort(b$edges$access_time[conn]), c(30, 30, 45, 45))
+  expect_true(all(is.na(b$edges$access_time[!conn])))
+
+  expect_error(ox_blend(g, metro, connector_node_attrs = "nope"), "absent")
+  expect_error(
+    ox_blend(g, metro, connector_attrs = list(access_time = 1),
+             connector_node_attrs = "access_time"),
+    "already set"
+  )
+  metro$nodes$length <- 5 # a y node column named like a connector column
+  expect_error(ox_blend(g, metro, connector_node_attrs = "length"),
+               "already set")
+})
+
+test_that("reusing a g osmid at different coordinates is an error", {
+  g <- example_osm_graph()
+  # grid node 4 sits at (0, 300); here "4" names a different location
+  g2 <- new_osm_graph(
+    sf::st_sf(osmid = c(4, 2001),
+              geometry = sf::st_sfc(sf::st_point(c(50, 350)),
+                                    sf::st_point(c(0, 400)), crs = 3857)),
+    sf::st_sf(u = c(4, 2001), v = c(2001, 4), length = 100,
+              geometry = sf::st_sfc(
+                sf::st_linestring(rbind(c(50, 350), c(0, 400))),
+                sf::st_linestring(rbind(c(0, 400), c(50, 350))),
+                crs = 3857)),
+    meta = list(network_type = "walk")
+  )
+  expect_error(ox_blend(g, g2), "different coordinates")
+})
+
 test_that("ox_blend validates its inputs", {
   g <- example_osm_graph()
   pts_wrong_crs <- sf::st_sfc(sf::st_point(c(0, 0)), crs = 4326)
@@ -180,4 +290,10 @@ test_that("ox_blend validates its inputs", {
     ox_blend(g, example_osm_graph(), connector_attrs = list(1, 2)),
     "named"
   )
+  pts <- sf::st_sfc(sf::st_point(c(40, 3)), sf::st_point(c(70, 2)), crs = 3857)
+  expect_error(ox_blend(g, pts, snap_nodes = c(TRUE, NA)), "snap_nodes")
+  expect_error(ox_blend(g, pts, snap_nodes = TRUE[0]), "snap_nodes")
+  expect_error(ox_blend(g, pts, snap_edges = c(TRUE, FALSE)), "snap_edges")
+  expect_error(ox_blend(g, pts, snap_edges = rep(FALSE, nrow(g$edges))),
+               "every edge")
 })

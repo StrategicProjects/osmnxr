@@ -4,7 +4,15 @@
 \alias{ox_blend}
 \title{Blend points or another graph into a street network}
 \usage{
-ox_blend(g, y, tolerance = Inf, connector_attrs = list())
+ox_blend(
+  g,
+  y,
+  tolerance = Inf,
+  connector_attrs = list(),
+  snap_nodes = TRUE,
+  snap_edges = TRUE,
+  connector_node_attrs = character()
+)
 }
 \arguments{
 \item{g}{An \link[=new_osm_graph]{osm_graph} to blend into.}
@@ -23,12 +31,37 @@ connector edges created in graph mode (e.g.
 do not set are \code{NA}-filled — in particular, set \code{travel_time} here (or
 fix it afterwards) before routing the blended graph on travel time.
 Ignored when \code{y} is a set of points.}
+
+\item{snap_nodes}{Which points (or \code{y} nodes) may be snapped: \code{TRUE} (the
+default, all of them) or a logical vector with one flag per point / \code{y}
+node. Flagged-off points get an \code{NA} row in \code{meta$blend}; in graph mode,
+flagged-off \code{y} nodes still enter the union with \code{y}'s own edges — they
+just get no connector (e.g. a station's street-level gates snap, its
+platforms don't and are reached through the gates).}
+
+\item{snap_edges}{Which edges of \code{g} may receive snapped points: \code{TRUE}
+(the default, all of them) or a logical vector with one flag per row of
+\code{g$edges} (e.g. rule out limited-access flyovers that pass close by).
+Note the flag governs where points may \emph{land}, not split propagation:
+when a snapped edge is split, edges sharing its geometry (the reversed
+twin of a two-way street) are split with it regardless of their own
+flag, to keep both directions routable.}
+
+\item{connector_node_attrs}{Character vector of \code{y} node attribute columns
+to copy onto the two connector edges of each snapped \code{y} node in graph
+mode (e.g. a per-station access time that should weight the connector).
+Errors when a column is absent from \code{y}'s nodes or clashes with
+\code{connector_attrs} or a connector-reserved column (\code{u}, \code{v}, \code{length}).
+Ignored when \code{y} is a set of points.}
 }
 \value{
 An \link[=new_osm_graph]{osm_graph}. \code{meta$blend} records the mapping as
-a \link[tibble:tibble]{tibble}: one row per input point (or \code{y} node), with
-the node \code{osmid} it became or attached to (\code{NA} when beyond \code{tolerance})
-and the snapping distance.
+a \link[tibble:tibble]{tibble}: one row per input point (or \code{y} node not
+shared with \code{g}), with the node \code{osmid} it became or attached to (\code{NA}
+when beyond \code{tolerance} or flagged off by \code{snap_nodes}), the snapping
+distance, and \code{u} / \code{v} — the endpoints of the \code{g} edge it snapped onto,
+as that edge was \emph{before} the blend (splitting replaces it with pieces
+chained through the new nodes).
 }
 \description{
 Snaps point locations onto their nearest network edge and splits that edge
@@ -43,19 +76,23 @@ geometry (its reversed twin, or a same-direction duplicate) is split at the
 same location into the same new node, so routability is preserved in both
 directions. Points that project onto an existing node are attached to that
 node instead of splitting. Points farther than \code{tolerance} from every edge
-are left out with a warning.
+are left out with a warning. New nodes get consecutive \code{osmid}s starting
+just above the largest id in sight (\code{g}'s — and \code{y}'s too in graph mode),
+so existing ids keep their meaning.
 
 When \code{y} is another \link[=new_osm_graph]{osm_graph}, the result is a combined
 multimodal network, built in three steps (as proposed in the issue that
-motivated this feature): (1) every node of \code{y} (within \code{tolerance}) is
-blended into \code{g} as above; (2) the two graphs are stacked with
-\code{\link[=ox_union]{ox_union()}}, so \code{y}'s own nodes and edges are kept intact; (3) a pair of
-directed \emph{connector} edges is added between each \code{y} node and the node it
-snapped to, which is the connectivity a plain blend + union would miss.
-Node \code{osmid}s shared by both graphs are merged by the union directly (no
-connector needed). The union here does not deduplicate edges (the two
-layers are assumed to be distinct networks); combine overlapping downloads
-with \code{\link[=ox_union]{ox_union()}} first when that matters.
+motivated this feature): (1) every node of \code{y} (within \code{tolerance}, and
+flagged by \code{snap_nodes}) is blended into \code{g} as above; (2) the two graphs
+are stacked with \code{\link[=ox_union]{ox_union()}}, so \code{y}'s own nodes and edges are kept
+intact; (3) a pair of directed \emph{connector} edges is added between each \code{y}
+node and the node it snapped to, which is the connectivity a plain blend +
+union would miss. Node \code{osmid}s shared by both graphs are merged by the
+union directly (no connector needed) — but only when they sit at the same
+coordinates: reusing an id of \code{g} for a genuinely different location in
+\code{y} is an error (renumber \code{y}'s ids first). The union here does not
+deduplicate edges (the two layers are assumed to be distinct networks);
+combine overlapping downloads with \code{\link[=ox_union]{ox_union()}} first when that matters.
 
 Distances are planar, in the units of the graph's CRS (reproject
 geographic networks first — \code{\link[sf:st_transform]{sf::st_transform()}} on \code{nodes} and \code{edges} —
@@ -77,7 +114,7 @@ ox_shortest_path(b, b$meta$blend$node[1], b$meta$blend$node[2])
 
 # blend a tiny second network (e.g. a metro line) into the grid
 metro <- new_osm_graph(
-  sf::st_sf(osmid = c(1001, 1002),
+  sf::st_sf(osmid = c(1001, 1002), access_time = c(30, 45),
             geometry = sf::st_sfc(sf::st_point(c(40, 150)),
                                   sf::st_point(c(260, 150)), crs = 3857)),
   sf::st_sf(u = 1001, v = 1002, length = 220,
@@ -85,6 +122,7 @@ metro <- new_osm_graph(
               rbind(c(40, 150), c(260, 150))), crs = 3857)),
   meta = list(network_type = "metro")
 )
-mm <- ox_blend(g, metro, connector_attrs = list(highway = "connector"))
+mm <- ox_blend(g, metro, connector_attrs = list(highway = "connector"),
+               connector_node_attrs = "access_time")
 mm
 }
