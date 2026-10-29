@@ -1,6 +1,10 @@
 # Changelog
 
-## osmnxr 0.1.5
+## osmnxr 0.1.6
+
+A parity pass against what OSMnx gained in 2025–2026 (releases
+2.0.1–2.1.1), plus the OSMnx 2.0 features the
+simplification/consolidation step was missing.
 
 - The Overpass network filters now mirror OSMnx 2.1’s tag for tag,
   replacing the simplified highway-only regexes used so far. Downloads
@@ -40,6 +44,8 @@
   (OSMnx gained validation helpers in 2.1.0). Handy after building a
   layer by hand for
   [`ox_blend()`](https://strategicprojects.github.io/osmnxr/reference/ox_blend.md)/[`ox_union()`](https://strategicprojects.github.io/osmnxr/reference/ox_union.md).
+
+## osmnxr 0.1.5
 
 - New
   [`ox_blend()`](https://strategicprojects.github.io/osmnxr/reference/ox_blend.md)
