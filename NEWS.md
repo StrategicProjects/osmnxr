@@ -1,4 +1,8 @@
-# osmnxr 0.1.5
+# osmnxr 0.1.6
+
+A parity pass against what OSMnx gained in 2025–2026 (releases 2.0.1–2.1.1),
+plus the OSMnx 2.0 features the simplification/consolidation step was
+missing.
 
 * The Overpass network filters now mirror OSMnx 2.1's tag for tag, replacing
   the simplified highway-only regexes used so far. Downloads gain the
@@ -31,6 +35,8 @@
   from their `u` node to their `v` node — reporting every problem found in
   one pass (OSMnx gained validation helpers in 2.1.0). Handy after building
   a layer by hand for `ox_blend()`/`ox_union()`.
+
+# osmnxr 0.1.5
 
 * New `ox_blend()` blends point locations — or a whole second graph — into a
   street network (#6, requested by @talegari), the `osmnxr` counterpart of

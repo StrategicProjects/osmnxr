@@ -1,6 +1,6 @@
 Package: osmnxr
 Title: Download, Model and Analyze 'OpenStreetMap' Street Networks
-Version: 0.1.5
+Version: 0.1.6
 Authors@R: c(
     person("André", "Leite", email = "leite@castlab.org", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-4718-9766")),
