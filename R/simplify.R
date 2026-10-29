@@ -93,9 +93,18 @@ ox_simplify <- function(g) {
 #' by the Rust core. `tolerance` is in the units of the graph CRS, so project
 #' the graph first (e.g. to a metric CRS) for a meaningful distance.
 #'
+#' Consolidating an already-consolidated graph (`meta$consolidated` is set)
+#' warns but proceeds, clustering the consolidated nodes again — legitimate
+#' for growing the tolerance, but usually a mistake.
+#'
 #' @param g An [osm_graph][new_osm_graph].
 #' @param tolerance Distance below which nodes are merged, in CRS units.
-#'   Default `10`.
+#'   Either one number for the whole graph (default `10`), or one number per
+#'   node for junction-specific radii (as in OSMnx 2): each node is buffered
+#'   by `tolerance / 2`, and nodes merge when their buffers overlap — i.e.
+#'   two nodes merge when their distance is at most the mean of their two
+#'   tolerances, so a `0` keeps a node out of every merge it does not fall
+#'   inside another node's radius for.
 #'
 #' @return A consolidated [osm_graph][new_osm_graph] (with `meta$consolidated =
 #'   TRUE`).
@@ -108,8 +117,26 @@ ox_simplify <- function(g) {
 ox_consolidate_intersections <- function(g, tolerance = 10) {
   stopifnot(is_osm_graph(g))
   nodes <- g$nodes
+  if (!is.numeric(tolerance) || anyNA(tolerance) || any(tolerance < 0) ||
+      !length(tolerance) %in% c(1L, nrow(nodes))) {
+    cli::cli_abort(
+      "{.arg tolerance} must be a nonnegative number, or one per node ({nrow(nodes)}).",
+      call = NULL
+    )
+  }
+  if (isTRUE(g$meta$consolidated)) {
+    cli::cli_warn(
+      "Graph is already consolidated; clustering the consolidated nodes again."
+    )
+  }
   ids <- nodes$osmid
-  within <- sf::st_is_within_distance(nodes, dist = tolerance)
+  within <- if (length(tolerance) == 1L) {
+    sf::st_is_within_distance(nodes, dist = tolerance)
+  } else {
+    # per-node radii: buffers of tolerance / 2 overlap exactly when
+    # dist(i, j) <= (tolerance[i] + tolerance[j]) / 2
+    sf::st_intersects(sf::st_buffer(sf::st_geometry(nodes), tolerance / 2))
+  }
   a <- rep(seq_along(within), lengths(within))
   b <- unlist(within)
   comp <- rs_connected_components(as.integer(a - 1L), as.integer(b - 1L), nrow(nodes))

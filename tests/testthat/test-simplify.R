@@ -65,3 +65,30 @@ test_that("ox_nearest_edges returns an sf subset of edges", {
   expect_equal(nrow(ne), 1L)
   expect_true(all(c("u", "v") %in% names(ne)))
 })
+
+test_that("per-node tolerance merges only within the given radii", {
+  g <- example_osm_graph() # 4x4 grid, spacing 100
+  tol <- rep(0, nrow(g$nodes))
+  tol[1:2] <- 150 # nodes 1 and 2 are 100 apart: (150 + 150) / 2 >= 100
+  c1 <- ox_consolidate_intersections(g, tolerance = tol)
+  expect_equal(nrow(c1$nodes), nrow(g$nodes) - 1)
+  expect_false(2 %in% c1$nodes$osmid) # merged into min(ids) = 1
+  # a lone radius is not enough: (150 + 0) / 2 < 100 for every neighbour of 3
+  tol2 <- rep(0, nrow(g$nodes))
+  tol2[3] <- 150
+  c2 <- ox_consolidate_intersections(g, tolerance = tol2)
+  expect_equal(nrow(c2$nodes), nrow(g$nodes))
+
+  expect_error(ox_consolidate_intersections(g, tolerance = c(1, 2)), "tolerance")
+  expect_error(ox_consolidate_intersections(g, tolerance = -1), "tolerance")
+})
+
+test_that("consolidating twice warns but proceeds", {
+  g <- example_osm_graph()
+  c1 <- ox_consolidate_intersections(g, tolerance = 1)
+  expect_warning(
+    c2 <- ox_consolidate_intersections(c1, tolerance = 1000),
+    "already consolidated"
+  )
+  expect_equal(nrow(c2$nodes), 1)
+})

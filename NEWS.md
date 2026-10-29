@@ -11,6 +11,12 @@
   (use `"drive_service"`), and `"all"` now means every in-use way including
   private access rather than literally every highway value.
 
+* `ox_consolidate_intersections()` accepts a per-node `tolerance` (one merge
+  radius per node, as in OSMnx 2: nodes merge when buffers of `tolerance/2`
+  overlap), validates the tolerance, and now warns when asked to consolidate
+  an already-consolidated graph — it proceeds, since re-clustering with a
+  larger tolerance is well-defined here, but the double run is made visible.
+
 * New `ox_validate()` checks that a graph meets the package's structural
   expectations — `sf` types, complete and unique node ids, resolvable
   `u`/`v`, a usable `length`, one CRS, and edge geometries that actually run

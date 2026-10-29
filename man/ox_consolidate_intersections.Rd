@@ -10,7 +10,12 @@ ox_consolidate_intersections(g, tolerance = 10)
 \item{g}{An \link[=new_osm_graph]{osm_graph}.}
 
 \item{tolerance}{Distance below which nodes are merged, in CRS units.
-Default \code{10}.}
+Either one number for the whole graph (default \code{10}), or one number per
+node for junction-specific radii (as in OSMnx 2): each node is buffered
+by \code{tolerance / 2}, and nodes merge when their buffers overlap — i.e.
+two nodes merge when their distance is at most the mean of their two
+tolerances, so a \code{0} keeps a node out of every merge it does not fall
+inside another node's radius for.}
 }
 \value{
 A consolidated \link[=new_osm_graph]{osm_graph} (with \code{meta$consolidated = TRUE}).
@@ -25,6 +30,10 @@ OSM nodes that represent one complex junction (e.g. dual carriageways).
 Clustering uses \code{sf::st_is_within_distance()}; connected components are found
 by the Rust core. \code{tolerance} is in the units of the graph CRS, so project
 the graph first (e.g. to a metric CRS) for a meaningful distance.
+
+Consolidating an already-consolidated graph (\code{meta$consolidated} is set)
+warns but proceeds, clustering the consolidated nodes again — legitimate
+for growing the tolerance, but usually a mistake.
 }
 \examples{
 g <- example_osm_graph(n = 4, spacing = 100)
