@@ -11,6 +11,13 @@
   (use `"drive_service"`), and `"all"` now means every in-use way including
   private access rather than literally every highway value.
 
+* New `ox_validate()` checks that a graph meets the package's structural
+  expectations — `sf` types, complete and unique node ids, resolvable
+  `u`/`v`, a usable `length`, one CRS, and edge geometries that actually run
+  from their `u` node to their `v` node — reporting every problem found in
+  one pass (OSMnx gained validation helpers in 2.1.0). Handy after building
+  a layer by hand for `ox_blend()`/`ox_union()`.
+
 * New `ox_blend()` blends point locations — or a whole second graph — into a
   street network (#6, requested by @talegari), the `osmnxr` counterpart of
   `sfnetworks::st_network_blend()`: each point is snapped onto its nearest
