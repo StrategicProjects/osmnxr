@@ -11,7 +11,21 @@
 #' `sf`. Downloaded graphs are unsimplified by default; this is the standard
 #' cleanup step before analysis.
 #'
+#' Every edge attribute column survives simplification: a merged edge takes
+#' the value of its first segment, except for columns named in
+#' `edge_attr_aggs`, whose per-segment values are combined by the given
+#' function (as in OSMnx 2). `length` is always recomputed from the merged
+#' geometry unless an explicit `length` aggregator is supplied, and
+#' `n_segments` records how many segments each edge merged.
+#'
 #' @param g An unsimplified [osm_graph][new_osm_graph].
+#' @param edge_attr_aggs Named list of functions combining the per-segment
+#'   values of an edge attribute along each merged chain, e.g.
+#'   `list(travel_time = sum, speed_kph = mean)`. The default `NULL` sums
+#'   `travel_time` and `penalty` when those columns exist (so routing weights
+#'   stay consistent); pass `list()` to aggregate nothing. Each function
+#'   receives the segment values of one merged edge and must return a single
+#'   value.
 #'
 #' @return A simplified [osm_graph][new_osm_graph] (with `meta$simplified =
 #'   TRUE`).
@@ -20,11 +34,32 @@
 #' @examples
 #' g <- example_osm_graph()
 #' ox_simplify(g) # already simplified: returned unchanged
-ox_simplify <- function(g) {
+ox_simplify <- function(g, edge_attr_aggs = NULL) {
   stopifnot(is_osm_graph(g))
   if (isTRUE(g$meta$simplified)) {
     cli::cli_alert_info("Graph is already simplified; returning unchanged.")
     return(g)
+  }
+  sf_col <- attr(g$edges, "sf_column")
+  if (is.null(edge_attr_aggs)) {
+    edge_attr_aggs <- list(travel_time = sum, penalty = sum)
+    edge_attr_aggs <- edge_attr_aggs[names(edge_attr_aggs) %in% names(g$edges)]
+  } else {
+    if (!is.list(edge_attr_aggs) ||
+        (length(edge_attr_aggs) && (is.null(names(edge_attr_aggs)) ||
+                                    any(!nzchar(names(edge_attr_aggs)))))) {
+      cli::cli_abort("{.arg edge_attr_aggs} must be a fully named list of functions.", call = NULL)
+    }
+    if (!all(vapply(edge_attr_aggs, is.function, logical(1)))) {
+      cli::cli_abort("{.arg edge_attr_aggs} must contain only functions.", call = NULL)
+    }
+    absent <- setdiff(names(edge_attr_aggs), names(g$edges))
+    if (length(absent)) {
+      cli::cli_abort("{.arg edge_attr_aggs} name{?s} column{?s} absent from {.code g$edges}: {.val {absent}}.", call = NULL)
+    }
+    if (any(names(edge_attr_aggs) %in% c("u", "v", sf_col))) {
+      cli::cli_abort("{.arg edge_attr_aggs} cannot aggregate {.field u}, {.field v} or the geometry.", call = NULL)
+    }
   }
   ea <- graph_edge_arrays(g)
   paths <- rs_simplify_paths(ea$from, ea$to, ea$n_nodes)
@@ -35,27 +70,26 @@ ox_simplify <- function(g) {
   coords <- sf::st_coordinates(g$nodes)[, c("X", "Y"), drop = FALSE]
   crs <- sf::st_crs(g$nodes)
 
-  # set of directed segments present in the original graph, and an attribute
-  # lookup, both keyed by "u>v"
+  # set of directed segments present in the original graph, and a per-pair
+  # attribute row lookup (falling back to the reversed twin), keyed by "u>v"
   dirset <- paste(g$edges$u, g$edges$v, sep = ">")
   has_dir <- function(a, b) all(paste(a, b, sep = ">") %in% dirset)
-  attr_idx <- function(a, b) {
+  pair_rows <- function(a, b) {
     m <- match(paste(a, b, sep = ">"), dirset)
-    if (is.na(m)) match(paste(b, a, sep = ">"), dirset) else m
+    m2 <- match(paste(b, a, sep = ">"), dirset)
+    ifelse(is.na(m), m2, m)
   }
 
   geoms <- list()
-  u <- v <- integer(0)
-  highway <- name <- character(0)
+  u <- v <- numeric(0)
   n_seg <- integer(0)
+  seg_rows <- list() # per merged edge: its segments' rows in g$edges
 
-  add_edge <- function(rows, a, b) {
+  add_edge <- function(rows, chain) {
     geoms[[length(geoms) + 1L]] <<- sf::st_linestring(coords[rows, , drop = FALSE])
     u <<- c(u, ids[rows[1]]); v <<- c(v, ids[rows[length(rows)]])
     n_seg <<- c(n_seg, length(rows) - 1L)
-    ai <- attr_idx(a, b)
-    highway <<- c(highway, if (!is.na(ai)) as.character(g$edges$highway[ai]) else NA_character_)
-    name <<- c(name, if (!is.na(ai) && "name" %in% names(g$edges)) as.character(g$edges$name[ai]) else NA_character_)
+    seg_rows[[length(seg_rows) + 1L]] <<- pair_rows(chain[-length(chain)], chain[-1])
   }
 
   for (k in seq_along(paths)) {
@@ -64,15 +98,29 @@ ox_simplify <- function(g) {
     fwd <- has_dir(chain[-length(chain)], chain[-1])       # traversable u -> v
     bwd <- has_dir(chain[-1], chain[-length(chain)])       # traversable v -> u
     if (!fwd && !bwd) fwd <- TRUE                          # fallback: keep one
-    if (fwd) add_edge(p1, chain[1], chain[2])
-    if (bwd) add_edge(rev(p1), chain[length(chain)], chain[length(chain) - 1])
+    if (fwd) add_edge(p1, chain)
+    if (bwd) add_edge(rev(p1), rev(chain))
   }
 
   edges <- sf::st_sf(
-    u = u, v = v, highway = highway, name = name,
-    n_segments = n_seg, geometry = sf::st_sfc(geoms, crs = crs)
+    u = u, v = v, n_segments = n_seg, geometry = sf::st_sfc(geoms, crs = crs)
   )
-  edges$length <- as.numeric(sf::st_length(edges))
+  first_of <- vapply(seg_rows, function(r) {
+    r <- r[!is.na(r)]
+    if (length(r)) r[1] else NA_integer_
+  }, integer(1))
+  for (col in setdiff(names(g$edges), c("u", "v", sf_col))) {
+    vals <- g$edges[[col]]
+    edges[[col]] <- if (col %in% names(edge_attr_aggs)) {
+      f <- edge_attr_aggs[[col]]
+      unlist(lapply(seg_rows, function(r) f(vals[r[!is.na(r)]])), use.names = FALSE)
+    } else {
+      vals[first_of]
+    }
+  }
+  if (!"length" %in% names(edge_attr_aggs)) {
+    edges$length <- as.numeric(sf::st_length(edges))
+  }
 
   kept <- sort(unique(c(u, v)))
   nodes <- g$nodes[match(kept, ids), ]

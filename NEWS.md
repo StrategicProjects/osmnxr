@@ -11,6 +11,14 @@
   (use `"drive_service"`), and `"all"` now means every in-use way including
   private access rather than literally every highway value.
 
+* `ox_simplify()` now preserves every edge attribute column (a merged edge
+  takes its first segment's value) instead of keeping only `highway` and
+  `name`, and gained `edge_attr_aggs` (as in OSMnx 2): a named list of
+  functions combining per-segment values along each merged chain, e.g.
+  `list(travel_time = sum, speed_kph = mean)`. By default `travel_time` and
+  `penalty` are summed when present, so pre-computed routing weights survive
+  simplification instead of being dropped.
+
 * `ox_consolidate_intersections()` accepts a per-node `tolerance` (one merge
   radius per node, as in OSMnx 2: nodes merge when buffers of `tolerance/2`
   overlap), validates the tolerance, and now warns when asked to consolidate

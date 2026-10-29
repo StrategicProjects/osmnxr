@@ -92,3 +92,26 @@ test_that("consolidating twice warns but proceeds", {
   )
   expect_equal(nrow(c2$nodes), 1)
 })
+
+test_that("ox_simplify preserves attribute columns and aggregates on request", {
+  g <- unsimplified_graph()
+  g$edges$travel_time <- g$edges$length / 10
+  g$edges$lanes <- 2
+  s <- ox_simplify(g)
+  # every attribute column survives (first-segment value for unaggregated)
+  expect_true(all(c("highway", "oneway", "travel_time", "lanes") %in% names(s$edges)))
+  expect_true(all(s$edges$highway == "residential"))
+  expect_true(all(s$edges$lanes == 2))
+  # the default aggregates travel_time with sum along the merged chain
+  e13 <- s$edges[(s$edges$u == 1 & s$edges$v == 3) | (s$edges$u == 3 & s$edges$v == 1), ]
+  expect_equal(e13$travel_time, c(20, 20))
+
+  # custom aggregator
+  s2 <- ox_simplify(g, edge_attr_aggs = list(lanes = max, travel_time = sum))
+  expect_true(all(s2$edges$lanes == 2))
+
+  expect_error(ox_simplify(g, edge_attr_aggs = list(sum)), "named")
+  expect_error(ox_simplify(g, edge_attr_aggs = list(nope = sum)), "absent")
+  expect_error(ox_simplify(g, edge_attr_aggs = list(u = sum)), "geometry")
+  expect_error(ox_simplify(g, edge_attr_aggs = list(lanes = 1)), "functions")
+})

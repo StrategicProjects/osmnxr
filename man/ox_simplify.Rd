@@ -4,10 +4,18 @@
 \alias{ox_simplify}
 \title{Simplify street-network topology}
 \usage{
-ox_simplify(g)
+ox_simplify(g, edge_attr_aggs = NULL)
 }
 \arguments{
 \item{g}{An unsimplified \link[=new_osm_graph]{osm_graph}.}
+
+\item{edge_attr_aggs}{Named list of functions combining the per-segment
+values of an edge attribute along each merged chain, e.g.
+\code{list(travel_time = sum, speed_kph = mean)}. The default \code{NULL} sums
+\code{travel_time} and \code{penalty} when those columns exist (so routing weights
+stay consistent); pass \code{list()} to aggregate nothing. Each function
+receives the segment values of one merged edge and must return a single
+value.}
 }
 \value{
 A simplified \link[=new_osm_graph]{osm_graph} (with \code{meta$simplified = TRUE}).
@@ -22,6 +30,13 @@ merged segments. Only true endpoints and intersections are kept as nodes.
 The topology walk is performed by the Rust core; geometry is rebuilt with
 \code{sf}. Downloaded graphs are unsimplified by default; this is the standard
 cleanup step before analysis.
+
+Every edge attribute column survives simplification: a merged edge takes
+the value of its first segment, except for columns named in
+\code{edge_attr_aggs}, whose per-segment values are combined by the given
+function (as in OSMnx 2). \code{length} is always recomputed from the merged
+geometry unless an explicit \code{length} aggregator is supplied, and
+\code{n_segments} records how many segments each edge merged.
 }
 \examples{
 g <- example_osm_graph()
