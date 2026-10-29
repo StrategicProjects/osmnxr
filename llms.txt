@@ -14,8 +14,16 @@ to manage. Everything you get back is tidy
 
 ## Installation
 
-`osmnxr` builds from source and needs the **Rust toolchain**
-([rustup](https://rustup.rs/)) at install time.
+Install the released version from CRAN (macOS and Windows binaries need
+no Rust; building from source needs the **Rust toolchain**,
+[rustup](https://rustup.rs/)):
+
+``` r
+
+install.packages("osmnxr")
+```
+
+Or the development version from GitHub (always builds from source):
 
 ``` r
 
