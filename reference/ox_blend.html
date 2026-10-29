@@ -62,7 +62,15 @@ in seconds.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ox_blend</span><span class="op">(</span><span class="va">g</span>, <span class="va">y</span>, tolerance <span class="op">=</span> <span class="cn">Inf</span>, connector_attrs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ox_blend</span><span class="op">(</span></span>
+<span>  <span class="va">g</span>,</span>
+<span>  <span class="va">y</span>,</span>
+<span>  tolerance <span class="op">=</span> <span class="cn">Inf</span>,</span>
+<span>  connector_attrs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  snap_nodes <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  snap_edges <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  connector_node_attrs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -93,13 +101,44 @@ do not set are <code>NA</code>-filled — in particular, set <code>travel_time</
 fix it afterwards) before routing the blended graph on travel time.
 Ignored when <code>y</code> is a set of points.</p></dd>
 
+
+<dt id="arg-snap-nodes">snap_nodes<a class="anchor" aria-label="anchor" href="#arg-snap-nodes"></a></dt>
+<dd><p>Which points (or <code>y</code> nodes) may be snapped: <code>TRUE</code> (the
+default, all of them) or a logical vector with one flag per point / <code>y</code>
+node. Flagged-off points get an <code>NA</code> row in <code>meta$blend</code>; in graph mode,
+flagged-off <code>y</code> nodes still enter the union with <code>y</code>'s own edges — they
+just get no connector (e.g. a station's street-level gates snap, its
+platforms don't and are reached through the gates).</p></dd>
+
+
+<dt id="arg-snap-edges">snap_edges<a class="anchor" aria-label="anchor" href="#arg-snap-edges"></a></dt>
+<dd><p>Which edges of <code>g</code> may receive snapped points: <code>TRUE</code>
+(the default, all of them) or a logical vector with one flag per row of
+<code>g$edges</code> (e.g. rule out limited-access flyovers that pass close by).
+Note the flag governs where points may <em>land</em>, not split propagation:
+when a snapped edge is split, edges sharing its geometry (the reversed
+twin of a two-way street) are split with it regardless of their own
+flag, to keep both directions routable.</p></dd>
+
+
+<dt id="arg-connector-node-attrs">connector_node_attrs<a class="anchor" aria-label="anchor" href="#arg-connector-node-attrs"></a></dt>
+<dd><p>Character vector of <code>y</code> node attribute columns
+to copy onto the two connector edges of each snapped <code>y</code> node in graph
+mode (e.g. a per-station access time that should weight the connector).
+Errors when a column is absent from <code>y</code>'s nodes or clashes with
+<code>connector_attrs</code> or a connector-reserved column (<code>u</code>, <code>v</code>, <code>length</code>).
+Ignored when <code>y</code> is a set of points.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An <a href="new_osm_graph.html">osm_graph</a>. <code>meta$blend</code> records the mapping as
-a <a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a>: one row per input point (or <code>y</code> node), with
-the node <code>osmid</code> it became or attached to (<code>NA</code> when beyond <code>tolerance</code>)
-and the snapping distance.</p>
+a <a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a>: one row per input point (or <code>y</code> node not
+shared with <code>g</code>), with the node <code>osmid</code> it became or attached to (<code>NA</code>
+when beyond <code>tolerance</code> or flagged off by <code>snap_nodes</code>), the snapping
+distance, and <code>u</code> / <code>v</code> — the endpoints of the <code>g</code> edge it snapped onto,
+as that edge was <em>before</em> the blend (splitting replaces it with pieces
+chained through the new nodes).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -108,18 +147,22 @@ geometry (its reversed twin, or a same-direction duplicate) is split at the
 same location into the same new node, so routability is preserved in both
 directions. Points that project onto an existing node are attached to that
 node instead of splitting. Points farther than <code>tolerance</code> from every edge
-are left out with a warning.</p>
+are left out with a warning. New nodes get consecutive <code>osmid</code>s starting
+just above the largest id in sight (<code>g</code>'s — and <code>y</code>'s too in graph mode),
+so existing ids keep their meaning.</p>
 <p>When <code>y</code> is another <a href="new_osm_graph.html">osm_graph</a>, the result is a combined
 multimodal network, built in three steps (as proposed in the issue that
-motivated this feature): (1) every node of <code>y</code> (within <code>tolerance</code>) is
-blended into <code>g</code> as above; (2) the two graphs are stacked with
-<code><a href="ox_union.html">ox_union()</a></code>, so <code>y</code>'s own nodes and edges are kept intact; (3) a pair of
-directed <em>connector</em> edges is added between each <code>y</code> node and the node it
-snapped to, which is the connectivity a plain blend + union would miss.
-Node <code>osmid</code>s shared by both graphs are merged by the union directly (no
-connector needed). The union here does not deduplicate edges (the two
-layers are assumed to be distinct networks); combine overlapping downloads
-with <code><a href="ox_union.html">ox_union()</a></code> first when that matters.</p>
+motivated this feature): (1) every node of <code>y</code> (within <code>tolerance</code>, and
+flagged by <code>snap_nodes</code>) is blended into <code>g</code> as above; (2) the two graphs
+are stacked with <code><a href="ox_union.html">ox_union()</a></code>, so <code>y</code>'s own nodes and edges are kept
+intact; (3) a pair of directed <em>connector</em> edges is added between each <code>y</code>
+node and the node it snapped to, which is the connectivity a plain blend +
+union would miss. Node <code>osmid</code>s shared by both graphs are merged by the
+union directly (no connector needed) — but only when they sit at the same
+coordinates: reusing an id of <code>g</code> for a genuinely different location in
+<code>y</code> is an error (renumber <code>y</code>'s ids first). The union here does not
+deduplicate edges (the two layers are assumed to be distinct networks);
+combine overlapping downloads with <code><a href="ox_union.html">ox_union()</a></code> first when that matters.</p>
 <p>Distances are planar, in the units of the graph's CRS (reproject
 geographic networks first — <code><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">sf::st_transform()</a></code> on <code>nodes</code> and <code>edges</code> —
 when a metric <code>tolerance</code> matters). Split edges keep their attributes;
@@ -138,17 +181,17 @@ edge, so routing weights stay consistent.</p>
 <span class="r-in"><span>                  crs <span class="op">=</span> <span class="fl">3857</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu">ox_blend</span><span class="op">(</span><span class="va">g</span>, <span class="va">pts</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">b</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">blend</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 3</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   point  node  dist</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>     1    17    40</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span>     2    18    40</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 5</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   point  node  dist     u     v</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>     1    17    40     5     9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span>     2    18    40    12    16</span>
 <span class="r-in"><span><span class="fu"><a href="ox_shortest_path.html">ox_shortest_path</a></span><span class="op">(</span><span class="va">b</span>, <span class="va">b</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">blend</span><span class="op">$</span><span class="va">node</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">b</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">blend</span><span class="op">$</span><span class="va">node</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 17  9 10 11 12 18</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># blend a tiny second network (e.g. a metro line) into the grid</span></span></span>
 <span class="r-in"><span><span class="va">metro</span> <span class="op">&lt;-</span> <span class="fu"><a href="new_osm_graph.html">new_osm_graph</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/sf.html" class="external-link">st_sf</a></span><span class="op">(</span>osmid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1001</span>, <span class="fl">1002</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/sf.html" class="external-link">st_sf</a></span><span class="op">(</span>osmid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1001</span>, <span class="fl">1002</span><span class="op">)</span>, access_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">45</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>            geometry <span class="op">=</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/sfc.html" class="external-link">st_sfc</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st.html" class="external-link">st_point</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                                  <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st.html" class="external-link">st_point</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">260</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span>, crs <span class="op">=</span> <span class="fl">3857</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/sf.html" class="external-link">st_sf</a></span><span class="op">(</span>u <span class="op">=</span> <span class="fl">1001</span>, v <span class="op">=</span> <span class="fl">1002</span>, length <span class="op">=</span> <span class="fl">220</span>,</span></span>
@@ -156,7 +199,8 @@ edge, so routing weights stay consistent.</p>
 <span class="r-in"><span>              <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">150</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">260</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, crs <span class="op">=</span> <span class="fl">3857</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  meta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>network_type <span class="op">=</span> <span class="st">"metro"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">mm</span> <span class="op">&lt;-</span> <span class="fu">ox_blend</span><span class="op">(</span><span class="va">g</span>, <span class="va">metro</span>, connector_attrs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>highway <span class="op">=</span> <span class="st">"connector"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">mm</span> <span class="op">&lt;-</span> <span class="fu">ox_blend</span><span class="op">(</span><span class="va">g</span>, <span class="va">metro</span>, connector_attrs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>highway <span class="op">=</span> <span class="st">"connector"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>               connector_node_attrs <span class="op">=</span> <span class="st">"access_time"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">mm</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">osm_graph</span> <span style="color: #00BBBB;">───────────────────────────────────────────────────────────────────</span></span>

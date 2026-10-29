@@ -270,11 +270,11 @@ stops <- sf::st_sfc(
 )
 gb <- ox_blend(g, stops)
 gb$meta$blend # which node each stop became, and how far it was snapped
-#> # A tibble: 2 × 3
-#>   point       node     dist
-#>   <int>      <dbl>    <dbl>
-#> 1     1 9016535993 0.000206
-#> 2     2 9016535994 0.000575
+#> # A tibble: 2 × 5
+#>   point       node     dist          u          v
+#>   <int>      <dbl>    <dbl>      <dbl>      <dbl>
+#> 1     1 9016535993 0.000206 1572693772 9016123129
+#> 2     2 9016535994 0.000575 1206764895 7272379949
 
 ox_route_shortest(gb, gb$meta$blend$node[1], gb$meta$blend$node[2],
                   weight = "travel_time")
@@ -295,7 +295,11 @@ street network): every node of the second graph is snapped into the
 first, the two graphs are stacked with
 [`ox_union()`](https://strategicprojects.github.io/osmnxr/reference/ox_union.md),
 and *connector* edges are added between each snapped pair — producing
-one routable multimodal graph. See
+one routable multimodal graph. The blend is steerable on both sides —
+`snap_nodes` flags which points (or `y` nodes) may snap, `snap_edges`
+which edges of the network may receive them — and `connector_node_attrs`
+copies node attributes of the second graph (a per-station access time,
+say) onto its connector edges. See
 [`?ox_blend`](https://strategicprojects.github.io/osmnxr/reference/ox_blend.md)
 for the details.
 

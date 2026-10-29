@@ -297,11 +297,11 @@ core:</p>
 <span><span class="op">)</span></span>
 <span><span class="va">gb</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ox_blend.html">ox_blend</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">stops</span><span class="op">)</span></span>
 <span><span class="va">gb</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">blend</span> <span class="co"># which node each stop became, and how far it was snapped</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 3</span></span></span>
-<span><span class="co">#&gt;   point       node     dist</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     1 <span style="text-decoration: underline;">9</span>016<span style="text-decoration: underline;">535</span>993 0.000<span style="text-decoration: underline;">206</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     2 <span style="text-decoration: underline;">9</span>016<span style="text-decoration: underline;">535</span>994 0.000<span style="text-decoration: underline;">575</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 5</span></span></span>
+<span><span class="co">#&gt;   point       node     dist          u          v</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     1 <span style="text-decoration: underline;">9</span>016<span style="text-decoration: underline;">535</span>993 0.000<span style="text-decoration: underline;">206</span> <span style="text-decoration: underline;">1</span>572<span style="text-decoration: underline;">693</span>772 <span style="text-decoration: underline;">9</span>016<span style="text-decoration: underline;">123</span>129</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     2 <span style="text-decoration: underline;">9</span>016<span style="text-decoration: underline;">535</span>994 0.000<span style="text-decoration: underline;">575</span> <span style="text-decoration: underline;">1</span>206<span style="text-decoration: underline;">764</span>895 <span style="text-decoration: underline;">7</span>272<span style="text-decoration: underline;">379</span>949</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/ox_route_shortest.html">ox_route_shortest</a></span><span class="op">(</span><span class="va">gb</span>, <span class="va">gb</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">blend</span><span class="op">$</span><span class="va">node</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">gb</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">blend</span><span class="op">$</span><span class="va">node</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>,</span>
 <span>                  weight <span class="op">=</span> <span class="st">"travel_time"</span><span class="op">)</span></span>
@@ -319,7 +319,12 @@ core:</p>
 node of the second graph is snapped into the first, the two graphs are
 stacked with <code><a href="../reference/ox_union.html">ox_union()</a></code>, and <em>connector</em> edges are
 added between each snapped pair — producing one routable multimodal
-graph. See <code><a href="../reference/ox_blend.html">?ox_blend</a></code> for the details.</p>
+graph. The blend is steerable on both sides — <code>snap_nodes</code>
+flags which points (or <code>y</code> nodes) may snap,
+<code>snap_edges</code> which edges of the network may receive them —
+and <code>connector_node_attrs</code> copies node attributes of the
+second graph (a per-station access time, say) onto its connector edges.
+See <code><a href="../reference/ox_blend.html">?ox_blend</a></code> for the details.</p>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
