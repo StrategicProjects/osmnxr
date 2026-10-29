@@ -7,7 +7,7 @@ overpass_bbox_query <- function(bbox, network_type) {
   bb <- sprintf("%.7f,%.7f,%.7f,%.7f", bbox[2], bbox[1], bbox[4], bbox[3])
   glue::glue(
     "[out:json][timeout:{.osmnxr_settings$timeout}];\n",
-    "(way[\"highway\"~\"^({filt})$\"]({bb}););\n",
+    "(way{filt}({bb}););\n",
     "(._;>;);\nout body;"
   )
 }

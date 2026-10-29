@@ -28,14 +28,64 @@ ox_fetch_json <- function(req) {
   out
 }
 
-# Highway-tag filters per network type (subset of OSMnx's filters).
-network_filter <- function(network_type = c("drive", "walk", "bike", "all")) {
+# Overpass way filter per network type, mirroring OSMnx 2.1's
+# _get_network_filter() tag for tag: every way must have a highway tag, and
+# the clauses then remove ways incompatible with the requested network.
+network_filter <- function(network_type = c("drive", "drive_service", "walk",
+                                            "bike", "all", "all_public")) {
   network_type <- rlang::arg_match(network_type)
+  access <- '["access"!~"private"]'
   switch(network_type,
-    drive = "motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|service|motorway_link|trunk_link|primary_link|secondary_link|tertiary_link",
-    walk  = "footway|path|pedestrian|steps|living_street|residential|service|unclassified|tertiary|secondary|primary|track",
-    bike  = "cycleway|path|footway|living_street|residential|service|unclassified|tertiary|secondary|primary|track",
-    all   = ".*"
+    # drivable public streets: no service roads, nothing tagged motor=no, no
+    # non-service roads providing services (alleys, driveways, ...)
+    drive = paste0(
+      '["highway"]["area"!~"yes"]', access,
+      '["highway"!~"abandoned|bridleway|bus_guideway|construction|corridor|',
+      'cycleway|elevator|escalator|footway|no|path|pedestrian|planned|platform|',
+      'proposed|raceway|razed|rest_area|service|services|steps|track"]',
+      '["motor_vehicle"!~"no"]["motorcar"!~"no"]',
+      '["service"!~"alley|driveway|emergency_access|parking|parking_aisle|private"]'
+    ),
+    # like drive, but service roads are allowed (minus parking etc.)
+    drive_service = paste0(
+      '["highway"]["area"!~"yes"]', access,
+      '["highway"!~"abandoned|bridleway|bus_guideway|construction|corridor|',
+      'cycleway|elevator|escalator|footway|no|path|pedestrian|planned|platform|',
+      'proposed|raceway|razed|rest_area|services|steps|track"]',
+      '["motor_vehicle"!~"no"]["motorcar"!~"no"]',
+      '["service"!~"emergency_access|parking|parking_aisle|private"]'
+    ),
+    # walkable public ways: no cycle/motor ways, nothing tagged foot=no, and
+    # no ways whose sidewalk is mapped as a separate way
+    walk = paste0(
+      '["highway"]["area"!~"yes"]', access,
+      '["highway"!~"abandoned|bus_guideway|construction|cycleway|motor|no|planned|',
+      'platform|proposed|raceway|razed|rest_area|services"]',
+      '["foot"!~"no"]["service"!~"private"]',
+      '["sidewalk"!~"separate"]["sidewalk:both"!~"separate"]',
+      '["sidewalk:left"!~"separate"]["sidewalk:right"!~"separate"]'
+    ),
+    # bikeable public ways: no foot/motor ways, nothing tagged bicycle=no
+    bike = paste0(
+      '["highway"]["area"!~"yes"]', access,
+      '["highway"!~"abandoned|bus_guideway|construction|corridor|elevator|',
+      'escalator|footway|motor|no|planned|platform|proposed|raceway|razed|',
+      'rest_area|services|steps"]',
+      '["bicycle"!~"no"]["service"!~"private"]'
+    ),
+    # every public way currently in use
+    all_public = paste0(
+      '["highway"]["area"!~"yes"]', access,
+      '["highway"!~"abandoned|construction|no|planned|platform|proposed|raceway|',
+      'razed|rest_area|services"]',
+      '["service"!~"private"]'
+    ),
+    # every way currently in use, private-access ones included
+    all = paste0(
+      '["highway"]["area"!~"yes"]',
+      '["highway"!~"abandoned|construction|no|planned|platform|proposed|raceway|',
+      'razed|rest_area|services"]'
+    )
   )
 }
 

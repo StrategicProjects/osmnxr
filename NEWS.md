@@ -1,5 +1,16 @@
 # osmnxr 0.1.5
 
+* The Overpass network filters now mirror OSMnx 2.1's tag for tag, replacing
+  the simplified highway-only regexes used so far. Downloads gain the
+  negative filters (`area=yes`, `access=private`, `motor_vehicle=no`,
+  `foot=no`, `bicycle=no`, service-road subtypes, ways tagged
+  `rest_area`/`services`, and walk ways whose sidewalk is mapped as a
+  separate way), and two network types join `drive`/`walk`/`bike`/`all`:
+  `drive_service` (drivable including service roads) and `all_public`.
+  Note two behaviour changes: `"drive"` no longer includes service roads
+  (use `"drive_service"`), and `"all"` now means every in-use way including
+  private access rather than literally every highway value.
+
 * New `ox_blend()` blends point locations — or a whole second graph — into a
   street network (#6, requested by @talegari), the `osmnxr` counterpart of
   `sfnetworks::st_network_blend()`: each point is snapped onto its nearest

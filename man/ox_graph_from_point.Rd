@@ -12,7 +12,12 @@ ox_graph_from_point(point, dist = 1000, network_type = "drive")
 \item{dist}{Buffer half-width in metres (a square bounding box of side
 \code{2 * dist} is used). Default \code{1000}.}
 
-\item{network_type}{One of \code{"drive"}, \code{"walk"}, \code{"bike"} or \code{"all"}.}
+\item{network_type}{One of \code{"drive"} (public drivable streets, service
+roads excluded), \code{"drive_service"} (drivable including service roads),
+\code{"walk"} (walkable public ways, excluding ways whose sidewalk is mapped
+as a separate way), \code{"bike"} (bikeable public ways), \code{"all"} (every way
+currently in use, private-access included) or \code{"all_public"}. The
+Overpass filters mirror OSMnx 2.1's, tag for tag.}
 }
 \value{
 An \link[=new_osm_graph]{osm_graph}.

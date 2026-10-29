@@ -102,3 +102,36 @@ test_that("ox_request retries transient Overpass failures (429/5xx)", {
   expect_false(is_transient(httr2::response(status_code = 404)))
   expect_true(isTRUE(req$policies$retry_on_failure))
 })
+
+# network_filter / overpass_bbox_query (offline) -------------------------------
+
+test_that("network filters mirror OSMnx tag for tag", {
+  for (type in c("drive", "drive_service", "walk", "bike", "all", "all_public")) {
+    f <- network_filter(type)
+    # every way must carry a highway tag and not be an area
+    expect_true(startsWith(f, '["highway"]["area"!~"yes"]'), info = type)
+    expect_match(f, 'rest_area', info = type)
+  }
+  # drive excludes service roads; drive_service readmits them
+  expect_match(network_filter("drive"), '\\|service\\|')
+  expect_no_match(network_filter("drive_service"), '\\|service\\|')
+  expect_match(network_filter("drive_service"), '"service"!~"emergency_access')
+  expect_match(network_filter("drive"), '"service"!~"alley\\|driveway')
+  # walk skips ways whose sidewalk is mapped separately, and foot=no
+  expect_match(network_filter("walk"), '\\["sidewalk"!~"separate"\\]')
+  expect_match(network_filter("walk"), '\\["sidewalk:left"!~"separate"\\]')
+  expect_match(network_filter("walk"), '\\["foot"!~"no"\\]')
+  expect_match(network_filter("bike"), '\\["bicycle"!~"no"\\]')
+  # "all" keeps private-access ways; every other type filters them out
+  expect_no_match(network_filter("all"), "access")
+  expect_match(network_filter("all_public"), '\\["access"!~"private"\\]')
+  expect_match(network_filter("drive"), '\\["access"!~"private"\\]')
+  expect_error(network_filter("submarine"), "network_type")
+})
+
+test_that("overpass_bbox_query embeds the filter and the bbox", {
+  q <- overpass_bbox_query(c(-34.91, -8.07, -34.87, -8.04), "drive")
+  expect_match(q, 'way\\["highway"\\]\\["area"!~"yes"\\]', fixed = FALSE)
+  expect_match(q, "-8.0700000,-34.9100000,-8.0400000,-34.8700000", fixed = TRUE)
+  expect_match(q, "out body", fixed = TRUE)
+})
