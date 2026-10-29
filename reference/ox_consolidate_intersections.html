@@ -72,7 +72,12 @@ OSM nodes that represent one complex junction (e.g. dual carriageways).</p>
 
 <dt id="arg-tolerance">tolerance<a class="anchor" aria-label="anchor" href="#arg-tolerance"></a></dt>
 <dd><p>Distance below which nodes are merged, in CRS units.
-Default <code>10</code>.</p></dd>
+Either one number for the whole graph (default <code>10</code>), or one number per
+node for junction-specific radii (as in OSMnx 2): each node is buffered
+by <code>tolerance / 2</code>, and nodes merge when their buffers overlap — i.e.
+two nodes merge when their distance is at most the mean of their two
+tolerances, so a <code>0</code> keeps a node out of every merge it does not fall
+inside another node's radius for.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -84,6 +89,9 @@ Default <code>10</code>.</p></dd>
     <p>Clustering uses <code><a href="https://r-spatial.github.io/sf/reference/geos_binary_pred.html" class="external-link">sf::st_is_within_distance()</a></code>; connected components are found
 by the Rust core. <code>tolerance</code> is in the units of the graph CRS, so project
 the graph first (e.g. to a metric CRS) for a meaningful distance.</p>
+<p>Consolidating an already-consolidated graph (<code>meta$consolidated</code> is set)
+warns but proceeds, clustering the consolidated nodes again — legitimate
+for growing the tolerance, but usually a mistake.</p>
     </div>
 
     <div class="section level2">

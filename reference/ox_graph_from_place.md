@@ -19,7 +19,12 @@ ox_graph_from_place(query, network_type = "drive")
 
 - network_type:
 
-  One of `"drive"`, `"walk"`, `"bike"` or `"all"`.
+  One of `"drive"` (public drivable streets, service roads excluded),
+  `"drive_service"` (drivable including service roads), `"walk"`
+  (walkable public ways, excluding ways whose sidewalk is mapped as a
+  separate way), `"bike"` (bikeable public ways), `"all"` (every way
+  currently in use, private-access included) or `"all_public"`. The
+  Overpass filters mirror OSMnx 2.1's, tag for tag.
 
 ## Value
 

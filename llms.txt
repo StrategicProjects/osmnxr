@@ -237,6 +237,11 @@ Hand graphs to the wider R network ecosystem.
 
   Test whether an object is an `osm_graph`
 
+- [`ox_validate()`](https://strategicprojects.github.io/osmnxr/reference/ox_validate.md)
+  :
+
+  Validate an `osm_graph`
+
 - [`ox_as_sf()`](https://strategicprojects.github.io/osmnxr/reference/ox_as_sf.md)
   :
 

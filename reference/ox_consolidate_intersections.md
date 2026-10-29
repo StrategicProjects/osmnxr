@@ -21,7 +21,13 @@ ox_consolidate_intersections(g, tolerance = 10)
 
 - tolerance:
 
-  Distance below which nodes are merged, in CRS units. Default `10`.
+  Distance below which nodes are merged, in CRS units. Either one number
+  for the whole graph (default `10`), or one number per node for
+  junction-specific radii (as in OSMnx 2): each node is buffered by
+  `tolerance / 2`, and nodes merge when their buffers overlap — i.e. two
+  nodes merge when their distance is at most the mean of their two
+  tolerances, so a `0` keeps a node out of every merge it does not fall
+  inside another node's radius for.
 
 ## Value
 
@@ -36,6 +42,10 @@ Clustering uses
 connected components are found by the Rust core. `tolerance` is in the
 units of the graph CRS, so project the graph first (e.g. to a metric
 CRS) for a meaningful distance.
+
+Consolidating an already-consolidated graph (`meta$consolidated` is set)
+warns but proceeds, clustering the consolidated nodes again — legitimate
+for growing the tolerance, but usually a mistake.
 
 ## Examples
 

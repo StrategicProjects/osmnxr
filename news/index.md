@@ -2,6 +2,45 @@
 
 ## osmnxr 0.1.5
 
+- The Overpass network filters now mirror OSMnx 2.1’s tag for tag,
+  replacing the simplified highway-only regexes used so far. Downloads
+  gain the negative filters (`area=yes`, `access=private`,
+  `motor_vehicle=no`, `foot=no`, `bicycle=no`, service-road subtypes,
+  ways tagged `rest_area`/`services`, and walk ways whose sidewalk is
+  mapped as a separate way), and two network types join
+  `drive`/`walk`/`bike`/`all`: `drive_service` (drivable including
+  service roads) and `all_public`. Note two behaviour changes: `"drive"`
+  no longer includes service roads (use `"drive_service"`), and `"all"`
+  now means every in-use way including private access rather than
+  literally every highway value.
+
+- [`ox_simplify()`](https://strategicprojects.github.io/osmnxr/reference/ox_simplify.md)
+  now preserves every edge attribute column (a merged edge takes its
+  first segment’s value) instead of keeping only `highway` and `name`,
+  and gained `edge_attr_aggs` (as in OSMnx 2): a named list of functions
+  combining per-segment values along each merged chain, e.g.
+  `list(travel_time = sum, speed_kph = mean)`. By default `travel_time`
+  and `penalty` are summed when present, so pre-computed routing weights
+  survive simplification instead of being dropped.
+
+- [`ox_consolidate_intersections()`](https://strategicprojects.github.io/osmnxr/reference/ox_consolidate_intersections.md)
+  accepts a per-node `tolerance` (one merge radius per node, as in OSMnx
+  2: nodes merge when buffers of `tolerance/2` overlap), validates the
+  tolerance, and now warns when asked to consolidate an
+  already-consolidated graph — it proceeds, since re-clustering with a
+  larger tolerance is well-defined here, but the double run is made
+  visible.
+
+- New
+  [`ox_validate()`](https://strategicprojects.github.io/osmnxr/reference/ox_validate.md)
+  checks that a graph meets the package’s structural expectations — `sf`
+  types, complete and unique node ids, resolvable `u`/`v`, a usable
+  `length`, one CRS, and edge geometries that actually run from their
+  `u` node to their `v` node — reporting every problem found in one pass
+  (OSMnx gained validation helpers in 2.1.0). Handy after building a
+  layer by hand for
+  [`ox_blend()`](https://strategicprojects.github.io/osmnxr/reference/ox_blend.md)/[`ox_union()`](https://strategicprojects.github.io/osmnxr/reference/ox_union.md).
+
 - New
   [`ox_blend()`](https://strategicprojects.github.io/osmnxr/reference/ox_blend.md)
   blends point locations — or a whole second graph — into a street

@@ -59,7 +59,7 @@ merged segments. Only true endpoints and intersections are kept as nodes.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ox_simplify</span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ox_simplify</span><span class="op">(</span><span class="va">g</span>, edge_attr_aggs <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -68,6 +68,16 @@ merged segments. Only true endpoints and intersections are kept as nodes.</p>
 
 <dl><dt id="arg-g">g<a class="anchor" aria-label="anchor" href="#arg-g"></a></dt>
 <dd><p>An unsimplified <a href="new_osm_graph.html">osm_graph</a>.</p></dd>
+
+
+<dt id="arg-edge-attr-aggs">edge_attr_aggs<a class="anchor" aria-label="anchor" href="#arg-edge-attr-aggs"></a></dt>
+<dd><p>Named list of functions combining the per-segment
+values of an edge attribute along each merged chain, e.g.
+<code>list(travel_time = sum, speed_kph = mean)</code>. The default <code>NULL</code> sums
+<code>travel_time</code> and <code>penalty</code> when those columns exist (so routing weights
+stay consistent); pass <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> to aggregate nothing. Each function
+receives the segment values of one merged edge and must return a single
+value.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -79,6 +89,12 @@ merged segments. Only true endpoints and intersections are kept as nodes.</p>
     <p>The topology walk is performed by the Rust core; geometry is rebuilt with
 <code>sf</code>. Downloaded graphs are unsimplified by default; this is the standard
 cleanup step before analysis.</p>
+<p>Every edge attribute column survives simplification: a merged edge takes
+the value of its first segment, except for columns named in
+<code>edge_attr_aggs</code>, whose per-segment values are combined by the given
+function (as in OSMnx 2). <code>length</code> is always recomputed from the merged
+geometry unless an explicit <code>length</code> aggregator is supplied, and
+<code>n_segments</code> records how many segments each edge merged.</p>
     </div>
 
     <div class="section level2">

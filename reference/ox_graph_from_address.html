@@ -66,7 +66,12 @@
 
 
 <dt id="arg-network-type">network_type<a class="anchor" aria-label="anchor" href="#arg-network-type"></a></dt>
-<dd><p>One of <code>"drive"</code>, <code>"walk"</code>, <code>"bike"</code> or <code>"all"</code>.</p></dd>
+<dd><p>One of <code>"drive"</code> (public drivable streets, service
+roads excluded), <code>"drive_service"</code> (drivable including service roads),
+<code>"walk"</code> (walkable public ways, excluding ways whose sidewalk is mapped
+as a separate way), <code>"bike"</code> (bikeable public ways), <code>"all"</code> (every way
+currently in use, private-access included) or <code>"all_public"</code>. The
+Overpass filters mirror OSMnx 2.1's, tag for tag.</p></dd>
 
 </dl></div>
     <div class="section level2">
