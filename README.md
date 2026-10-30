@@ -87,7 +87,11 @@ Overpass API used by [`osmdata`](https://docs.ropensci.org/osmdata/).
 ## Acknowledgements
 
 `osmnxr` owes its design to [Geoff Boeing](https://geoffboeing.com/)'s
-[OSMnx](https://osmnx.readthedocs.io/), and its data to the
+[OSMnx](https://osmnx.readthedocs.io/) (Boeing, G. 2025. "Modeling and
+Analyzing Urban Networks and Amenities with OSMnx." *Geographical Analysis*,
+57(4): 567–577. doi:[10.1111/gean.70009](https://doi.org/10.1111/gean.70009)).
+It follows OSMnx's API and modelling choices; the code is a reimplementation
+and shares nothing with it. Its data come from the
 [OpenStreetMap](https://www.openstreetmap.org/) contributors and the public
 [Overpass](https://overpass-api.de/) and
 [Nominatim](https://nominatim.openstreetmap.org/) services.

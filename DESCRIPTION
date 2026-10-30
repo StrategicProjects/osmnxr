@@ -30,9 +30,10 @@ Authors@R: c(
            comment = "Bundled Rust crate once_cell"),
     person("Unicode, Inc.", role = "cph",
            comment = "Bundled Rust crate unicode-ident (Unicode-3.0 data tables)"))
-Description: A 'tidyverse'-friendly toolkit, inspired by the 'OSMnx' 'Python'
-    library, to download, model, simplify, analyze and visualize street networks
-    and other geospatial features from 'OpenStreetMap'. Build routable graphs
+Description: A 'tidyverse'-friendly toolkit to download, model, simplify,
+    analyze and visualize street networks and other geospatial features from
+    'OpenStreetMap', following the design of the 'OSMnx' 'Python' library
+    (Boeing, 2025, <doi:10.1111/gean.70009>). Build routable graphs
     from a place name, address, point or bounding box; simplify topology;
     compute shortest paths, isochrones and urban metrics (intersection density,
     circuity, street-orientation entropy, centrality); and export to 'sf',

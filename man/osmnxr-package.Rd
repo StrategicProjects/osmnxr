@@ -4,20 +4,26 @@
 \name{osmnxr-package}
 \alias{osmnxr}
 \alias{osmnxr-package}
-\title{osmnxr: Download, Model and Analyze 'OpenStreetMap' Street Networks}
+\title{osmnxr: OpenStreetMap street networks for R}
 \description{
-\if{html}{\figure{logo.svg}{options: style='float: right' alt='logo' width='120'}}
-
-A 'tidyverse'-friendly toolkit, inspired by the 'OSMnx' 'Python' library, to download, model, simplify, analyze and visualize street networks and other geospatial features from 'OpenStreetMap'. Build routable graphs from a place name, address, point or bounding box; simplify topology; compute shortest paths, isochrones and urban metrics (intersection density, circuity, street-orientation entropy, centrality); and export to 'sf', 'sfnetworks' and 'MapLibre'. Heavy graph computation is performed by a bundled 'Rust' core.
+A tidyverse-friendly toolkit to download, model, simplify, analyze and
+visualize street networks and other geospatial features from
+OpenStreetMap. The design follows Geoff Boeing's OSMnx Python library:
+the public API mirrors its function names (\code{graph_from_place} becomes
+\code{\link[=ox_graph_from_place]{ox_graph_from_place()}}), and its modelling choices (network types, the
+Overpass filters, topology simplification, intersection consolidation,
+the urban metrics) are reproduced. The code is a reimplementation: no
+Python runtime is involved, and the graph algorithms run in the bundled
+Rust crate osmnxr-core (\url{https://strategicprojects.github.io/osmnxr-core/}).
+}
+\references{
+Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+with OSMnx. \emph{Geographical Analysis}, 57(4), 567--577.
+\doi{10.1111/gean.70009}
 }
 \seealso{
-Useful links:
-\itemize{
-  \item \url{https://github.com/StrategicProjects/osmnxr}
-  \item \url{https://strategicprojects.github.io/osmnxr/}
-  \item Report bugs at \url{https://github.com/StrategicProjects/osmnxr/issues}
-}
-
+OSMnx: \url{https://osmnx.readthedocs.io/}. The package website:
+\url{https://strategicprojects.github.io/osmnxr/}.
 }
 \author{
 \strong{Maintainer}: André Leite \email{leite@castlab.org} (\href{https://orcid.org/0000-0002-4718-9766}{ORCID})
@@ -35,7 +41,7 @@ Authors:
 Other contributors:
 \itemize{
   \item Srikanth Komala Sheshachala \email{sri.teach@gmail.com} (Issue reports and feature proposals (GitHub: talegari)) [contributor]
-  \item StrategicProjects [copyright holder, funder]
+  \item StrategicProjects (Also copyright holder of the bundled Rust crate osmnxr-core) [copyright holder, funder]
   \item The extendr authors (Bundled Rust crates extendr-api, extendr-ffi, extendr-macros) [copyright holder]
   \item David Tolnay (Bundled Rust crates proc-macro2, quote, syn, paste, readonly, unicode-ident) [copyright holder]
   \item Alex Crichton (Bundled Rust crate proc-macro2) [copyright holder]
