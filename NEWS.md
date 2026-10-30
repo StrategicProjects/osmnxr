@@ -2,7 +2,15 @@
 
 A parity pass against what OSMnx gained in 2025–2026 (releases 2.0.1–2.1.1),
 plus the OSMnx 2.0 features the simplification/consolidation step was
-missing.
+missing. The Rust core is now a crate of its own.
+
+* The graph algorithms (CSR graph, Dijkstra, Yen, Pareto/constrained
+  routing, TSP, centrality, simplification, snapping) moved unchanged to the
+  dependency-free crate [osmnxr-core](https://crates.io/crates/osmnxr-core)
+  (<https://strategicprojects.github.io/osmnxr-core/>), which the package
+  pins exactly and bundles in `src/rust/vendor.tar.xz`; `src/rust/src/lib.rs`
+  keeps only the extendr wrappers. Results do not change. Building from
+  source needs Rust 1.81 or later.
 
 * The Overpass network filters now mirror OSMnx 2.1's tag for tag, replacing
   the simplified highway-only regexes used so far. Downloads gain the

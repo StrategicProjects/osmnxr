@@ -16,7 +16,8 @@ Authors@R: c(
            comment = c(ORCID = "0009-0004-2851-7770")),
     person("Srikanth", "Komala Sheshachala", email = "sri.teach@gmail.com", role = "ctb",
            comment = "Issue reports and feature proposals (GitHub: talegari)"),
-    person("StrategicProjects", role = c("cph", "fnd")),
+    person("StrategicProjects", role = c("cph", "fnd"),
+           comment = "Also copyright holder of the bundled Rust crate osmnxr-core"),
     person("The extendr authors", role = "cph",
            comment = "Bundled Rust crates extendr-api, extendr-ffi, extendr-macros"),
     person("David Tolnay", role = "cph",
@@ -35,8 +36,8 @@ Description: A 'tidyverse'-friendly toolkit, inspired by the 'OSMnx' 'Python'
     from a place name, address, point or bounding box; simplify topology;
     compute shortest paths, isochrones and urban metrics (intersection density,
     circuity, street-orientation entropy, centrality); and export to 'sf',
-    'sfnetworks' and 'MapLibre'. Heavy graph computation is performed by a
-    bundled 'Rust' core.
+    'sfnetworks' and 'MapLibre'. Heavy graph computation is performed by the
+    bundled 'Rust' crate 'osmnxr-core'.
 Language: en-US
 License: MIT + file LICENSE
 URL: https://github.com/StrategicProjects/osmnxr,

@@ -50,7 +50,14 @@ name = "osmnxr"
 version = "0.1.0"
 dependencies = [
  "extendr-api",
+ "osmnxr-core",
 ]
+
+[[package]]
+name = "osmnxr-core"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f06bdd73f22cacadd1c4badb8b631300f0ff7a547528f35bab720d6236f848f6"
 
 [[package]]
 name = "paste"

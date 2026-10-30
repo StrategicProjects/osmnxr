@@ -1,13 +1,12 @@
+//! extendr wrappers over the `osmnxr-core` crate. Every function here only
+//! converts R vectors to 0-based `usize` indices, calls the crate and shapes
+//! the result into an R list; the algorithms live in
+//! <https://github.com/StrategicProjects/osmnxr-core>.
+
 use extendr_api::prelude::*;
 
-mod centrality;
-mod graph;
-mod metrics;
-mod routing;
-mod simplify;
-mod spatial;
-
-use graph::Graph;
+use osmnxr_core::graph::Graph;
+use osmnxr_core::{centrality, metrics, routing, simplify, spatial};
 
 /// Convert a 0-based R integer vector to `Vec<usize>`.
 fn as_idx(v: &[i32]) -> Vec<usize> {
