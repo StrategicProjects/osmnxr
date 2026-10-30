@@ -7,16 +7,18 @@ other geospatial features from
 [OpenStreetMap](https://www.openstreetmap.org/).
 
 It is a **reimplementation** — not a Python wrapper. Heavy graph
-computation (routing, simplification, metrics) runs in a bundled **Rust
-core** via [extendr](https://extendr.rs/), so there is no Python runtime
-to manage. Everything you get back is tidy
-[`sf`](https://r-spatial.github.io/sf/).
+computation (routing, simplification, metrics) runs in the bundled
+**Rust** crate
+[osmnxr-core](https://strategicprojects.github.io/osmnxr-core/) via
+[extendr](https://extendr.rs/), so there is no Python runtime to manage.
+Everything you get back is tidy [`sf`](https://r-spatial.github.io/sf/).
 
 ## Installation
 
 Install the released version from CRAN (macOS and Windows binaries need
 no Rust; building from source needs the **Rust toolchain**,
-[rustup](https://rustup.rs/)):
+[rustup](https://rustup.rs/), version 1.81 or later — the crates it
+depends on come with the package, nothing is downloaded):
 
 ``` r
 

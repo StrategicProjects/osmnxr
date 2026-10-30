@@ -70,11 +70,11 @@
 <!-- badges: start -->
 
 <p><strong>osmnxr</strong> is <em>OSMnx for R</em>: a tidyverse-friendly toolkit, inspired by the <a href="https://osmnx.readthedocs.io/" class="external-link">OSMnx</a> Python library, to <strong>download, model, simplify, analyze and visualize</strong> street networks and other geospatial features from <a href="https://www.openstreetmap.org/" class="external-link">OpenStreetMap</a>.</p>
-<p>It is a <strong>reimplementation</strong> — not a Python wrapper. Heavy graph computation (routing, simplification, metrics) runs in a bundled <strong>Rust core</strong> via <a href="https://extendr.rs/" class="external-link">extendr</a>, so there is no Python runtime to manage. Everything you get back is tidy <a href="https://r-spatial.github.io/sf/" class="external-link"><code>sf</code></a>.</p>
+<p>It is a <strong>reimplementation</strong> — not a Python wrapper. Heavy graph computation (routing, simplification, metrics) runs in the bundled <strong>Rust</strong> crate <a href="https://strategicprojects.github.io/osmnxr-core/">osmnxr-core</a> via <a href="https://extendr.rs/" class="external-link">extendr</a>, so there is no Python runtime to manage. Everything you get back is tidy <a href="https://r-spatial.github.io/sf/" class="external-link"><code>sf</code></a>.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>Install the released version from CRAN (macOS and Windows binaries need no Rust; building from source needs the <strong>Rust toolchain</strong>, <a href="https://rustup.rs/" class="external-link">rustup</a>):</p>
+<p>Install the released version from CRAN (macOS and Windows binaries need no Rust; building from source needs the <strong>Rust toolchain</strong>, <a href="https://rustup.rs/" class="external-link">rustup</a>, version 1.81 or later — the crates it depends on come with the package, nothing is downloaded):</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"osmnxr"</span><span class="op">)</span></span></code></pre></div>
 <p>Or the development version from GitHub (always builds from source):</p>
