@@ -7,12 +7,15 @@ library(osmnxr)
 
 ## What is osmnxr?
 
-`osmnxr` is *OSMnx for R*: it downloads, models, analyzes and visualizes
-street networks from [OpenStreetMap](https://www.openstreetmap.org/).
-The public API is tidyverse-friendly and returns
-[`sf`](https://r-spatial.github.io/sf/) objects; the heavy graph
-computation (routing, metrics, simplification) runs in a bundled **Rust
-core**.
+`osmnxr` is an R port of [OSMnx](https://osmnx.readthedocs.io/), the
+Python library by Geoff Boeing (Boeing, 2025,
+[doi:10.1111/gean.70009](https://doi.org/10.1111/gean.70009)): it
+downloads, models, analyzes and visualizes street networks from
+[OpenStreetMap](https://www.openstreetmap.org/), following OSMnx’s
+interface and modelling choices. The public API is tidyverse-friendly
+and returns [`sf`](https://r-spatial.github.io/sf/) objects; the heavy
+graph computation (routing, metrics, simplification) runs in a bundled
+**Rust core**.
 
 The central object is the `osm_graph`: a pair of `sf` tables (nodes and
 edges) plus metadata.

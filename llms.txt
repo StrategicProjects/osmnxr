@@ -1,14 +1,22 @@
 # osmnxr
 
-**osmnxr** is *OSMnx for R*: a tidyverse-friendly toolkit, inspired by
-the [OSMnx](https://osmnx.readthedocs.io/) Python library, to
-**download, model, simplify, analyze and visualize** street networks and
-other geospatial features from
-[OpenStreetMap](https://www.openstreetmap.org/).
+**osmnxr** is an **R port of [OSMnx](https://osmnx.readthedocs.io/)**,
+the Python library created by [Geoff Boeing](https://geoffboeing.com/),
+to **download, model, simplify, analyze and visualize** street networks
+and other geospatial features from
+[OpenStreetMap](https://www.openstreetmap.org/). The interface, the
+modelling choices and the Overpass queries are OSMnx’s, translated to a
+tidyverse-friendly R API: the design is Geoff Boeing’s work, and this
+package is its translation. If you use osmnxr, please [cite
+OSMnx](#citation).
 
-It is a **reimplementation** — not a Python wrapper. Heavy graph
-computation (routing, simplification, metrics) runs in the bundled
-**Rust** crate
+> osmnxr is an independent project: it is not affiliated with,
+> maintained by or endorsed by the OSMnx project or its author. The port
+> was written with the assistance of AI coding tools (see [How this port
+> was made](#how-this-port-was-made)).
+
+It is a port, not a Python wrapper. Heavy graph computation (routing,
+simplification, metrics) runs in the bundled **Rust** crate
 [osmnxr-core](https://strategicprojects.github.io/osmnxr-core/) via
 [extendr](https://extendr.rs/), so there is no Python runtime to manage.
 Everything you get back is tidy [`sf`](https://r-spatial.github.io/sf/).
@@ -82,15 +90,46 @@ The pipeline, from a place name to an analyzable network:
 same Overpass API used by
 [`osmdata`](https://docs.ropensci.org/osmdata/).
 
+## Citation
+
+osmnxr is a port of OSMnx, so the work to cite is OSMnx:
+
+> Boeing, G. (2025). Modeling and Analyzing Urban Networks and Amenities
+> with OSMnx. *Geographical Analysis*, 57(4), 567–577.
+> <doi:%5B10.1111/gean.70009>\](<https://doi.org/10.1111/gean.70009>)
+
+`citation("osmnxr")` gives this reference first, followed by the entry
+for the R package itself.
+
+## How this port was made
+
+osmnxr translates [OSMnx](https://github.com/gboeing/osmnx) (MIT, ©
+Geoff Boeing) to R: function names (`graph_from_place` becomes
+[`ox_graph_from_place()`](https://strategicprojects.github.io/osmnxr/reference/ox_graph_from_place.md)),
+network types, default settings, the Overpass filters (reproduced tag
+for tag), topology simplification, intersection consolidation and the
+urban metrics all follow the original, and each release is checked for
+parity against OSMnx. The translation was done by the package authors
+with the assistance of AI coding tools; the R code and the Rust core
+were written for this package rather than copied line by line, but the
+intellectual contribution of the design is that of OSMnx’s author. The
+OSMnx copyright and license notice ships with the package in
+`inst/COPYRIGHTS`.
+
+A few things are not in OSMnx and are this package’s own: Pareto-optimal
+and constrained routing, travelling-salesman routes,
+[`ox_union()`](https://strategicprojects.github.io/osmnxr/reference/ox_union.md)/[`ox_blend()`](https://strategicprojects.github.io/osmnxr/reference/ox_blend.md),
+isochrones, and the converters to `sfnetworks`, `tidygraph`, `dodgr` and
+MapLibre. Differences from OSMnx’s behaviour are bugs in the port:
+please report them
+[here](https://github.com/StrategicProjects/osmnxr/issues), not to the
+OSMnx project.
+
 ## Acknowledgements
 
-`osmnxr` owes its design to [Geoff Boeing](https://geoffboeing.com/)’s
-[OSMnx](https://osmnx.readthedocs.io/) (Boeing, G. 2025. “Modeling and
-Analyzing Urban Networks and Amenities with OSMnx.” *Geographical
-Analysis*, 57(4): 567–577.
-<doi:%5B10.1111/gean.70009>\](<https://doi.org/10.1111/gean.70009>)). It
-follows OSMnx’s API and modelling choices; the code is a
-reimplementation and shares nothing with it. Its data come from the
+To [Geoff Boeing](https://geoffboeing.com/), for
+[OSMnx](https://osmnx.readthedocs.io/) and for a decade of maintaining
+it in the open. The data come from the
 [OpenStreetMap](https://www.openstreetmap.org/) contributors and the
 public [Overpass](https://overpass-api.de/) and
 [Nominatim](https://nominatim.openstreetmap.org/) services.
@@ -113,7 +152,10 @@ interface (#5 feedback).
 
 ## License
 
-MIT © André Leite and contributors / StrategicProjects.
+MIT © André Leite and contributors / StrategicProjects. OSMnx, which
+this package ports, is MIT © 2016–2026 Geoff Boeing; its notice is
+reproduced in
+[`inst/COPYRIGHTS`](https://strategicprojects.github.io/osmnxr/inst/COPYRIGHTS).
 
 # Package index
 

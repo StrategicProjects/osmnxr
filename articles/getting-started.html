@@ -76,9 +76,11 @@
 <div class="section level2">
 <h2 id="what-is-osmnxr">What is osmnxr?<a class="anchor" aria-label="anchor" href="#what-is-osmnxr"></a>
 </h2>
-<p><code>osmnxr</code> is <em>OSMnx for R</em>: it downloads, models,
-analyzes and visualizes street networks from <a href="https://www.openstreetmap.org/" class="external-link">OpenStreetMap</a>. The public API
-is tidyverse-friendly and returns <a href="https://r-spatial.github.io/sf/" class="external-link"><code>sf</code></a> objects; the
+<p><code>osmnxr</code> is an R port of <a href="https://osmnx.readthedocs.io/" class="external-link">OSMnx</a>, the Python library by
+Geoff Boeing (Boeing, 2025, <a href="https://doi.org/10.1111/gean.70009" class="external-link">doi:10.1111/gean.70009</a>):
+it downloads, models, analyzes and visualizes street networks from <a href="https://www.openstreetmap.org/" class="external-link">OpenStreetMap</a>, following
+OSMnx’s interface and modelling choices. The public API is
+tidyverse-friendly and returns <a href="https://r-spatial.github.io/sf/" class="external-link"><code>sf</code></a> objects; the
 heavy graph computation (routing, metrics, simplification) runs in a
 bundled <strong>Rust core</strong>.</p>
 <p>The central object is the <code>osm_graph</code>: a pair of
@@ -165,7 +167,7 @@ synthetic grid for quick experiments.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by André Leite, Marcos Wasiliew, Hugo Vasconcelos, Carlos Amorim, Diogo Bezerra, Júlia Nascimento Barreto, StrategicProjects.</p>
+  <p>Developed by André Leite, Marcos Wasiliew, Hugo Vasconcelos, Carlos Amorim, Diogo Bezerra, Júlia Nascimento Barreto, StrategicProjects. An R port of <a href="https://osmnx.readthedocs.io/" class="external-link">OSMnx</a> by Geoff Boeing (<a href="https://doi.org/10.1111/gean.70009" class="external-link">cite it</a>); not affiliated with or endorsed by the OSMnx project. Written with AI assistance.</p>
 </div>
 
 <div class="pkgdown-footer-right">

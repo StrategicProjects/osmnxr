@@ -45,25 +45,43 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/StrategicProjects/osmnxr/blob/main/DESCRIPTION)
+[`inst/CITATION`](https://github.com/StrategicProjects/osmnxr/blob/main/inst/CITATION)
+
+Boeing, G. (2025). Modeling and Analyzing Urban Networks and Amenities
+with OSMnx. Geographical Analysis, 57(4), 567-577.
+doi:10.1111/gean.70009
+
+    @Article{boeing2025,
+      title = {Modeling and Analyzing Urban Networks and Amenities with {OSMnx}},
+      author = {Geoff Boeing},
+      journal = {Geographical Analysis},
+      year = {2025},
+      volume = {57},
+      number = {4},
+      pages = {567--577},
+      doi = {10.1111/gean.70009},
+    }
 
 Leite A, Wasiliew M, Vasconcelos H, Amorim C, Bezerra D, Nascimento
-Barreto J (2026). *osmnxr: Download, Model and Analyze 'OpenStreetMap'
-Street Networks*. R package version 0.1.6,
-<https://github.com/StrategicProjects/osmnxr>.
+Barreto J (2026). *osmnxr: An R Port of OSMnx for OpenStreetMap Street
+Networks*. R package version 0.1.6. A port to R of OSMnx, by Geoff
+Boeing, <https://strategicprojects.github.io/osmnxr/>.
 
-    @Manual{,
-      title = {osmnxr: Download, Model and Analyze 'OpenStreetMap' Street Networks},
+    @Manual{osmnxr,
+      title = {{osmnxr}: An {R} Port of {OSMnx} for {OpenStreetMap} Street Networks},
       author = {André Leite and Marcos Wasiliew and Hugo Vasconcelos and Carlos Amorim and Diogo Bezerra and Júlia {Nascimento Barreto}},
       year = {2026},
-      note = {R package version 0.1.6},
-      url = {https://github.com/StrategicProjects/osmnxr},
+      note = {R package version 0.1.6. A port to R of OSMnx, by Geoff Boeing},
+      url = {https://strategicprojects.github.io/osmnxr/},
     }
 
 ## Additional details
 
     Authorship and copyright of bundled Rust code
     ==============================================
+
+    (osmnxr as a whole is a port to R of OSMnx, copyright (c) 2016-2026 Geoff
+    Boeing, MIT: see inst/COPYRIGHTS. This file covers the bundled Rust crates.)
 
     The osmnxr package's Rust compute core is the crate osmnxr-core
     (https://github.com/StrategicProjects/osmnxr-core, MIT, same authors as the
