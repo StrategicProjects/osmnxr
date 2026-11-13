@@ -4,17 +4,24 @@
 \name{osmnxr-package}
 \alias{osmnxr}
 \alias{osmnxr-package}
-\title{osmnxr: OpenStreetMap street networks for R}
+\title{osmnxr: an R port of OSMnx}
 \description{
-A tidyverse-friendly toolkit to download, model, simplify, analyze and
-visualize street networks and other geospatial features from
-OpenStreetMap. The design follows Geoff Boeing's OSMnx Python library:
-the public API mirrors its function names (\code{graph_from_place} becomes
+An R port of OSMnx, the Python library by Geoff Boeing, to download,
+model, simplify, analyze and visualize street networks and other
+geospatial features from OpenStreetMap. The design is that of OSMnx: the
+public API translates its function names (\code{graph_from_place} becomes
 \code{\link[=ox_graph_from_place]{ox_graph_from_place()}}), and its modelling choices (network types, the
 Overpass filters, topology simplification, intersection consolidation,
-the urban metrics) are reproduced. The code is a reimplementation: no
-Python runtime is involved, and the graph algorithms run in the bundled
-Rust crate osmnxr-core (\url{https://strategicprojects.github.io/osmnxr-core/}).
+the urban metrics) are reproduced. No Python runtime is involved: the R
+layer was written for this package and the graph algorithms run in the
+bundled Rust crate osmnxr-core
+(\url{https://strategicprojects.github.io/osmnxr-core/}). The port was made
+with the assistance of AI coding tools. osmnxr is not affiliated with or
+endorsed by the OSMnx project; OSMnx's copyright notice is in
+\code{system.file("COPYRIGHTS", package = "osmnxr")}.
+}
+\details{
+If you use osmnxr, please cite the OSMnx paper below.
 }
 \references{
 Boeing, G. (2025). Modeling and analyzing urban networks and amenities

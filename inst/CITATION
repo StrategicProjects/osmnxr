@@ -1,0 +1,40 @@
+citHeader(
+  "osmnxr is an R port of OSMnx. If you use it, please cite the OSMnx paper;",
+  "cite the R package as well if you want to record the software you ran."
+)
+
+bibentry(
+  bibtype = "Article",
+  key     = "boeing2025",
+  title   = "Modeling and Analyzing Urban Networks and Amenities with {OSMnx}",
+  author  = person("Geoff", "Boeing"),
+  journal = "Geographical Analysis",
+  year    = "2025",
+  volume  = "57",
+  number  = "4",
+  pages   = "567--577",
+  doi     = "10.1111/gean.70009",
+  textVersion = paste(
+    "Boeing, G. (2025). Modeling and Analyzing Urban Networks and Amenities",
+    "with OSMnx. Geographical Analysis, 57(4), 567-577.",
+    "doi:10.1111/gean.70009"
+  )
+)
+
+bibentry(
+  bibtype = "Manual",
+  key     = "osmnxr",
+  title   = "{osmnxr}: An {R} Port of {OSMnx} for {OpenStreetMap} Street Networks",
+  author  = c(
+    person("Andr\u00e9", "Leite"),
+    person("Marcos", "Wasiliew"),
+    person("Hugo", "Vasconcelos"),
+    person("Carlos", "Amorim"),
+    person("Diogo", "Bezerra"),
+    person("J\u00falia", "Nascimento Barreto")
+  ),
+  year    = format(Sys.Date(), "%Y"),
+  note    = paste0("R package version ", meta$Version,
+                   ". A port to R of OSMnx, by Geoff Boeing"),
+  url     = "https://strategicprojects.github.io/osmnxr/"
+)

@@ -1,5 +1,13 @@
 # osmnxr 0.1.6
 
+* **Credit.** osmnxr is a port of [OSMnx](https://osmnx.readthedocs.io/) by
+  Geoff Boeing, and earlier releases understated that by calling it "inspired
+  by" OSMnx. The title, description, README, website and package help now say
+  so; the OSMnx MIT copyright notice ships in `inst/COPYRIGHTS`;
+  `citation("osmnxr")` gives Boeing (2025) <doi:10.1111/gean.70009> first; and
+  the documentation states that the port was AI-assisted and that the package
+  is not affiliated with the OSMnx project.
+
 A parity pass against what OSMnx gained in 2025–2026 (releases 2.0.1–2.1.1),
 plus the OSMnx 2.0 features the simplification/consolidation step was
 missing. The Rust core is now a crate of its own.

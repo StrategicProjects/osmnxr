@@ -36,11 +36,12 @@ navbar:
           href: articles/interoperability.html
 
 home:
-  title: "osmnxr: OpenStreetMap street networks for R"
+  title: "osmnxr: an R port of OSMnx"
   description: >
-    A tidyverse-friendly toolkit, inspired by the OSMnx Python library, to
-    download, model, simplify, analyze and visualize street networks from
-    OpenStreetMap, powered by a bundled Rust core.
+    An R port of OSMnx, the Python library by Geoff Boeing, to download,
+    model, simplify, analyze and visualize street networks from
+    OpenStreetMap, with a bundled Rust core. Not affiliated with the OSMnx
+    project.
 
 reference:
   - title: "Download networks"
@@ -130,5 +131,10 @@ reference:
 
 footer:
   structure:
-    left: developed_by
+    left: [developed_by, lineage]
     right: built_with
+  components:
+    lineage: >
+      An R port of [OSMnx](https://osmnx.readthedocs.io/) by Geoff Boeing
+      ([cite it](https://doi.org/10.1111/gean.70009)); not affiliated with or
+      endorsed by the OSMnx project. Written with AI assistance.

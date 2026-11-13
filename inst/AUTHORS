@@ -1,6 +1,9 @@
 Authorship and copyright of bundled Rust code
 ==============================================
 
+(osmnxr as a whole is a port to R of OSMnx, copyright (c) 2016-2026 Geoff
+Boeing, MIT: see inst/COPYRIGHTS. This file covers the bundled Rust crates.)
+
 The osmnxr package's Rust compute core is the crate osmnxr-core
 (https://github.com/StrategicProjects/osmnxr-core, MIT, same authors as the
 package), which has no dependencies of its own; the extendr bridge brings in

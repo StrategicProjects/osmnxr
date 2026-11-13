@@ -13,6 +13,7 @@
 ^\.github$
 ^plan\.md$
 ^CLAUDE\.md$
+^CITATION\.cff$
 ^CLAUDE\.local\.md$
 ^\.claude$
 ^memory$

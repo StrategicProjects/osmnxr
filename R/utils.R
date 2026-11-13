@@ -28,8 +28,9 @@ ox_fetch_json <- function(req) {
   out
 }
 
-# Overpass way filter per network type, mirroring OSMnx 2.1's
-# _get_network_filter() tag for tag: every way must have a highway tag, and
+# Overpass way filter per network type. These filters are OSMnx's: they
+# reproduce _get_network_filter() of OSMnx 2.1 (copyright (c) 2016-2026 Geoff
+# Boeing, MIT license; notice in inst/COPYRIGHTS) tag for tag: every way must have a highway tag, and
 # the clauses then remove ways incompatible with the requested network.
 network_filter <- function(network_type = c("drive", "drive_service", "walk",
                                             "bike", "all", "all_public")) {

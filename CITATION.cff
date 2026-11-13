@@ -1,0 +1,50 @@
+cff-version: 1.2.0
+message: "osmnxr is an R port of OSMnx. If you use it, please cite the OSMnx paper (preferred-citation)."
+title: "osmnxr: An R Port of OSMnx for OpenStreetMap Street Networks"
+type: software
+authors:
+  - family-names: Leite
+    given-names: "André"
+    email: leite@castlab.org
+    orcid: "https://orcid.org/0000-0002-4718-9766"
+  - family-names: Wasiliew
+    given-names: Marcos
+    orcid: "https://orcid.org/0009-0004-4694-3159"
+  - family-names: Vasconcelos
+    given-names: Hugo
+    orcid: "https://orcid.org/0000-0001-6249-0920"
+  - family-names: Amorim
+    given-names: Carlos
+    orcid: "https://orcid.org/0000-0001-6315-8305"
+  - family-names: Bezerra
+    given-names: Diogo
+    orcid: "https://orcid.org/0000-0002-1216-8674"
+  - family-names: "Nascimento Barreto"
+    given-names: "Júlia"
+    orcid: "https://orcid.org/0009-0004-2851-7770"
+repository-code: "https://github.com/StrategicProjects/osmnxr"
+url: "https://strategicprojects.github.io/osmnxr/"
+license: MIT
+preferred-citation:
+  type: article
+  title: "Modeling and Analyzing Urban Networks and Amenities with OSMnx"
+  authors:
+    - family-names: Boeing
+      given-names: Geoff
+  journal: "Geographical Analysis"
+  year: 2025
+  volume: 57
+  issue: 4
+  start: 567
+  end: 577
+  doi: 10.1111/gean.70009
+references:
+  - type: software
+    title: "OSMnx"
+    authors:
+      - family-names: Boeing
+        given-names: Geoff
+    repository-code: "https://github.com/gboeing/osmnx"
+    url: "https://osmnx.readthedocs.io/"
+    license: MIT
+    notes: "The Python library that osmnxr ports to R."
