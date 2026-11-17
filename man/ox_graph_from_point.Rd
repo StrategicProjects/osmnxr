@@ -30,3 +30,10 @@ Download a street network around a point
 g <- ox_graph_from_point(c(-34.89, -8.05), dist = 800)
 \dontshow{\}) # examplesIf}
 }
+\references{
+osmnxr is an R port of OSMnx. If you use it, please cite:
+
+Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+with OSMnx. \emph{Geographical Analysis}, 57(4), 567--577.
+\doi{10.1111/gean.70009}
+}

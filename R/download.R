@@ -17,6 +17,12 @@
 #' number of attempts are configurable via [ox_settings()].
 #'
 #' @return An [osm_graph][new_osm_graph].
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examplesIf interactive()
@@ -38,6 +44,12 @@ ox_graph_from_bbox <- function(bbox, network_type = "drive") {
 #' @inheritParams ox_graph_from_bbox
 #'
 #' @return An [osm_graph][new_osm_graph].
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examplesIf interactive()
@@ -59,6 +71,12 @@ ox_graph_from_point <- function(point, dist = 1000, network_type = "drive") {
 #' @inheritParams ox_graph_from_bbox
 #'
 #' @return An [osm_graph][new_osm_graph].
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examplesIf interactive()
@@ -78,6 +96,12 @@ ox_graph_from_place <- function(query, network_type = "drive") {
 #' @inheritParams ox_graph_from_bbox
 #'
 #' @return An [osm_graph][new_osm_graph].
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examplesIf interactive()

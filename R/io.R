@@ -10,6 +10,12 @@
 #' @param layer Which layer to write: `"edges"` (default) or `"nodes"`.
 #'
 #' @return `path`, invisibly.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -39,6 +45,12 @@ ox_to_geojson <- function(g, path, layer = c("edges", "nodes")) {
 #'
 #' @return A named list with `sources` and `layers`, invisibly written data to
 #'   `path`.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -77,6 +89,12 @@ xml_escape <- function(x) {
 #' @param path Output `.graphml` path.
 #'
 #' @return `path`, invisibly.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -147,6 +165,12 @@ ox_save_graphml <- function(g, path) {
 #' @param path Path to a `.graphml` file.
 #'
 #' @return An [osm_graph][new_osm_graph].
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples

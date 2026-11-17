@@ -37,3 +37,10 @@ invariant that keeps routing results and drawn geometry in agreement.
 g <- example_osm_graph()
 ox_validate(g)
 }
+\references{
+osmnxr is an R port of OSMnx. If you use it, please cite:
+
+Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+with OSMnx. \emph{Geographical Analysis}, 57(4), 567--577.
+\doi{10.1111/gean.70009}
+}

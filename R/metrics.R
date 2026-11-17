@@ -10,6 +10,12 @@
 #' @param weight Edge column used as length/weight. Default `"length"`.
 #'
 #' @return A one-row [tibble][tibble::tibble] of statistics.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -43,6 +49,12 @@ as_bearings <- function(x) {
 #' @param num_bins Number of equal bearing sectors over `[0, 360)`. Default `36`.
 #'
 #' @return A numeric scalar (entropy in nats).
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -61,6 +73,12 @@ ox_orientation_entropy <- function(x, num_bins = 36) {
 #' @param g An [osm_graph][new_osm_graph].
 #'
 #' @return A numeric vector of bearings, one per edge.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -92,6 +110,12 @@ ox_bearings <- function(g) {
 #' @param title Optional plot title.
 #'
 #' @return A `ggplot` object.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examplesIf rlang::is_installed("ggplot2")
@@ -137,6 +161,12 @@ ox_plot_orientation <- function(x, num_bins = 36, fill = "#0d3b66", title = "Str
 #'
 #' @return A [tibble][tibble::tibble] with column `osmid` plus one column per
 #'   requested measure.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -167,6 +197,12 @@ ox_centrality <- function(g, type = c("betweenness", "closeness"),
 #' @param g An [osm_graph][new_osm_graph].
 #'
 #' @return A numeric scalar (>= 1).
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples

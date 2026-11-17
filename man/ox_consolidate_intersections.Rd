@@ -40,3 +40,10 @@ g <- example_osm_graph(n = 4, spacing = 100)
 # nothing is within 10 units here, so the graph is unchanged
 ox_consolidate_intersections(g, tolerance = 10)
 }
+\references{
+osmnxr is an R port of OSMnx. If you use it, please cite:
+
+Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+with OSMnx. \emph{Geographical Analysis}, 57(4), 567--577.
+\doi{10.1111/gean.70009}
+}

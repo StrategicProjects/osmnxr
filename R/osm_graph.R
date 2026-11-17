@@ -137,6 +137,12 @@ plot.osm_graph <- function(x, nodes = FALSE, col = "#0d3b66", lwd = 0.7, ...) {
 #'
 #' @param g An `osm_graph`.
 #' @return A named list with `sf` elements `nodes` and `edges`.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -195,6 +201,12 @@ bind_sf_rows <- function(xs, geom_name) {
 #'   distinct input types (e.g. `"drive+walk"`), `meta$simplified` is `TRUE`
 #'   only if every input was simplified, and `meta$union_of` records how many
 #'   graphs were combined.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -297,6 +309,12 @@ ox_union <- function(..., dedupe_edges = TRUE) {
 #' @param title Optional panel title.
 #'
 #' @return Invisibly, the `osm_graph`.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples

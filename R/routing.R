@@ -9,6 +9,12 @@
 #' @param x,y Numeric vectors of coordinates in the graph's CRS.
 #'
 #' @return An integer/numeric vector of node `osmid`s, one per input point.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -35,6 +41,12 @@ ox_nearest_nodes <- function(g, x, y) {
 #'
 #' @return A vector of node `osmid`s describing the path (length 0 if the
 #'   target is unreachable).
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -70,6 +82,12 @@ ox_shortest_path <- function(g, from, to, weight = "length") {
 #' @return A [tibble][tibble::tibble] with one row per path: `rank`, `cost` and
 #'   a list-column `path` of node `osmid`s, ordered by increasing cost. Fewer
 #'   than `k` rows are returned when fewer distinct paths exist.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -115,6 +133,12 @@ ox_k_shortest_paths <- function(g, from, to, k = 3, weight = "length") {
 #' @return An `sf` tibble with one row per route: `route` (rank), `cost`, a
 #'   list-column `path` of the node `osmid`s traversed, and the route's merged
 #'   street geometry. An error is raised when `to` is unreachable from `from`.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -178,6 +202,12 @@ ox_route_shortest <- function(g, from, to, weight = "length", k = 1) {
 #'
 #' @return A numeric matrix (`length(from)` x `length(to)`) with `osmid`
 #'   dimnames; `Inf` marks unreachable pairs.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -234,6 +264,12 @@ ox_distance_matrix <- function(g, from, to = from, weight = "length") {
 #'   `to` (node `osmid`s), `cost` (network distance in `weight` units), a
 #'   list-column `path` of the `osmid`s traversed, and the leg's `LINESTRING`
 #'   geometry. The total route cost is `sum(out$cost)`.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -341,6 +377,12 @@ ox_route_tsp <- function(g, nodes, weight = "length",
 #'   increasing cost (and decreasing resource): `route` (rank), `cost`,
 #'   `resource`, a list-column `path` of the node `osmid`s traversed, and the
 #'   route's merged street geometry.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -418,6 +460,12 @@ ox_route_pareto <- function(g, from, to, weight = "length", resource,
 #'   list-column `path` of the node `osmid`s traversed, and the route's merged
 #'   street geometry. An error is raised when no route fits the budget (the
 #'   message reports the minimum feasible resource).
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -530,6 +578,12 @@ edge_path_geometry <- function(rows, g) {
 #'
 #' @return A [tibble][tibble::tibble] with columns `osmid` and `distance`
 #'   (`Inf` for unreachable nodes).
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples

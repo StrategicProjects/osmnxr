@@ -42,6 +42,12 @@ default_settings <- function() {
 #'
 #' @return A named list of settings (current values, or the previous values
 #'   invisibly when updating).
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -71,6 +77,12 @@ ox_settings <- function(...) {
 #' transparently on demand; clearing them only frees memory.
 #'
 #' @return Invisibly `NULL`.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples

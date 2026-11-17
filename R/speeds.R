@@ -26,6 +26,12 @@ default_speeds <- function() {
 #' @param fallback Speed (km/h) for edges with no matching class. Default `40`.
 #'
 #' @return The [osm_graph][new_osm_graph] with a `speed_kph` edge column.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -68,6 +74,12 @@ ox_add_edge_speeds <- function(g, speeds = NULL, fallback = 40) {
 #' @param name Name of the new edge column. Default `"penalty"`.
 #'
 #' @return The [osm_graph][new_osm_graph] with the penalty edge column added.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -100,6 +112,12 @@ ox_add_edge_penalties <- function(g, penalties, weight = "length", name = "penal
 #'
 #' @return The [osm_graph][new_osm_graph] with `speed_kph` and `travel_time`
 #'   edge columns.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples

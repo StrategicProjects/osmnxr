@@ -28,3 +28,10 @@ the bounding box of the matched place.
 g <- ox_graph_from_place("Olinda, Brazil", network_type = "drive")
 \dontshow{\}) # examplesIf}
 }
+\references{
+osmnxr is an R port of OSMnx. If you use it, please cite:
+
+Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+with OSMnx. \emph{Geographical Analysis}, 57(4), 567--577.
+\doi{10.1111/gean.70009}
+}

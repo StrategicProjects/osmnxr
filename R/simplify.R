@@ -29,6 +29,12 @@
 #'
 #' @return A simplified [osm_graph][new_osm_graph] (with `meta$simplified =
 #'   TRUE`).
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -156,6 +162,12 @@ ox_simplify <- function(g, edge_attr_aggs = NULL) {
 #'
 #' @return A consolidated [osm_graph][new_osm_graph] (with `meta$consolidated =
 #'   TRUE`).
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -245,6 +257,12 @@ ox_consolidate_intersections <- function(g, tolerance = 10) {
 #' @param x,y Numeric vectors of coordinates in the graph's CRS.
 #'
 #' @return An `sf` subset of `g$edges`, one row per input point.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples

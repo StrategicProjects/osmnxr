@@ -10,6 +10,12 @@
 #'   `"rome"` (the organic centro storico of Rome, Italy).
 #'
 #' @return An [osm_graph][new_osm_graph].
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples
@@ -33,6 +39,12 @@ ox_example <- function(name = c("olinda", "manhattan", "rome")) {
 #' @param spacing Distance between adjacent nodes, in CRS units. Default `100`.
 #'
 #' @return An [osm_graph][new_osm_graph] in an arbitrary projected CRS.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples

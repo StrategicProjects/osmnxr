@@ -22,6 +22,12 @@
 #' @return An `sf` object with one polygon row per cutoff (columns `cutoff`,
 #'   `n_nodes`, `geometry`), ordered from largest to smallest cutoff so smaller
 #'   areas draw on top.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examples

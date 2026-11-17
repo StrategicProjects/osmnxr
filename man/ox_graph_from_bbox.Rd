@@ -34,3 +34,10 @@ bbox <- c(-34.91, -8.07, -34.87, -8.04)
 g <- ox_graph_from_bbox(bbox, network_type = "drive")
 \dontshow{\}) # examplesIf}
 }
+\references{
+osmnxr is an R port of OSMnx. If you use it, please cite:
+
+Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+with OSMnx. \emph{Geographical Analysis}, 57(4), 567--577.
+\doi{10.1111/gean.70009}
+}

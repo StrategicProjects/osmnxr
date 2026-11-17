@@ -20,8 +20,10 @@ installed on this machine, not from the package.
   <doi:10.1111/gean.70009>): earlier releases said "inspired by", which
   understated it. The OSMnx MIT copyright notice now ships in
   `inst/COPYRIGHTS` (referenced by the new `Copyright` field), and
-  `inst/CITATION` gives the OSMnx paper first. Authors and maintainer are
-  unchanged.
+  `inst/CITATION` gives the OSMnx paper first. With his consent, Geoff Boeing is
+  now listed in `Authors@R` (`aut`, `cph`) as the author and copyright holder
+  of the original work, and the package authors carry the additional role
+  `trl` (translators to R). The maintainer is unchanged.
 * The Rust compute core is now the crate 'osmnxr-core' (same authors, MIT),
   pinned exactly and vendored with the other Rust dependencies in
   `src/rust/vendor.tar.xz`, so the package builds offline. Cargo/rustc

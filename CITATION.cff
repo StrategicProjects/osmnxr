@@ -31,6 +31,7 @@ preferred-citation:
   authors:
     - family-names: Boeing
       given-names: Geoff
+      orcid: "https://orcid.org/0000-0003-1851-6411"
   journal: "Geographical Analysis"
   year: 2025
   volume: 57
@@ -44,6 +45,7 @@ references:
     authors:
       - family-names: Boeing
         given-names: Geoff
+        orcid: "https://orcid.org/0000-0003-1851-6411"
     repository-code: "https://github.com/gboeing/osmnx"
     url: "https://osmnx.readthedocs.io/"
     license: MIT

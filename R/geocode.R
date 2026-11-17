@@ -10,6 +10,12 @@
 #'
 #' @return A [tibble][tibble::tibble] with columns `display_name`, `lat`,
 #'   `lon`, `osm_type`, `osm_id` and `class`.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examplesIf interactive()
@@ -41,6 +47,12 @@ ox_geocode <- function(query, limit = 1) {
 #' @inheritParams ox_geocode
 #'
 #' @return An `sf` object (one row per result) in EPSG:4326.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examplesIf interactive()

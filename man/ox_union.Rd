@@ -49,3 +49,10 @@ u
 # unioning overlapping graphs dedupes shared nodes and edges
 nrow(ox_union(g1, g1)$edges) == nrow(g1$edges)
 }
+\references{
+osmnxr is an R port of OSMnx. If you use it, please cite:
+
+Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+with OSMnx. \emph{Geographical Analysis}, 57(4), 567--577.
+\doi{10.1111/gean.70009}
+}

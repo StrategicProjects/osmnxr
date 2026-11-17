@@ -24,3 +24,10 @@ Geometry is transformed to EPSG:4326, the GeoJSON standard CRS.
 g <- example_osm_graph()
 ox_to_geojson(g, tempfile(fileext = ".geojson"))
 }
+\references{
+osmnxr is an R port of OSMnx. If you use it, please cite:
+
+Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+with OSMnx. \emph{Geographical Analysis}, 57(4), 567--577.
+\doi{10.1111/gean.70009}
+}

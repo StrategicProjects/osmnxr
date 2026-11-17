@@ -43,6 +43,19 @@ home:
     OpenStreetMap, with a bundled Rust core. Not affiliated with the OSMnx
     project.
 
+authors:
+  Geoff Boeing:
+    href: https://geoffboeing.com/
+  footer:
+    roles: [trl]
+    text: "R port developed by"
+  sidebar:
+    roles: [aut, cre]
+    after: >
+      Geoff Boeing is the author and copyright holder of
+      [OSMnx](https://osmnx.readthedocs.io/), the original work; the other
+      authors translated it to R and maintain the port.
+
 reference:
   - title: "Download networks"
     desc: "Build routable street graphs from OpenStreetMap."

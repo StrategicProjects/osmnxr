@@ -16,6 +16,12 @@ add_from_to <- function(nodes, edges) {
 #' @param directed Build a directed network. Default `TRUE`.
 #'
 #' @return An `sfnetwork`.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examplesIf rlang::is_installed("sfnetworks")
@@ -38,6 +44,12 @@ ox_as_sfnetwork <- function(g, directed = TRUE) {
 #' @param directed Build a directed graph. Default `TRUE`.
 #'
 #' @return A `tbl_graph`.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examplesIf rlang::is_installed("tidygraph")
@@ -62,6 +74,12 @@ ox_as_tidygraph <- function(g, directed = TRUE) {
 #'   `"length"`.
 #'
 #' @return A `data.frame` `dodgr` graph.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examplesIf rlang::is_installed("dodgr")

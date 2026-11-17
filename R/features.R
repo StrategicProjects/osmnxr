@@ -63,6 +63,12 @@ features_to_sf <- function(res) {
 #'
 #' @return An `sf` of `POINT` features with `osm_type`, `osm_id` and one column
 #'   per tag encountered.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examplesIf interactive()
@@ -89,6 +95,12 @@ ox_features_from_bbox <- function(bbox, tags) {
 #'   `2000`.
 #'
 #' @return An `sf` of `POINT` features.
+#' @references
+#' osmnxr is an R port of OSMnx. If you use it, please cite:
+#'
+#' Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+#' with OSMnx. *Geographical Analysis*, 57(4), 567--577.
+#' \doi{10.1111/gean.70009}
 #' @export
 #'
 #' @examplesIf interactive()
