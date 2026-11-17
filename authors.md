@@ -2,20 +2,28 @@
 
 ## Authors
 
-- **André Leite**. Author, maintainer.
+- **André Leite**. Author, translator, maintainer.
   [](https://orcid.org/0000-0002-4718-9766)
 
-- **Marcos Wasiliew**. Author. [](https://orcid.org/0009-0004-4694-3159)
+- **Marcos Wasiliew**. Author, translator.
+  [](https://orcid.org/0009-0004-4694-3159)
 
-- **Hugo Vasconcelos**. Author.
+- **Hugo Vasconcelos**. Author, translator.
   [](https://orcid.org/0000-0001-6249-0920)
 
-- **Carlos Amorim**. Author. [](https://orcid.org/0000-0001-6315-8305)
+- **Carlos Amorim**. Author, translator.
+  [](https://orcid.org/0000-0001-6315-8305)
 
-- **Diogo Bezerra**. Author. [](https://orcid.org/0000-0002-1216-8674)
+- **Diogo Bezerra**. Author, translator.
+  [](https://orcid.org/0000-0002-1216-8674)
 
-- **Júlia Nascimento Barreto**. Author.
+- **Júlia Nascimento Barreto**. Author, translator.
   [](https://orcid.org/0009-0004-2851-7770)
+
+- **[Geoff Boeing](https://geoffboeing.com/)**. Author, copyright
+  holder. [](https://orcid.org/0000-0003-1851-6411)  
+  Author and copyright holder of 'OSMnx', the 'Python' library that this
+  package ports to R
 
 - **Srikanth Komala Sheshachala**. Contributor.  
   Issue reports and feature proposals (GitHub: talegari)

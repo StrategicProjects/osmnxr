@@ -9,7 +9,10 @@
   `inst/COPYRIGHTS`; `citation("osmnxr")` gives Boeing (2025)
   <doi:10.1111/gean.70009> first; and the documentation states that the
   port was AI-assisted and that the package is not affiliated with the
-  OSMnx project.
+  OSMnx project. With his consent, Geoff Boeing is listed in
+  `DESCRIPTION` as author and copyright holder of the original work, and
+  the package authors as its translators to R (`trl`). Every function
+  help page now carries the Boeing (2025) reference.
 
 A parity pass against what OSMnx gained in 2025–2026 (releases
 2.0.1–2.1.1), plus the OSMnx 2.0 features the

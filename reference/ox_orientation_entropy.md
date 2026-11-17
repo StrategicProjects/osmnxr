@@ -27,6 +27,14 @@ ox_orientation_entropy(x, num_bins = 36)
 
 A numeric scalar (entropy in nats).
 
+## References
+
+osmnxr is an R port of OSMnx. If you use it, please cite:
+
+Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+with OSMnx. *Geographical Analysis*, 57(4), 567–577.
+[doi:10.1111/gean.70009](https://doi.org/10.1111/gean.70009)
+
 ## Examples
 
 ``` r

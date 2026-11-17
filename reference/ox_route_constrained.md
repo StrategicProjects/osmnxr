@@ -78,6 +78,14 @@ Two solvers, both in the Rust core:
   optimal it can be (`cost == lower_bound` proves optimality; a message
   reports any gap).
 
+## References
+
+osmnxr is an R port of OSMnx. If you use it, please cite:
+
+Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+with OSMnx. *Geographical Analysis*, 57(4), 567–577.
+[doi:10.1111/gean.70009](https://doi.org/10.1111/gean.70009)
+
 ## Examples
 
 ``` r

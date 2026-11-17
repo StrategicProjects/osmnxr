@@ -129,9 +129,11 @@ OSMnx project.
 
 To [Geoff Boeing](https://geoffboeing.com/), for
 [OSMnx](https://osmnx.readthedocs.io/) and for a decade of maintaining
-it in the open. The data come from the
-[OpenStreetMap](https://www.openstreetmap.org/) contributors and the
-public [Overpass](https://overpass-api.de/) and
+it in the open. With his consent, he is listed in the package
+`DESCRIPTION` as author and copyright holder of the original work; the
+package authors are the translators and maintainers of the R port. The
+data come from the [OpenStreetMap](https://www.openstreetmap.org/)
+contributors and the public [Overpass](https://overpass-api.de/) and
 [Nominatim](https://nominatim.openstreetmap.org/) services.
 
 Thanks to everyone who files issues — user reports shape this package.

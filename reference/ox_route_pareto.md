@@ -72,6 +72,14 @@ The bicriteria problem is NP-hard in general — the front can be large on
 pathological inputs — but on street networks with sparse penalties the
 pruned search is fast. Use `max_routes` to cap the enumeration.
 
+## References
+
+osmnxr is an R port of OSMnx. If you use it, please cite:
+
+Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+with OSMnx. *Geographical Analysis*, 57(4), 567–577.
+[doi:10.1111/gean.70009](https://doi.org/10.1111/gean.70009)
+
 ## Examples
 
 ``` r

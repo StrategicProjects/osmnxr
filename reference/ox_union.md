@@ -43,6 +43,14 @@ street graph wherever its edges reference street-node `osmid`s. Custom
 networks should therefore use node ids that do not collide with OSM's
 except where a connection is intended (negative ids are a safe choice).
 
+## References
+
+osmnxr is an R port of OSMnx. If you use it, please cite:
+
+Boeing, G. (2025). Modeling and analyzing urban networks and amenities
+with OSMnx. *Geographical Analysis*, 57(4), 567–577.
+[doi:10.1111/gean.70009](https://doi.org/10.1111/gean.70009)
+
 ## Examples
 
 ``` r
