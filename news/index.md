@@ -22,7 +22,7 @@ crate of its own.
 - The graph algorithms (CSR graph, Dijkstra, Yen, Pareto/constrained
   routing, TSP, centrality, simplification, snapping) moved unchanged to
   the dependency-free crate
-  [osmnxr-core](https://crates.io/crates/osmnxr-core)
+  [osmnxr-core](https://docs.rs/crate/osmnxr-core/latest)
   (<https://strategicprojects.github.io/osmnxr-core/>), which the
   package pins exactly and bundles in `src/rust/vendor.tar.xz`;
   `src/rust/src/lib.rs` keeps only the extendr wrappers. Results do not
