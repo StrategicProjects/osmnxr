@@ -6,6 +6,15 @@ Tested locally with `R CMD check --as-cran` on macOS (R 4.6.0). The only
 local message is "Skipping checking HTML validation", from the HTML Tidy
 installed on this machine, not from the package.
 
+win-builder (R-devel) reports 1 NOTE, from the incoming checks: "Possibly
+misspelled words in DESCRIPTION: Geoff". It is the given name of Geoff
+Boeing, the author of 'OSMnx', and is spelled correctly.
+
+The URL <https://doi.org/10.1111/gean.70009> (README and one vignette) is
+valid: it is the DOI of the paper the package asks users to cite. It
+redirects to the publisher's site (Wiley), which sits behind a Cloudflare
+challenge and may answer 403 to automated requests.
+
 ## Notes for CRAN
 
 * This is an update (0.1.2 -> 0.1.6; versions 0.1.3 to 0.1.5 were not
